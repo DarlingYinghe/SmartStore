@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/stock_in"
+        android:title="@string/stock_in"
+        android:icon="@drawable/stock_in_unselected"/>
+    <item android:id="@+id/stock_out"
+        android:title="@string/stock_out"
+        android:icon="@drawable/stock_out_unselected"/>
+</menu>
