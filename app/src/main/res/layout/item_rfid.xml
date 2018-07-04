@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="20dp">
+
+    <TextView
+        android:id="@+id/rifd_id"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="id"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/rfid_type" />
+
+    <TextView
+        android:id="@+id/rfid_type"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="type"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        app:layout_constraintHorizontal_weight="2"
+        app:layout_constraintLeft_toRightOf="@id/rifd_id"
+        app:layout_constraintRight_toLeftOf="@id/rfid_epc" />
+
+    <TextView
+        android:id="@+id/rfid_epc"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="rfid"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        app:layout_constraintHorizontal_weight="4"
+        app:layout_constraintLeft_toRightOf="@id/rfid_type"
+        app:layout_constraintRight_toRightOf="parent" />
+
+</android.support.constraint.ConstraintLayout>

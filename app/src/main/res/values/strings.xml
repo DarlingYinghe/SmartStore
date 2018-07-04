@@ -11,4 +11,20 @@
     <!--底部导航栏-->
     <string name="stock_in">入库</string>
     <string name="stock_out">出库</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="stock_in_start_scan">开始</string>
+    <string name="stock_in_stop_scan">停止</string>
+
+    <string name="lose_configurationfile">配置文件丢失</string>
+    <string name="success">success</string>
+    <string name="exception_occurred">发生异常,异常信息:%s</string>
+    <string name="type">类型</string>
+    <string name="submit">提交</string>
+    <string name="describe_hint">请输入备注</string>
+    <string name="stock_in_reset_scan">重置</string>
+    <string name="stock_in_submit_scan">提交</string>
+
+
 </resources>

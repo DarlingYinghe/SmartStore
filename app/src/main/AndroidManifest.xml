@@ -10,15 +10,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".view.LoginActivity"
-            android:theme="@style/AppTheme">
+            android:name=".login.view.LoginActivity"
+            android:theme="@style/AppTheme"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.MainActivity"></activity>
+        <activity android:name=".main.MainActivity" android:launchMode="singleTask"/>
+        <activity android:name=".stock_in.view.ScanActivity" android:launchMode="singleTask"/>
     </application>
 
 </manifest>
