@@ -1,10 +1,16 @@
 package com.sicong.smartstore.stock_in.data.model;
 
+import java.util.List;
+
+/**
+ * 扫描的数据的统计值
+ */
 public class Statistic {
 
     private String typeFirst;
     private String typeSecond;
     private int num;
+    private List<String> rfid;
 
     public String getTypeSecond() {
         return typeSecond;
@@ -28,5 +34,13 @@ public class Statistic {
 
     public void setTypeFirst(String typeFirst) {
         this.typeFirst = typeFirst;
+    }
+
+    public List<String> getRfid() {
+        return rfid;
+    }
+
+    public void setRfid(List<String> rfid) {
+        this.rfid = rfid;
     }
 }

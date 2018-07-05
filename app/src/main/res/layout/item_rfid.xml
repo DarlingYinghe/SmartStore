@@ -13,28 +13,39 @@
         android:textSize="15sp"
         app:layout_constraintHorizontal_weight="1"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/rfid_type" />
+        app:layout_constraintRight_toLeftOf="@id/rfid_type_first" />
 
     <TextView
-        android:id="@+id/rfid_type"
+        android:id="@+id/rfid_type_first"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="type"
+        android:text="type_first"
         android:textColor="@color/black"
         android:textSize="15sp"
         app:layout_constraintHorizontal_weight="2"
         app:layout_constraintLeft_toRightOf="@id/rifd_id"
-        app:layout_constraintRight_toLeftOf="@id/rfid_epc" />
+        app:layout_constraintRight_toLeftOf="@id/rfid_type_second" />
 
     <TextView
-        android:id="@+id/rfid_epc"
+        android:id="@+id/rfid_type_second"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="type_second"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        app:layout_constraintHorizontal_weight="2"
+        app:layout_constraintLeft_toRightOf="@id/rfid_type_first"
+        app:layout_constraintRight_toLeftOf="@id/rfid_rfid" />
+
+    <TextView
+        android:id="@+id/rfid_rfid"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="rfid"
         android:textColor="@color/black"
         android:textSize="15sp"
         app:layout_constraintHorizontal_weight="4"
-        app:layout_constraintLeft_toRightOf="@id/rfid_type"
+        app:layout_constraintLeft_toRightOf="@id/rfid_type_second"
         app:layout_constraintRight_toRightOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

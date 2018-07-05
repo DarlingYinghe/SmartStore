@@ -35,8 +35,9 @@ public class ScanInfoAdapter extends RecyclerView.Adapter {
         ViewHolder view = (ViewHolder) holder;
 
         view.id.setText(String.valueOf(position+1));
-        view.type.setText(mList.get(position).getTypeSecond());
-        view.epc.setText(mList.get(position).getRfid());
+        view.type_first.setText(mList.get(position).getTypeFirst());
+        view.type_second.setText(mList.get(position).getTypeSecond());
+        view.rfid.setText(mList.get(position).getRfid());
     }
 
 
@@ -49,14 +50,16 @@ public class ScanInfoAdapter extends RecyclerView.Adapter {
     class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView id;//扫描的顺序编号的视图
-        TextView type;//物品类型的视图
-        TextView epc;//rfid码的视图
+        TextView type_first;//一级物品类型的视图
+        TextView type_second;//二级物品类型的视图
+        TextView rfid;//rfid码的视图
 
         public ViewHolder(View itemView) {
             super(itemView);
             id = (TextView) itemView.findViewById(R.id.rifd_id);
-            type = (TextView) itemView.findViewById(R.id.rfid_type);
-            epc = (TextView) itemView.findViewById(R.id.rfid_epc);
+            type_first = (TextView) itemView.findViewById(R.id.rfid_type_first);
+            type_second=(TextView) itemView.findViewById(R.id.rfid_type_second);
+            rfid = (TextView) itemView.findViewById(R.id.rfid_rfid);
         }
     }
 

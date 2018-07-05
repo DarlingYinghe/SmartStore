@@ -1,5 +1,6 @@
 package com.sicong.smartstore.main;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.MenuItem;
 
 import com.sicong.smartstore.R;
+import com.sicong.smartstore.stock_in.data.model.Statistic;
 import com.sicong.smartstore.stock_in.view.StockInFragment;
 import com.sicong.smartstore.stock_in.view.StockOutFragment;
 import com.sicong.smartstore.stock_in.data.model.Cargo;
@@ -21,10 +23,13 @@ public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = "MainActivity";
 
-    public static String operatorId = "16905121";//操作人员的id
-    public static List<Cargo> cargos;//扫描到的货物结果
+    private String operatorId = "16905121";//操作人员的id
+    private String check;//校验码
+    private List<Statistic> statistics;//统计结果
 
-    private ViewPager pagers;//分页I
+
+
+    private ViewPager pagers;//分页
     private BottomNavigationView bottomNav;//底部导航栏
 
     @Override
@@ -34,7 +39,14 @@ public class MainActivity extends AppCompatActivity {
         initView();//初始化控件
         initPagers();//初始化分页
         initBottomNav();//初始化底部导航栏
+        initRecevicerFromScan();//
+    }
 
+    private void initRecevicerFromScan() {
+        Intent intent = getIntent();
+        if(intent!=null&&intent.hasExtra("statisticList")) {
+
+        }
     }
 
     /**
@@ -123,6 +135,22 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+    public String getOperatorId() {
+        return operatorId;
+    }
+
+    public void setOperatorId(String operatorId) {
+        this.operatorId = operatorId;
+    }
+
+    public String getCheck() {
+        return check;
+    }
+
+    public void setCheck(String check) {
+        this.check = check;
     }
 
 

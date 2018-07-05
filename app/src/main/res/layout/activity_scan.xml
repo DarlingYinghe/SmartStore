@@ -11,20 +11,20 @@
     <include
         android:id="@+id/scan_type_first"
         layout="@layout/item_choose"
-        android:layout_height="wrap_content"
         android:layout_width="0dp"
+        android:layout_height="56dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <include
         android:id="@+id/scan_type_second"
         layout="@layout/item_choose"
-        android:layout_height="wrap_content"
         android:layout_width="0dp"
+        android:layout_height="56dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/scan_type_first"/>
+        app:layout_constraintTop_toBottomOf="@id/scan_type_first" />
 
 
     <android.support.v7.widget.RecyclerView
@@ -37,7 +37,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/scan_type_second"
-        app:layout_constraintVertical_bias="0.0">
+        app:layout_constraintVertical_bias="0.0"
+        android:background="@drawable/bg_text_area">
 
     </android.support.v7.widget.RecyclerView>
 

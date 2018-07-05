@@ -1,19 +1,24 @@
 package com.sicong.smartstore.stock_in.view;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatButton;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.sicong.smartstore.R;
-import com.sicong.smartstore.stock_in.data.model.Cargo;
-import com.sicong.smartstore.stock_in.data.model.InventoryResult;
+import com.sicong.smartstore.main.MainActivity;
+import com.sicong.smartstore.stock_in.data.model.CargoInMessage;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
+
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,45 +26,78 @@ import java.util.List;
 public class StockInFragment extends Fragment {
 
     private static final String TAG = "StockInFragment";
+    private static final int SEND_SUCCESS=1;
+    private static final int SEND_FAIL=0;
+    private static final int SEND_ERROR = -1;
     //data
-    private List<Cargo> cargos = null;//入库货物数组
-    private List<Cargo> cargosClone = null;//复制一个用于统计
+    private String check = null;//校验码
     private String operatorId = null;//操作员
     private String describe = null;//描述内容
-    private String response = null;//K服务器回应
-    private List<Statistic> statistics = new ArrayList<Statistic>();//统计总数列表
+    private List<Statistic> statisticList;//统计数据集合
+    private CargoInMessage cargoInMessage;//发送的数据包
 
-    private InventoryResult inventoryResult = null;//发送的数据包
-
-    private final static String  URL_POST_INVENTORY= "";
+    private final static String  URL_POST_CARGO_IN_MESSAGE= "";
 
     //view
     private EditText describeView;//描述视图
     private AppCompatButton submit;//提交的按钮
     private AppCompatButton toScan;//前往扫描的Activity的按钮
 
+    private Handler handler;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_stock_in, container, false);
         initView(view);//初始化控件
-        initObject();//初始化一些对象
+        initHandler();//初始化handler
         initSubmit();//初始化提交按钮
         initToScan();//初始化前往Activity的按钮
 
         return view;
     }
 
-    private void initObject() {
-        cargos = new ArrayList<Cargo>();
+    private void initHandler() {
+        handler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                switch (msg.what) {
+                    case SEND_SUCCESS:
+                        Toast.makeText(getContext(),"提交成功",Toast.LENGTH_SHORT);
+                        break;
+                    case SEND_FAIL:
+                        Toast.makeText(getContext(),"提交失败",Toast.LENGTH_SHORT);
+                        break;
+                    case SEND_ERROR:
+                        Toast.makeText(getContext(),"提交异常，请检查网络环境",Toast.LENGTH_SHORT);
+                        break;
+                }
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        check = ((MainActivity)context).getCheck();
+        operatorId = ((MainActivity)context).getOperatorId();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        Intent intent = getActivity().getIntent();
+        if(intent.hasExtra("statisticList")) {
+            receiveStatisticList(intent);
+            packCargoInMessage();
+        }
+    }
 
-
-        receiveScanResult();
+    private void packCargoInMessage() {
+        cargoInMessage.setCheck(check);
+        cargoInMessage.setOperatorId(operatorId);
+        cargoInMessage.setStatistic(statisticList);
     }
 
     /**
@@ -96,57 +134,50 @@ public class StockInFragment extends Fragment {
     /**
      * 用于接收ScantActivity的发送过来的数据
      */
-    private void receiveScanResult() {
-        Intent intent = getActivity().getIntent();
-        if(intent.hasExtra("cargos")) {
-            cargos = (List<Cargo>) intent.getSerializableExtra("cargos");
-            //统计
-            cargosClone.addAll(cargos);
-            int count=0;
-            for (int i = 0; i < cargosClone.size(); i++) {
-                count=0;
-                for (int j = i+1; j < cargosClone.size(); j++) {
-                    if(cargosClone.get(i) == cargosClone.get(j)){
-                        count++;
-                        cargosClone.remove(j);
-                        j--;
-                    }
+    private void receiveStatisticList(Intent intent) {
+        statisticList = new ArrayList<>();
+        statisticList = (List<Statistic>) intent.getSerializableExtra("statisticList");
+            //测试代码
+            /*for (int i = 0; i < statisticList.size(); i++) {
+                System.out.println(statisticList.get(i).getTypeFirst()+" "+statisticList.get(i).getTypeSecond());
+                for (int j = 0; j < statisticList.get(i).getRfid().size(); j++) {
+                    System.out.println(statisticList.get(i).getRfid().get(j));
                 }
-
-                Statistic statistic = new Statistic();
-                statistic.setTypeSecond(cargosClone.get(i).getTypeSecond());
-                statistic.setNum(count);
-                statistics.add(statistic);
-                System.out.println(cargosClone.get(i)+">>>"+count);
-            }
-            for (int i = 0; i < cargos.size(); i++) {
-                Log.e(TAG, "receiveScanResult: " + cargos.get(i).getRfid(), null);
-            }
-        }
+            }*/
     }
 
     /**
      * 提交最终结果
      */
     private void submit() {
-        //获取描述内容
+        setDescribe();
+        sendCargoInMessage();
+    }
+
+    public void setDescribe() {
         describe = describeView.getText().toString();
+        cargoInMessage.setDescribe(describe);
+    }
 
-        //创建数据包
-        inventoryResult = new InventoryResult();
-        inventoryResult.setCargos(cargos);
-        inventoryResult.setOperatorId(operatorId);
-        inventoryResult.setDescribe(describe);
+    private void sendCargoInMessage() {
+        Thread sendThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    RestTemplate restTemplate = new RestTemplate();
+                    String response = restTemplate.postForObject(URL_POST_CARGO_IN_MESSAGE, cargoInMessage, String.class);
+                    if(response.equals("success")) {
+                        handler.sendEmptyMessage(SEND_SUCCESS);
+                    } else {
+                        handler.sendEmptyMessage(SEND_FAIL);
+                    }
+                }catch (Exception e){
+                    handler.sendEmptyMessage(SEND_ERROR);
+                }
 
-        //测试代码
-        for (int i = 0;i<inventoryResult.getCargos().size();i++) {
-            Log.e(TAG, "submit: "+inventoryResult.getCargos().get(i).getRfid(), null);
-        }
-
-        /******************发送数据******************/
-        /*RestTemplate restTemplate = new RestTemplate();
-        String response = restTemplate.postForObject(URL_POST_INVENTORY, inventoryResult, String.class);*/
-        /*******************************************/
+            }
+        });
+        sendThread.start();
     }
 
 

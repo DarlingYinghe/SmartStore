@@ -3,7 +3,6 @@ package com.sicong.smartstore.stock_in.view;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
@@ -16,22 +15,18 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sicong.smartstore.R;
+import com.sicong.smartstore.main.MainActivity;
 import com.sicong.smartstore.stock_in.adapter.ScanInfoAdapter;
-import com.sicong.smartstore.util.fn.u6.model.Message;
+import com.sicong.smartstore.stock_in.data.model.Cargo;
+import com.sicong.smartstore.stock_in.data.model.Statistic;
 import com.sicong.smartstore.util.fn.u6.model.ResponseHandler;
 import com.sicong.smartstore.util.fn.u6.model.Tag;
 import com.sicong.smartstore.util.fn.u6.operation.IUSeries;
 import com.sicong.smartstore.util.fn.u6.operation.U6Series;
-import com.sicong.smartstore.main.MainActivity;
-import com.sicong.smartstore.stock_in.data.model.Cargo;
-import com.sicong.smartstore.stock_in.data.model.InventoryResult;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -40,15 +35,15 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ScanActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class ScanActivity extends AppCompatActivity {
 
+    //基本数据
     private static final String TAG = "ScanFragment";
 
     private String model = "U6";
     private String URL_POST_SCAN_RESULTS = "";
-    private static final String URL_GET_TYPE_FIST = "";
-    private static final String URL_GET_TYPE_SECOND = "";
 
+    //视图
     private AppCompatButton startScan;//开始扫描按钮
     private AppCompatButton stopScan;//停止扫描按钮
     private AppCompatButton resetScan;//重置按钮
@@ -56,21 +51,29 @@ public class ScanActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private View typeViewFirst;//一级类型选择器的布局视图
     private View typeViewSecond;//二级类型选择器的布局视图
-    private Spinner chooseTypeFirst;//一级类型选择器
-    private Spinner chooseTypeSecond;//二级类型选择器
+    private TextView textTypeFirst;//一级选择器的标题
+    private TextView textTypeSecond;//二级选择器的标题
+    private Spinner spinnerTypeFirst;//一级类型选择器
+    private Spinner spinnerTypeSecond;//二级类型选择器
 
     private RecyclerView scanInfoView;//扫描信息的列表
 
+    //适配器
     private ScanInfoAdapter scanInfoAdapter;//扫描信息的列标的适配器
-    ArrayAdapter<String> typeAdapterFirst;//一级类型适配器
-    ArrayAdapter<String> typeAdapterSecond;//二级类型适配器
+    private ArrayAdapter<String> typeFirstAdapter;//一级类型适配器
+    private ArrayAdapter<String> typeSecondAdapter;//二级类型适配器
 
+    //数据
     public IUSeries mUSeries;//扫描工具
-    List<String> InventoryTaps = new ArrayList<String>();//已扫描RFID集合：已扫描过的rfid码，避免重复
-    List<Cargo> cargos = new ArrayList<Cargo>();//货物对象集合：扫描的所有物品的集合
-    String[] typesFirst = null;//一级类型数组
-    String[] typesSecond = null;//二级类型数据
+    private List<String> InventoryTaps = new ArrayList<String>();//已扫描RFID集合：已扫描过的rfid码，避免重复
+    private List<Cargo> cargos = new ArrayList<Cargo>();//货物对象集合：扫描的所有物品的集合
 
+    private String typeFirst;
+    private String typeSecond;
+    private List<String> typeFirstList;
+    private List<String> typeSecondList;
+
+    private Statistic statistic;
 
     public ScanActivity() {
         // Required empty public constructor
@@ -89,13 +92,15 @@ public class ScanActivity extends AppCompatActivity implements AdapterView.OnIte
         initResetScan();//初始化重置扫描
         initSubmitScan();//初始化提交扫描
 
+        initTextType();//初始化选择器的标题
         initChooseType();//初始化类型选择器
         initScanInfo();//初始化扫描信息视图
     }
 
+
+
     /**
      * 初始化控件
-     *
      */
     private void initView() {
         startScan = (AppCompatButton) findViewById(R.id.scan_btn_start);
@@ -103,11 +108,14 @@ public class ScanActivity extends AppCompatActivity implements AdapterView.OnIte
         resetScan = (AppCompatButton) findViewById(R.id.scan_btn_reset);
         submitScan = (AppCompatButton) findViewById(R.id.scan_btn_submit);
 
-        typeViewFirst = (View)findViewById(R.id.scan_type_first);
-        typeViewSecond = (View)findViewById(R.id.scan_type_second);
+        typeViewFirst = (View) findViewById(R.id.scan_type_first);
+        typeViewSecond = (View) findViewById(R.id.scan_type_second);
 
-        chooseTypeFirst = (Spinner) typeViewFirst.findViewById(R.id.item_choose_type);
-        chooseTypeSecond = (Spinner)typeViewSecond.findViewById(R.id.item_choose_type);
+        spinnerTypeFirst = (Spinner) typeViewFirst.findViewById(R.id.item_choose_type);
+        spinnerTypeSecond = (Spinner) typeViewSecond.findViewById(R.id.item_choose_type);
+
+        textTypeFirst = (TextView)typeViewFirst.findViewById(R.id.item_choose_tv);
+        textTypeSecond = (TextView)typeViewSecond.findViewById(R.id.item_choose_tv);
 
         scanInfoView = (RecyclerView) findViewById(R.id.scan_info_view);
     }
@@ -150,30 +158,65 @@ public class ScanActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     /**
+     * 初始化选择器的标题
+     */
+    private void initTextType() {
+        textTypeFirst.setText(R.string.type_first);
+        textTypeSecond.setText(R.string.type_second);
+    }
+
+    /**
      * 初始化类型选择器
      */
     private void initChooseType() {
-        typesFirst = getTypesFirst();
-        typesSecond = getTypesSecond();
-
-        if (typesFirst != null) {
-            typeAdapterFirst = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, typesFirst);
-            typeAdapterFirst.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            chooseTypeFirst.setAdapter(typeAdapterFirst);
-            chooseTypeFirst.setOnItemSelectedListener(this);
-        } else {
-            //如果数据为空，如何处理
+        //初始化第一、第二级类型的数组
+        typeFirstList = new ArrayList<String>();
+        typeSecondList = new ArrayList<String>();
+        setTypeFirstList();
+        for (int i = 0; i < typeSecondList.size(); i++) {
+            Log.e(TAG, "initChooseType: "+typeSecondList.get(i), null);
+        }
+        setTypeSecondList(typeFirstList.get(0));
+        for (int i = 0; i < typeSecondList.size(); i++) {
+            Log.e(TAG, "initChooseType: "+typeSecondList.get(i), null);
         }
 
-        if (typesSecond != null) {
-            typeAdapterSecond = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, typesSecond);
-            typeAdapterSecond.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            chooseTypeSecond.setAdapter(typeAdapterSecond);
-            chooseTypeSecond.setOnItemSelectedListener(this);
-        } else {
-            //如果数据为空，如何处理
-        }
+        //初始化第一级类型选择器
+        typeFirstAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, typeFirstList);
+        typeFirstAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTypeFirst.setAdapter(typeFirstAdapter);
+        spinnerTypeFirst.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                setTypeSecondList(typeFirstList.get(position));
+                typeSecondAdapter.notifyDataSetChanged();
+                typeFirst = typeFirstList.get(position);
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //初始化第二级类型选择器
+        typeSecondAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, typeSecondList);
+        typeSecondAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTypeSecond.setAdapter(typeSecondAdapter);
+        spinnerTypeSecond.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                typeSecond = typeSecondList.get(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
+
 
     /**
      * 初始化扫描工具
@@ -182,9 +225,9 @@ public class ScanActivity extends AppCompatActivity implements AdapterView.OnIte
         U6Series.setContext(this);
         mUSeries = U6Series.getInstance();
 
-        /*Message openSerialPortMessage = */mUSeries.openSerialPort(model);
+        /*Message openSerialPortMessage = */
+        mUSeries.openSerialPort(model);
     }
-
 
 
     /**
@@ -230,14 +273,13 @@ public class ScanActivity extends AppCompatActivity implements AdapterView.OnIte
             public void onSuccess(String msg, Object data, byte[] parameters) {
                 Log.e(TAG, "onSuccess: 启动了", null);
                 List<Tag> InventoryOnceResult = (List<Tag>) data;//一次扫描到的数据，因为不排除扫描到周围其他物体的可能性，故用数组接收结果，但是数组内部已做好对其他数组的过滤
-                String typeFirst = "类型1";//获取一级类型Spinner中的数据
-                String typeSecond = "类型2";//获取二级类型Spinner中的数据
+
 
 
                 //对扫描结果进行筛选
                 for (int i = 0; i < InventoryOnceResult.size(); i++) {
                     Tag map = InventoryOnceResult.get(i);
-                    Log.e(TAG, "onSuccess: " + map.epc, null);
+                    Log.e(TAG, "onSuccess");
 
                     if (!InventoryTaps.contains(map.epc)) {//避免RFID码重复扫入
                         //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
@@ -281,14 +323,48 @@ public class ScanActivity extends AppCompatActivity implements AdapterView.OnIte
      */
     public void submit() {
         mUSeries.stopInventory();
-        /*if (cargos != null && cargos.size() > 0) {
-            toDescribeActivity(cargos, MainActivity.operatorId);
-        } else {
-            Toast.makeText(this, "无扫描结果，无法提交", Toast.LENGTH_SHORT).show();
+
+        List<Statistic> statisticList = new ArrayList<>();//存放统计数据的列表
+        List<String> types = new ArrayList<>();//储存已经统计过的类型，已经统计过的类型以字符串的形式存放到数组中，用于比对
+
+        for (int i = 0; i < cargos.size(); i++) {
+            Cargo cargo1 = cargos.get(i);
+            String typeFirstTmp = cargo1.getTypeFirst();//存放当前统计的一级类型
+            String typeSecondTmp = cargo1.getTypeSecond();//存放当前统计的二级类型
+            List<String> rfidList = new ArrayList<String>();
+
+            String tmp = typeFirstTmp+" "+typeSecondTmp;
+            int num=0;//当前物品的统计值
+            if(!types.contains(tmp)) {
+                types.add(tmp);
+                for (int j = 0; j < cargos.size(); j++) {//若当前扫描的物品与比对的物品相同，则归为同一类，该类物品的数量加一并从列表中移除。
+                    Cargo cargo2=cargos.get(j);
+                    if(cargo2.getTypeFirst().equals(typeFirstTmp)&&cargo2.getTypeSecond().equals(typeSecondTmp)){
+                        num++;
+                        rfidList.add(cargo2.getRfid());
+                        cargos.remove(j);
+                        j--;
+                    }
+                }
+            }
+            //将该类物品的统计结果加入统计集合中
+            Statistic statistic = new Statistic();
+            statistic.setNum(num);
+            statistic.setTypeFirst(typeFirstTmp);
+            statistic.setTypeSecond(typeSecondTmp);
+            statistic.setRfid(rfidList);
+            statisticList.add(statistic);
+        }
+        /*//测试代码
+        for (int i = 0; i < statisticList.size(); i++) {
+            System.out.println(statisticList.get(i).getTypeFirst()+" "+statisticList.get(i).getTypeSecond());
+            for (int j = 0; j < statisticList.get(i).getRfid().size(); j++) {
+                System.out.println(statisticList.get(i).getRfid().get(j));
+            }
         }*/
 
-        if (cargos != null && cargos.size() > 0) {
-            toMainActivity(cargos);
+        if (statisticList != null && statisticList.size() > 0) {
+            toMainActivity(statisticList);
         } else {
             Toast.makeText(this, "无扫描结果，无法提交", Toast.LENGTH_SHORT).show();
         }
@@ -303,69 +379,63 @@ public class ScanActivity extends AppCompatActivity implements AdapterView.OnIte
         InventoryTaps.clear();
     }
 
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-
+    /**
+     * 获取货物种类
+     *
+     * @return 货物种类的数组
+     */
+    public void setTypeFirstList() {
+        /**请求数据时记得查空**/
+        String[] strs = {"p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"};
+        typeFirstList.clear();
+        for (int i = 0; i < strs.length; i++) {
+            typeFirstList.add(strs[i]);
+        }
     }
 
     /**
      * 获取货物种类
+     *
      * @return 货物种类的数组
      */
-    public String[] getTypesFirst() {
-        RestTemplate restTemplate = new RestTemplate();
-        try {
-            String result = restTemplate.getForObject(URL_GET_TYPE_FIST, String.class);
-            JSONObject jsonResult = new JSONObject(result);
-            JSONArray jsonTypeArray = jsonResult.getJSONArray("typesFirst");
-            String[] types = new String[jsonTypeArray.length()];
-            for (int i = 0; i < jsonTypeArray.length(); i++) {
-                types[i] = jsonTypeArray.getString(i);
-            }
-            return types;
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "获取产品列表失败", Toast.LENGTH_SHORT);
-        }
-        return null;
-    }
+    public void setTypeSecondList(String typeFirst) {
+        /**请求数据时记得查空**/
+        switch (typeFirst) {
+            case "p1":
+                String[] strs1 = {"p11", "p12", "p13", "p14", "p15"};
+                typeSecondList.clear();
+                for (int i = 0; i < strs1.length; i++) {
+                    typeSecondList.add(strs1[i]);
+                }
+                typeSecond=typeSecondList.get(0);
+                break;
+            case "p2":
+                String[] strs2 = {"p21", "p22", "p23", "p24", "p25"};
+                typeSecondList.clear();
+                for (int i = 0; i < strs2.length; i++) {
+                    typeSecondList.add(strs2[i]);
+                }
+                typeSecond=typeSecondList.get(0);
+                break;
+                default:
+                    typeSecondList.clear();
+                    break;
 
-    /**
-     * 获取货物种类
-     * @return 货物种类的数组
-     */
-    public String[] getTypesSecond() {
-        RestTemplate restTemplate = new RestTemplate();
-        try {
-            String result = restTemplate.getForObject(URL_GET_TYPE_SECOND, String.class);
-            JSONObject jsonResult = new JSONObject(result);
-            JSONArray jsonTypeArray = jsonResult.getJSONArray("typesSecond");
-            String[] types = new String[jsonTypeArray.length()];
-            for (int i = 0; i < jsonTypeArray.length(); i++) {
-                types[i] = jsonTypeArray.getString(i);
-            }
-            return types;
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "获取产品列表失败", Toast.LENGTH_SHORT);
+
         }
-        return null;
     }
 
     /**
      * 跳转至MainActivity
      * 将扫描结果发送消息给MainActivity
-     * @param cargos 扫描后的货物数组
+     *
+     * @param statisticList 统计数据集合
      */
-    public void toMainActivity(List<Cargo> cargos) {
-        if(cargos==null || cargos.size()>0) {
+    public void toMainActivity(List<Statistic> statisticList) {
+        if (statisticList == null || statisticList.size() > 0) {
             Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("cargos", (Serializable) cargos);
+            intent.putExtra("statisticList", (Serializable) statisticList);
             startActivity(intent);
         }
         this.overridePendingTransition(R.anim.activity_in_right, R.anim.activity_out_left);
