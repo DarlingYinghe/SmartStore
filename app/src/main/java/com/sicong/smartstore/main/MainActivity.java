@@ -17,6 +17,7 @@ import com.sicong.smartstore.stock_in.view.StockInFragment;
 import com.sicong.smartstore.stock_in.view.StockOutFragment;
 import com.sicong.smartstore.stock_in.data.model.Cargo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -24,8 +25,8 @@ public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
 
     private String operatorId = "16905121";//操作人员的id
-    private String check;//校验码
-    private List<Statistic> statistics;//统计结果
+    private String check = "73EAB1";//校验码
+    private List<Statistic> statisticList;//统计结果
 
 
 
@@ -39,13 +40,12 @@ public class MainActivity extends AppCompatActivity {
         initView();//初始化控件
         initPagers();//初始化分页
         initBottomNav();//初始化底部导航栏
-        initRecevicerFromScan();//
     }
 
     private void initRecevicerFromScan() {
         Intent intent = getIntent();
         if(intent!=null&&intent.hasExtra("statisticList")) {
-
+            statisticList = (List<Statistic>) intent.getSerializableExtra("statisticList");
         }
     }
 
@@ -137,21 +137,29 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initRecevicerFromScan();
+    }
+
     public String getOperatorId() {
         return operatorId;
     }
 
-    public void setOperatorId(String operatorId) {
-        this.operatorId = operatorId;
-    }
 
     public String getCheck() {
         return check;
     }
 
-    public void setCheck(String check) {
-        this.check = check;
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
     }
 
-
+    public List<Statistic> getStatisticList() {
+        return statisticList;
+    }
 }

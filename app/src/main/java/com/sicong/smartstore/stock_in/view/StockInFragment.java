@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatButton;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,8 +27,8 @@ import java.util.List;
 public class StockInFragment extends Fragment {
 
     private static final String TAG = "StockInFragment";
-    private static final int SEND_SUCCESS=1;
-    private static final int SEND_FAIL=0;
+    private static final int SEND_SUCCESS = 1;
+    private static final int SEND_FAIL = 0;
     private static final int SEND_ERROR = -1;
     //data
     private String check = null;//校验码
@@ -36,7 +37,7 @@ public class StockInFragment extends Fragment {
     private List<Statistic> statisticList;//统计数据集合
     private CargoInMessage cargoInMessage;//发送的数据包
 
-    private final static String  URL_POST_CARGO_IN_MESSAGE= "";
+    private final static String URL_POST_CARGO_IN_MESSAGE = "";
 
     //view
     private EditText describeView;//描述视图
@@ -63,13 +64,13 @@ public class StockInFragment extends Fragment {
             public boolean handleMessage(Message msg) {
                 switch (msg.what) {
                     case SEND_SUCCESS:
-                        Toast.makeText(getContext(),"提交成功",Toast.LENGTH_SHORT);
+                        Toast.makeText(getContext(), "提交成功", Toast.LENGTH_SHORT).show();
                         break;
                     case SEND_FAIL:
-                        Toast.makeText(getContext(),"提交失败",Toast.LENGTH_SHORT);
+                        Toast.makeText(getContext(), "提交失败", Toast.LENGTH_SHORT).show();
                         break;
                     case SEND_ERROR:
-                        Toast.makeText(getContext(),"提交异常，请检查网络环境",Toast.LENGTH_SHORT);
+                        Toast.makeText(getContext(), "提交异常，请检查网络环境", Toast.LENGTH_SHORT).show();
                         break;
                 }
                 return false;
@@ -80,21 +81,39 @@ public class StockInFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        check = ((MainActivity)context).getCheck();
-        operatorId = ((MainActivity)context).getOperatorId();
+        Log.e(TAG, "onAttach: start", null);
+        check = ((MainActivity) context).getCheck();
+        operatorId = ((MainActivity) context).getOperatorId();
+        statisticList = ((MainActivity) context).getStatisticList();
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
         Intent intent = getActivity().getIntent();
-        if(intent.hasExtra("statisticList")) {
+        onAttach(getContext());
+        //测试代码
+        /*if (statisticList!=null){
+            for (int i = 0; i < statisticList.size(); i++) {
+                Log.e(TAG, "onAttach: "+statisticList.get(i).getTypeFirst(), null);
+            }
+        }
+        Log.e(TAG, "onResume: "+check, null);
+        Log.e(TAG, "onResume: "+operatorId, null);*/
+
+        if (intent.hasExtra("statisticList")) {
             receiveStatisticList(intent);
             packCargoInMessage();
         }
     }
 
+    /**
+     * 打包发送的数据
+     */
     private void packCargoInMessage() {
+        cargoInMessage = new CargoInMessage();
         cargoInMessage.setCheck(check);
         cargoInMessage.setOperatorId(operatorId);
         cargoInMessage.setStatistic(statisticList);
@@ -113,7 +132,9 @@ public class StockInFragment extends Fragment {
         toScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getActivity(), ScanActivity.class));
+                Intent intent = new Intent(getActivity(), ScanActivity.class);
+                intent.putExtra("check", check);
+                startActivity(intent);
             }
         });
     }
@@ -137,7 +158,7 @@ public class StockInFragment extends Fragment {
     private void receiveStatisticList(Intent intent) {
         statisticList = new ArrayList<>();
         statisticList = (List<Statistic>) intent.getSerializableExtra("statisticList");
-            //测试代码
+        //测试代码
             /*for (int i = 0; i < statisticList.size(); i++) {
                 System.out.println(statisticList.get(i).getTypeFirst()+" "+statisticList.get(i).getTypeSecond());
                 for (int j = 0; j < statisticList.get(i).getRfid().size(); j++) {
@@ -166,12 +187,13 @@ public class StockInFragment extends Fragment {
                 try {
                     RestTemplate restTemplate = new RestTemplate();
                     String response = restTemplate.postForObject(URL_POST_CARGO_IN_MESSAGE, cargoInMessage, String.class);
-                    if(response.equals("success")) {
+                    if (response.equals("success")) {
                         handler.sendEmptyMessage(SEND_SUCCESS);
                     } else {
                         handler.sendEmptyMessage(SEND_FAIL);
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
+                    e.printStackTrace();
                     handler.sendEmptyMessage(SEND_ERROR);
                 }
 

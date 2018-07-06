@@ -3,6 +3,9 @@ package com.sicong.smartstore.stock_in.view;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
@@ -22,15 +25,22 @@ import com.sicong.smartstore.R;
 import com.sicong.smartstore.main.MainActivity;
 import com.sicong.smartstore.stock_in.adapter.ScanInfoAdapter;
 import com.sicong.smartstore.stock_in.data.model.Cargo;
+import com.sicong.smartstore.stock_in.data.model.CargoInSendMessage;
+import com.sicong.smartstore.stock_in.data.model.CheckMessage;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
 import com.sicong.smartstore.util.fn.u6.model.ResponseHandler;
 import com.sicong.smartstore.util.fn.u6.model.Tag;
 import com.sicong.smartstore.util.fn.u6.operation.IUSeries;
 import com.sicong.smartstore.util.fn.u6.operation.U6Series;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.springframework.web.client.RestTemplate;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -39,6 +49,9 @@ public class ScanActivity extends AppCompatActivity {
 
     //基本数据
     private static final String TAG = "ScanFragment";
+    private static final String URL_RECEVICE_TYPE = "";
+    private static final int ERROR = -1;
+    private static final int FAIL = 0;
 
     private String model = "U6";
     private String URL_POST_SCAN_RESULTS = "";
@@ -58,6 +71,8 @@ public class ScanActivity extends AppCompatActivity {
 
     private RecyclerView scanInfoView;//扫描信息的列表
 
+    private Handler handler;
+
     //适配器
     private ScanInfoAdapter scanInfoAdapter;//扫描信息的列标的适配器
     private ArrayAdapter<String> typeFirstAdapter;//一级类型适配器
@@ -73,7 +88,9 @@ public class ScanActivity extends AppCompatActivity {
     private List<String> typeFirstList;
     private List<String> typeSecondList;
 
-    private Statistic statistic;
+    private String check;
+    private CargoInSendMessage cargoInSendMessage;
+    private List<Map<String,Object>> typeList;//包含两级类型的集合
 
     public ScanActivity() {
         // Required empty public constructor
@@ -85,6 +102,8 @@ public class ScanActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
         initView();//初始化控件
+        initReceive();//初始化接收数据
+        initHandler();//初始化Handler
         initUSeries();//初始化所需对象
 
         initStartScan();//初始化开始扫描
@@ -97,6 +116,30 @@ public class ScanActivity extends AppCompatActivity {
         initScanInfo();//初始化扫描信息视图
     }
 
+
+    private void initHandler() {
+        handler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                switch (msg.what) {
+                    case ERROR:
+                        Toast.makeText(ScanActivity.this,"获取产品类型异常，请检查网络环境", Toast.LENGTH_SHORT).show();
+                        break;
+                    case FAIL:
+                        Toast.makeText(ScanActivity.this,"获取产品数据失败",Toast.LENGTH_SHORT).show();
+                        break;
+                }
+                return false;
+            }
+        });
+    }
+
+    private void initReceive() {
+        Intent intent = getIntent();
+        check = intent.getStringExtra("check");
+        receiveType();
+        Log.e(TAG, "initReceive: check", null);
+    }
 
 
     /**
@@ -172,14 +215,18 @@ public class ScanActivity extends AppCompatActivity {
         //初始化第一、第二级类型的数组
         typeFirstList = new ArrayList<String>();
         typeSecondList = new ArrayList<String>();
+
         setTypeFirstList();
-        for (int i = 0; i < typeSecondList.size(); i++) {
-            Log.e(TAG, "initChooseType: "+typeSecondList.get(i), null);
+        //在确保typeFirstList可用的情况下对typeSecondList进行初始化
+        if(typeFirstList!=null&&typeFirstList.size()>0) {
+            try {
+                setTypeSecondList(typeFirstList.get(0));
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.e(TAG, "initChooseType: JSON格式解析错误", null);
+            }
         }
-        setTypeSecondList(typeFirstList.get(0));
-        for (int i = 0; i < typeSecondList.size(); i++) {
-            Log.e(TAG, "initChooseType: "+typeSecondList.get(i), null);
-        }
+
 
         //初始化第一级类型选择器
         typeFirstAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, typeFirstList);
@@ -188,7 +235,12 @@ public class ScanActivity extends AppCompatActivity {
         spinnerTypeFirst.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                setTypeSecondList(typeFirstList.get(position));
+                try {
+                    setTypeSecondList(typeFirstList.get(position));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Log.e(TAG, "initChooseType: JSON格式解析错误", null);
+                }
                 typeSecondAdapter.notifyDataSetChanged();
                 typeFirst = typeFirstList.get(position);
 
@@ -355,6 +407,36 @@ public class ScanActivity extends AppCompatActivity {
             statistic.setRfid(rfidList);
             statisticList.add(statistic);
         }
+        //测试代码,测试发送是否成功
+        List<String>  fType = new ArrayList<String>();
+        fType.add("p1");
+        fType.add("p2");
+        fType.add("p3");
+
+        List<String>  sType = new ArrayList<String>();
+        sType.add("p11");
+        sType.add("p21");
+        sType.add("p31");
+
+        for (int i = 0; i < 3; i++) {
+            Statistic statistic = new Statistic();
+            statistic.setNum(5);
+            statistic.setTypeFirst(fType.get(i));
+            statistic.setTypeSecond(sType.get(i));
+            List<String> rfidList = new ArrayList<>();
+            rfidList.add("1ADJAFIO");
+            rfidList.add("1DJIFOA");
+            rfidList.add("1ASJDFIO");
+            statistic.setRfid(rfidList);
+            statisticList.add(statistic);
+        }
+
+        for (int i = 0; i < statisticList.size(); i++) {
+            Log.e(TAG, "submit: "+statisticList.get(i).getTypeFirst()+" "+statisticList.get(i).getTypeSecond(), null);
+        }
+
+
+
         /*//测试代码
         for (int i = 0; i < statisticList.size(); i++) {
             System.out.println(statisticList.get(i).getTypeFirst()+" "+statisticList.get(i).getTypeSecond());
@@ -380,27 +462,70 @@ public class ScanActivity extends AppCompatActivity {
     }
 
 
+    public void receiveType(){
+        Thread receiveTypeThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    RestTemplate restTemplate = new RestTemplate();
+                    CheckMessage checkMessage = new CheckMessage(check);
+
+                    cargoInSendMessage = restTemplate.postForObject(URL_RECEVICE_TYPE, checkMessage, cargoInSendMessage.getClass());
+                    if(cargoInSendMessage!=null) {
+                        typeList = cargoInSendMessage.getType();
+                    } else {
+                        handler.sendEmptyMessage(FAIL);
+                    }
+                }catch (Exception e) {
+                    e.printStackTrace();
+                    handler.sendEmptyMessage(ERROR);
+                }
+            }
+        });
+        receiveTypeThread.start();
+    }
     /**
-     * 获取货物种类
-     *
-     * @return 货物种类的数组
+     * 获取一级物品类型
      */
     public void setTypeFirstList() {
-        /**请求数据时记得查空**/
+
+        if(typeFirstList.size()!=0) {
+            typeFirstList.clear();
+        }
+        if(typeList!=null&&typeList.size()>0) {
+            for (int i = 0; i < typeList.size(); i++) {
+                typeFirstList.add((String) typeList.get(i).get("typeFirst"));
+            }
+        }
+
+        /*//测试代码
         String[] strs = {"p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"};
         typeFirstList.clear();
         for (int i = 0; i < strs.length; i++) {
             typeFirstList.add(strs[i]);
-        }
+        }*/
     }
 
     /**
-     * 获取货物种类
-     *
-     * @return 货物种类的数组
+     * 获取二级物品类型
      */
-    public void setTypeSecondList(String typeFirst) {
-        /**请求数据时记得查空**/
+    public void setTypeSecondList(String typeFirst) throws JSONException {
+        if(typeSecondList.size()!=0) {
+            typeSecondList.clear();
+        }
+
+        if(typeList!=null) {
+            for (int i = 0; i < typeList.size(); i++) {
+                if (typeList.get(i).get("typeFirst").equals(typeFirst)) {
+                    JSONArray jsonArray = new JSONArray((String) typeList.get(i).get("typeSecond"));
+                    for (int j = 0; j < jsonArray.length(); j++) {
+                        typeSecondList.add(jsonArray.getString(j));
+                    }
+                    return;
+                }
+            }
+        }
+        /*//测试代码
         switch (typeFirst) {
             case "p1":
                 String[] strs1 = {"p11", "p12", "p13", "p14", "p15"};
@@ -423,7 +548,7 @@ public class ScanActivity extends AppCompatActivity {
                     break;
 
 
-        }
+        }*/
     }
 
     /**
