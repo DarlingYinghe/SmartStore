@@ -16,7 +16,7 @@ import java.util.List;
 
 public class StatisticAdapter extends RecyclerView.Adapter {
 
-    private static final String TAG = "ScanInfoAdapter";
+    private static final String TAG = "StockOutListAdapter";
     private Context mContext;
     private List<Statistic> mList;
 

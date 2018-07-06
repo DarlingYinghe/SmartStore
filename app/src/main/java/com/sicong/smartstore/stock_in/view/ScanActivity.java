@@ -563,7 +563,7 @@ public class ScanActivity extends AppCompatActivity {
             intent.putExtra("statisticList", (Serializable) statisticList);
             startActivity(intent);
         }
-        this.overridePendingTransition(R.anim.activity_in_right, R.anim.activity_out_left);
+        this.overridePendingTransition(R.anim.activity_out_left, R.anim.activity_in_right);
     }
 
     /*class postScanResults implements Runnable {

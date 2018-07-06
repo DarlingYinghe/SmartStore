@@ -15,7 +15,7 @@ import java.util.List;
 
 public class ScanInfoAdapter extends RecyclerView.Adapter {
 
-    private static final String TAG = "ScanInfoAdapter";
+    private static final String TAG = "StockOutListAdapter";
     private Context mContext;
     private List<Cargo> mList;
 
