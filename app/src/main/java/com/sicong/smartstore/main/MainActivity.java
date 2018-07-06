@@ -14,10 +14,8 @@ import android.view.MenuItem;
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
 import com.sicong.smartstore.stock_in.view.StockInFragment;
-import com.sicong.smartstore.stock_in.view.StockOutFragment;
-import com.sicong.smartstore.stock_in.data.model.Cargo;
+import com.sicong.smartstore.stock_out.view.StockOutFragment;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {

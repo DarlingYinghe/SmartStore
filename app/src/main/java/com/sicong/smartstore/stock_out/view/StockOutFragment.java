@@ -1,4 +1,4 @@
-package com.sicong.smartstore.stock_in.view;
+package com.sicong.smartstore.stock_out.view;
 
 
 import android.os.Bundle;
