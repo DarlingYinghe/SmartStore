@@ -27,6 +27,7 @@
     <string name="stock_in_submit_scan">提交</string>
     <string name="type_first">类型1</string>
     <string name="type_second">类型2</string>
+    <string name="scan">扫描</string>
 
 
 </resources>

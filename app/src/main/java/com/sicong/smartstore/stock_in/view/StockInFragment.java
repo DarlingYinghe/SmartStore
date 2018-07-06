@@ -7,6 +7,10 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatButton;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +20,8 @@ import android.widget.Toast;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.main.MainActivity;
+import com.sicong.smartstore.stock_in.adapter.ScanInfoAdapter;
+import com.sicong.smartstore.stock_in.adapter.StatisticAdapter;
 import com.sicong.smartstore.stock_in.data.model.CargoInMessage;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
 
@@ -26,25 +32,32 @@ import java.util.List;
 
 public class StockInFragment extends Fragment {
 
+    //基本变量
     private static final String TAG = "StockInFragment";
     private static final int SEND_SUCCESS = 1;
     private static final int SEND_FAIL = 0;
     private static final int SEND_ERROR = -1;
-    //data
+    //数据
     private String check = null;//校验码
     private String operatorId = null;//操作员
     private String describe = null;//描述内容
     private List<Statistic> statisticList;//统计数据集合
+    private List<Statistic> statisticListTmp;//从MainActivity获取到的统计数据
     private CargoInMessage cargoInMessage;//发送的数据包
 
     private final static String URL_POST_CARGO_IN_MESSAGE = "";
 
-    //view
+    //视图
     private EditText describeView;//描述视图
     private AppCompatButton submit;//提交的按钮
     private AppCompatButton toScan;//前往扫描的Activity的按钮
+    private RecyclerView statisticView;//统计视图
 
     private Handler handler;
+
+
+    //适配器
+    private StatisticAdapter statisticAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -55,7 +68,20 @@ public class StockInFragment extends Fragment {
         initSubmit();//初始化提交按钮
         initToScan();//初始化前往Activity的按钮
 
+        initStatistic();//初始化统计视图
+
         return view;
+    }
+
+    //初始化统计视图
+    private void initStatistic() {
+        statisticList = new ArrayList<>();
+        statisticAdapter = new StatisticAdapter(getContext(), statisticList);
+        statisticView.setAdapter(statisticAdapter);
+        statisticView.setLayoutManager(new LinearLayoutManager(getContext()));
+        statisticView.setHasFixedSize(true);
+        statisticView.setItemAnimator(new DefaultItemAnimator());
+        statisticView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
     }
 
     private void initHandler() {
@@ -84,7 +110,7 @@ public class StockInFragment extends Fragment {
         Log.e(TAG, "onAttach: start", null);
         check = ((MainActivity) context).getCheck();
         operatorId = ((MainActivity) context).getOperatorId();
-        statisticList = ((MainActivity) context).getStatisticList();
+        statisticListTmp = ((MainActivity) context).getStatisticList();
 
     }
 
@@ -92,7 +118,7 @@ public class StockInFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        Intent intent = getActivity().getIntent();
+
         onAttach(getContext());
         //测试代码
         /*if (statisticList!=null){
@@ -102,11 +128,13 @@ public class StockInFragment extends Fragment {
         }
         Log.e(TAG, "onResume: "+check, null);
         Log.e(TAG, "onResume: "+operatorId, null);*/
-
-        if (intent.hasExtra("statisticList")) {
-            receiveStatisticList(intent);
+        if(statisticListTmp!=null&&statisticListTmp.size()>0) {
+            statisticList.clear();
+            statisticList.addAll(statisticListTmp);
+            statisticAdapter.notifyDataSetChanged();
             packCargoInMessage();
         }
+
     }
 
     /**
@@ -126,6 +154,7 @@ public class StockInFragment extends Fragment {
         describeView = view.findViewById(R.id.stock_in_text);
         submit = view.findViewById(R.id.stock_in_submit);
         toScan = view.findViewById(R.id.stock_in_to_scan);
+        statisticView = view.findViewById(R.id.stock_in_statistic);
     }
 
     private void initToScan() {
@@ -152,27 +181,17 @@ public class StockInFragment extends Fragment {
         });
     }
 
-    /**
-     * 用于接收ScantActivity的发送过来的数据
-     */
-    private void receiveStatisticList(Intent intent) {
-        statisticList = new ArrayList<>();
-        statisticList = (List<Statistic>) intent.getSerializableExtra("statisticList");
-        //测试代码
-            /*for (int i = 0; i < statisticList.size(); i++) {
-                System.out.println(statisticList.get(i).getTypeFirst()+" "+statisticList.get(i).getTypeSecond());
-                for (int j = 0; j < statisticList.get(i).getRfid().size(); j++) {
-                    System.out.println(statisticList.get(i).getRfid().get(j));
-                }
-            }*/
-    }
 
     /**
      * 提交最终结果
      */
     private void submit() {
-        setDescribe();
-        sendCargoInMessage();
+        if(statisticList!=null&&statisticList.size()>0) {
+            setDescribe();
+            sendCargoInMessage();
+        } else {
+            Toast.makeText(getContext(),"没有可供提交的数据", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void setDescribe() {

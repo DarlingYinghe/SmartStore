@@ -5,7 +5,7 @@
     android:layout_height="20dp">
 
     <TextView
-        android:id="@+id/rfid_id"
+        android:id="@+id/statistic_id"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="id"
@@ -13,39 +13,39 @@
         android:textSize="15sp"
         app:layout_constraintHorizontal_weight="1"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/rfid_type_first" />
+        app:layout_constraintRight_toLeftOf="@id/statistic_type_first" />
 
     <TextView
-        android:id="@+id/rfid_type_first"
+        android:id="@+id/statistic_type_first"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="type_first"
         android:textColor="@color/black"
         android:textSize="15sp"
         app:layout_constraintHorizontal_weight="2"
-        app:layout_constraintLeft_toRightOf="@id/rfid_id"
-        app:layout_constraintRight_toLeftOf="@id/rfid_type_second" />
+        app:layout_constraintLeft_toRightOf="@id/statistic_id"
+        app:layout_constraintRight_toLeftOf="@id/statistic_type_second" />
 
     <TextView
-        android:id="@+id/rfid_type_second"
+        android:id="@+id/statistic_type_second"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="type_second"
         android:textColor="@color/black"
         android:textSize="15sp"
         app:layout_constraintHorizontal_weight="2"
-        app:layout_constraintLeft_toRightOf="@id/rfid_type_first"
-        app:layout_constraintRight_toLeftOf="@id/rfid_rfid" />
+        app:layout_constraintLeft_toRightOf="@id/statistic_type_first"
+        app:layout_constraintRight_toLeftOf="@id/statistic_num" />
 
     <TextView
-        android:id="@+id/rfid_rfid"
+        android:id="@+id/statistic_num"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="rfid"
+        android:text="num"
         android:textColor="@color/black"
         android:textSize="15sp"
-        app:layout_constraintHorizontal_weight="4"
-        app:layout_constraintLeft_toRightOf="@id/rfid_type_second"
+        app:layout_constraintHorizontal_weight="2"
+        app:layout_constraintLeft_toRightOf="@id/statistic_type_second"
         app:layout_constraintRight_toRightOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

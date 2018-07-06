@@ -10,16 +10,17 @@ import android.widget.TextView;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_in.data.model.Cargo;
+import com.sicong.smartstore.stock_in.data.model.Statistic;
 
 import java.util.List;
 
-public class ScanInfoAdapter extends RecyclerView.Adapter {
+public class StatisticAdapter extends RecyclerView.Adapter {
 
     private static final String TAG = "ScanInfoAdapter";
     private Context mContext;
-    private List<Cargo> mList;
+    private List<Statistic> mList;
 
-    public ScanInfoAdapter(@NonNull Context mContext, @NonNull List<Cargo> mList) {
+    public StatisticAdapter(@NonNull Context mContext, @NonNull List<Statistic> mList) {
         this.mContext = mContext;
         this.mList = mList;
     }
@@ -27,7 +28,7 @@ public class ScanInfoAdapter extends RecyclerView.Adapter {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_rfid, parent, false));
+        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_statistic, parent, false));
     }
 
     @Override
@@ -37,7 +38,7 @@ public class ScanInfoAdapter extends RecyclerView.Adapter {
         view.id.setText(String.valueOf(position+1));
         view.type_first.setText(mList.get(position).getTypeFirst());
         view.type_second.setText(mList.get(position).getTypeSecond());
-        view.rfid.setText(mList.get(position).getRfid());
+        view.num.setText(String.valueOf(mList.get(position).getNum()));
     }
 
 
@@ -52,19 +53,19 @@ public class ScanInfoAdapter extends RecyclerView.Adapter {
         TextView id;//扫描的顺序编号的视图
         TextView type_first;//一级物品类型的视图
         TextView type_second;//二级物品类型的视图
-        TextView rfid;//rfid码的视图
+        TextView num;//数量
 
         public ViewHolder(View itemView) {
             super(itemView);
-            id = (TextView) itemView.findViewById(R.id.rfid_id);
-            type_first = (TextView) itemView.findViewById(R.id.rfid_type_first);
-            type_second=(TextView) itemView.findViewById(R.id.rfid_type_second);
-            rfid = (TextView) itemView.findViewById(R.id.rfid_rfid);
+            id = (TextView) itemView.findViewById(R.id.statistic_id);
+            type_first = (TextView) itemView.findViewById(R.id.statistic_type_first);
+            type_second=(TextView) itemView.findViewById(R.id.statistic_type_second);
+            num = (TextView) itemView.findViewById(R.id.statistic_num);
         }
     }
 
-    public void insert(Cargo cargo) {
-        mList.add(cargo);
+    public void insert(Statistic statistic) {
+        mList.add(statistic);
         notifyItemInserted(mList.size() - 1);
     }
 
