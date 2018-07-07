@@ -6,4 +6,113 @@
     android:layout_height="match_parent"
     tools:context=".stock_out.view.DetailActivity">
 
+    <View
+        android:id="@+id/detail_block1"
+        android:layout_width="match_parent"
+        android:layout_height="280dp"
+        android:background="@color/white"></View>
+
+    <View
+        android:id="@+id/detail_block2"
+        android:layout_width="match_parent"
+        android:layout_height="280dp"
+        android:layout_marginTop="4dp"
+        android:background="@color/white"
+        app:layout_constraintTop_toBottomOf="@id/detail_block1"></View>
+
+    <View
+        android:id="@+id/detail_block3"
+        android:layout_width="match_parent"
+        android:layout_height="281dp"
+        android:layout_marginTop="4dp"
+        android:background="@color/white"
+        app:layout_constraintTop_toBottomOf="@id/detail_block2"></View>
+
+    <!--待出库-->
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/detail_wait"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/detail_block1"
+        app:layout_constraintLeft_toLeftOf="@id/detail_block1"
+        app:layout_constraintRight_toRightOf="@id/detail_block1"
+        app:layout_constraintTop_toTopOf="@+id/detail_block1">
+
+    </android.support.v7.widget.RecyclerView>
+
+    <!--扫描列表-->
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/detail_scan"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/scan_btn_start"
+        app:layout_constraintLeft_toLeftOf="@id/detail_block2"
+        app:layout_constraintRight_toRightOf="@id/detail_block2"
+        app:layout_constraintTop_toTopOf="@+id/detail_block2">
+
+    </android.support.v7.widget.RecyclerView>
+
+    <!--四个按钮-->
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/scan_btn_start"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="4dp"
+        android:background="@drawable/bg_r_primary"
+        android:text="@string/stock_in_start_scan"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/detail_block2"
+        app:layout_constraintLeft_toLeftOf="@+id/detail_scan"
+        app:layout_constraintRight_toLeftOf="@id/scan_btn_stop"
+        app:layout_constraintTop_toBottomOf="@id/detail_scan" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/scan_btn_stop"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_r_primary"
+        android:text="@string/stock_in_stop_scan"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/detail_block2"
+        app:layout_constraintLeft_toRightOf="@id/scan_btn_start"
+        app:layout_constraintRight_toRightOf="@id/scan_btn_reset"
+        app:layout_constraintTop_toBottomOf="@id/detail_scan" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/scan_btn_reset"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_r_primary"
+        android:text="@string/stock_in_reset_scan"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/detail_block2"
+        app:layout_constraintLeft_toRightOf="@id/scan_btn_stop"
+        app:layout_constraintRight_toLeftOf="@id/scan_btn_submit"
+        app:layout_constraintTop_toBottomOf="@id/detail_scan" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/scan_btn_submit"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_r_primary"
+        android:text="@string/stock_in_submit_scan"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/detail_block2"
+        app:layout_constraintLeft_toRightOf="@id/scan_btn_reset"
+        app:layout_constraintRight_toRightOf="@id/detail_block2"
+        app:layout_constraintTop_toBottomOf="@id/detail_scan" />
+
 </android.support.constraint.ConstraintLayout>

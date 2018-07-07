@@ -28,6 +28,9 @@
     <string name="type_first">类型1</string>
     <string name="type_second">类型2</string>
     <string name="scan">扫描</string>
+    <string name="id">序号</string>
+    <string name="rfid">rfid码</string>
+    <string name="num">数量</string>
 
 
 </resources>

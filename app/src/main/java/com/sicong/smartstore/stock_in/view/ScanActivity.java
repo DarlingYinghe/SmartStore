@@ -331,7 +331,6 @@ public class ScanActivity extends AppCompatActivity {
                 //对扫描结果进行筛选
                 for (int i = 0; i < InventoryOnceResult.size(); i++) {
                     Tag map = InventoryOnceResult.get(i);
-                    Log.e(TAG, "onSuccess");
 
                     if (!InventoryTaps.contains(map.epc)) {//避免RFID码重复扫入
                         //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
@@ -408,7 +407,7 @@ public class ScanActivity extends AppCompatActivity {
             statisticList.add(statistic);
         }
         //测试代码,测试发送是否成功
-        List<String>  fType = new ArrayList<String>();
+        /*List<String>  fType = new ArrayList<String>();
         fType.add("p1");
         fType.add("p2");
         fType.add("p3");
@@ -433,7 +432,7 @@ public class ScanActivity extends AppCompatActivity {
 
         for (int i = 0; i < statisticList.size(); i++) {
             Log.e(TAG, "submit: "+statisticList.get(i).getTypeFirst()+" "+statisticList.get(i).getTypeSecond(), null);
-        }
+        }*/
 
 
 
@@ -498,12 +497,12 @@ public class ScanActivity extends AppCompatActivity {
             }
         }
 
-        /*//测试代码
+        //测试代码
         String[] strs = {"p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"};
         typeFirstList.clear();
         for (int i = 0; i < strs.length; i++) {
             typeFirstList.add(strs[i]);
-        }*/
+        }
     }
 
     /**
@@ -525,7 +524,7 @@ public class ScanActivity extends AppCompatActivity {
                 }
             }
         }
-        /*//测试代码
+        //测试代码
         switch (typeFirst) {
             case "p1":
                 String[] strs1 = {"p11", "p12", "p13", "p14", "p15"};
@@ -548,7 +547,7 @@ public class ScanActivity extends AppCompatActivity {
                     break;
 
 
-        }*/
+        }
     }
 
     /**
