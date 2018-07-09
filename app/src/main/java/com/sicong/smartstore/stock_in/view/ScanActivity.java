@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
+
 /**
  * A simple {@link Fragment} subclass.
  */
@@ -51,6 +53,8 @@ public class ScanActivity extends AppCompatActivity {
     private static final String URL_RECEVICE_TYPE = "";
     private static final int ERROR = -1;
     private static final int FAIL = 0;
+    private static final int NETWORK_UNAVAILABLE = -2;
+
 
     private String model = "U6";
     private String URL_POST_SCAN_RESULTS = "";
@@ -126,6 +130,9 @@ public class ScanActivity extends AppCompatActivity {
                         break;
                     case FAIL:
                         Toast.makeText(ScanActivity.this,"获取产品数据失败",Toast.LENGTH_SHORT).show();
+                        break;
+                    case NETWORK_UNAVAILABLE:
+                        Toast.makeText(ScanActivity.this, "请连接网络", Toast.LENGTH_SHORT).show();
                         break;
                 }
                 return false;
@@ -464,19 +471,25 @@ public class ScanActivity extends AppCompatActivity {
         Thread receiveTypeThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    RestTemplate restTemplate = new RestTemplate();
-                    CheckMessage checkMessage = new CheckMessage(check);
+                if (isNetworkAvailable(ScanActivity.this)) {
+                    try {
 
-                    cargoInSendMessage = restTemplate.postForObject(URL_RECEVICE_TYPE, checkMessage, cargoInSendMessage.getClass());
-                    if(cargoInSendMessage!=null) {
-                        typeList = cargoInSendMessage.getType();
-                    } else {
-                        handler.sendEmptyMessage(FAIL);
+                        RestTemplate restTemplate = new RestTemplate();
+                        CheckMessage checkMessage = new CheckMessage(check);
+
+                        cargoInSendMessage = restTemplate.postForObject(URL_RECEVICE_TYPE, checkMessage, cargoInSendMessage.getClass());
+                        if (cargoInSendMessage != null) {
+                            typeList = cargoInSendMessage.getType();
+                        } else {
+                            handler.sendEmptyMessage(FAIL);
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        handler.sendEmptyMessage(ERROR);
                     }
-                }catch (Exception e) {
-                    e.printStackTrace();
-                    handler.sendEmptyMessage(ERROR);
+                }else{
+                    handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
                 }
             }
         });

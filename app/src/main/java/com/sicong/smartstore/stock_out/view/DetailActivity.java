@@ -12,6 +12,7 @@ import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_in.adapter.ScanInfoAdapter;
 import com.sicong.smartstore.stock_in.data.model.Cargo;
 import com.sicong.smartstore.stock_in.data.model.CheckMessage;
+import com.sicong.smartstore.stock_out.adapter.DetailScanAdapter;
 import com.sicong.smartstore.stock_out.adapter.DetailStockOutAdapter;
 import com.sicong.smartstore.stock_out.model.CargoListSendMessage;
 import com.sicong.smartstore.util.fn.u6.operation.IUSeries;
@@ -35,7 +36,7 @@ public class DetailActivity extends AppCompatActivity {
     private CheckMessage checkMessage;
     public IUSeries mUSeries;//扫描工具
     private List<String> InventoryTaps = new ArrayList<String>();//已扫描RFID集合：已扫描过的rfid码，避免重复
-    private List<Cargo> cargos;//货物对象集合：扫描的所有物品的集合
+    private List<Map<String,String>> rfidList;//货物对象集合：扫描的所有物品的集合
     
     //视图
     private RecyclerView detailStockOutView;
@@ -47,7 +48,7 @@ public class DetailActivity extends AppCompatActivity {
     
     //适配器
     private DetailStockOutAdapter detailStockOutAdapter;
-    private ScanInfoAdapter scanInfoAdapter;
+    private DetailScanAdapter scanInfoAdapter;
 
 
     @Override
@@ -57,7 +58,7 @@ public class DetailActivity extends AppCompatActivity {
         initView();//初始化控件
         initObject();//初始化一部分对象
         initDetailStockOutView();//初始化待出库物品列表
-        initscanInfoView();//初始化扫描列表
+        initScanInfoView();//初始化扫描列表
     }
 
     /**
@@ -72,9 +73,9 @@ public class DetailActivity extends AppCompatActivity {
     /**
      * 初始化扫描列表
      */
-    private void initscanInfoView() {
-        cargos  = new ArrayList<Cargo>();
-        scanInfoAdapter = new ScanInfoAdapter(this, cargos);
+    private void initScanInfoView() {
+        rfidList  = new ArrayList<Map<String,String>>();
+        scanInfoAdapter = new DetailScanAdapter(this, rfidList);
         scanInfoView.setAdapter(scanInfoAdapter);
         scanInfoView.setLayoutManager(new LinearLayoutManager(this));
         scanInfoView.setHasFixedSize(true);
@@ -106,5 +107,12 @@ public class DetailActivity extends AppCompatActivity {
         btnStop = findViewById(R.id.detail_btn_stop);
         btnRest = findViewById(R.id.detail_btn_reset);
         btnSubmit = findViewById(R.id.detail_btn_submit);
+    }
+
+    /**
+     * 开始按钮
+     */
+    private void initBtnStart(){
+
     }
 }

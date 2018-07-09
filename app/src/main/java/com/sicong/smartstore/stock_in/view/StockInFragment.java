@@ -30,6 +30,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
+
 public class StockInFragment extends Fragment {
 
     //基本变量
@@ -37,6 +39,7 @@ public class StockInFragment extends Fragment {
     private static final int SEND_SUCCESS = 1;
     private static final int SEND_FAIL = 0;
     private static final int SEND_ERROR = -1;
+    private static final int NETWORK_UNAVAILABLE = -2;
     //数据
     private String check = null;//校验码
     private String operatorId = null;//操作员
@@ -98,6 +101,9 @@ public class StockInFragment extends Fragment {
                     case SEND_ERROR:
                         Toast.makeText(getContext(), "提交异常，请检查网络环境", Toast.LENGTH_SHORT).show();
                         break;
+                    case NETWORK_UNAVAILABLE:
+                        Toast.makeText(getContext(), "请连接网络", Toast.LENGTH_SHORT).show();
+                        break;
                 }
                 return false;
             }
@@ -128,7 +134,7 @@ public class StockInFragment extends Fragment {
         }
         Log.e(TAG, "onResume: "+check, null);
         Log.e(TAG, "onResume: "+operatorId, null);*/
-        if(statisticListTmp!=null&&statisticListTmp.size()>0) {
+        if (statisticListTmp != null && statisticListTmp.size() > 0) {
             statisticList.clear();
             statisticList.addAll(statisticListTmp);
             statisticAdapter.notifyDataSetChanged();
@@ -186,11 +192,11 @@ public class StockInFragment extends Fragment {
      * 提交最终结果
      */
     private void submit() {
-        if(statisticList!=null&&statisticList.size()>0) {
+        if (statisticList != null && statisticList.size() > 0) {
             setDescribe();
             sendCargoInMessage();
         } else {
-            Toast.makeText(getContext(),"没有可供提交的数据", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "没有可供提交的数据", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -203,17 +209,23 @@ public class StockInFragment extends Fragment {
         Thread sendThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    RestTemplate restTemplate = new RestTemplate();
-                    String response = restTemplate.postForObject(URL_POST_CARGO_IN_MESSAGE, cargoInMessage, String.class);
-                    if (response.equals("success")) {
-                        handler.sendEmptyMessage(SEND_SUCCESS);
-                    } else {
-                        handler.sendEmptyMessage(SEND_FAIL);
+                if (isNetworkAvailable(getContext())) {
+                    try {
+
+                        RestTemplate restTemplate = new RestTemplate();
+                        String response = restTemplate.postForObject(URL_POST_CARGO_IN_MESSAGE, cargoInMessage, String.class);
+                        if (response.equals("success")) {
+                            handler.sendEmptyMessage(SEND_SUCCESS);
+                        } else {
+                            handler.sendEmptyMessage(SEND_FAIL);
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        handler.sendEmptyMessage(SEND_ERROR);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    handler.sendEmptyMessage(SEND_ERROR);
+                }else{
+                    handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
                 }
 
             }

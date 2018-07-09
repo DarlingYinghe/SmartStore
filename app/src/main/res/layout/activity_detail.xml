@@ -57,7 +57,7 @@
                 <!--扫描的标题头-->
                 <include
                     android:id="@+id/detail_scan_title"
-                    layout="@layout/item_scan"
+                    layout="@layout/item_detail_scan"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     app:layout_constraintTop_toTopOf="parent"

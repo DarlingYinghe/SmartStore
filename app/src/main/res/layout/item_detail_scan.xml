@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="20dp">
+
+    <TextView
+        android:id="@+id/item_detail_scan_id"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/id"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/item_detail_scan_rfid" />
+
+
+    <TextView
+        android:id="@+id/item_detail_scan_rfid"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/rfid"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        app:layout_constraintHorizontal_weight="5"
+        app:layout_constraintLeft_toRightOf="@id/item_detail_scan_id"
+        app:layout_constraintRight_toRightOf="parent" />
+
+</android.support.constraint.ConstraintLayout>
