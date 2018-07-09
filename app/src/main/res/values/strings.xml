@@ -12,7 +12,6 @@
     <string name="stock_in">入库</string>
     <string name="stock_out">出库</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="stock_in_start_scan">开始</string>
     <string name="stock_in_stop_scan">停止</string>
@@ -31,6 +30,14 @@
     <string name="id">序号</string>
     <string name="rfid">rfid码</string>
     <string name="num">数量</string>
+    <string name="detail_id_title">单号：</string>
+    <string name="detail_name_title">客户名称：</string>
+    <string name="detail_phoner_number_title">联系方式：</string>
+    <string name="detail_address_title">地址：</string>
+    <string name="date">日期</string>
+    <string name="item_stock_out_id">单号</string>
+    <string name="item_stock_out_detail_num">总量/剩余</string>
+    <string name="item_stock_out_detail_position">位置</string>
 
 
 </resources>

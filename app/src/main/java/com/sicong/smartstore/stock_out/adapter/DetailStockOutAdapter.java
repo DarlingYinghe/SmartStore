@@ -4,27 +4,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.sicong.smartstore.R;
-import com.sicong.smartstore.stock_in.data.model.Cargo;
-import com.sicong.smartstore.stock_out.model.CargoSendListMessage;
 import com.sicong.smartstore.stock_out.view.DetailActivity;
 
 import java.util.List;
 import java.util.Map;
 
-public class StockOutListAdapter extends RecyclerView.Adapter {
+public class DetailStockOutAdapter extends RecyclerView.Adapter {
 
     private static final String TAG = "StockOutListAdapter";
     private Context mContext;
-    private List<Map<String, String>> mList;
+    private List<Map<String, Object>> mList;
 
-    public StockOutListAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList) {
+    public DetailStockOutAdapter(@NonNull Context mContext, @NonNull List<Map<String, Object>> mList) {
         this.mContext = mContext;
         this.mList = mList;
     }
@@ -32,22 +29,28 @@ public class StockOutListAdapter extends RecyclerView.Adapter {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_stock_out, parent, false));
+        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_stock_out_detail, parent, false));
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position) {
+
         ViewHolder view = (ViewHolder) holder;
-        final String id = mList.get(position).get("id");
-        String date = mList.get(position).get("date");
-        view.id.setText(id);
-        view.date.setText(date);
+
+        String typeFirst = (String)mList.get(position).get("typeFirst");
+        String typeSecond = (String)mList.get(position).get("typeSecond");
+        String pos = (String)mList.get(position).get("position");
+        Integer num = (Integer)mList.get(position).get("num");
+
+        view.typeFirst.setText(typeFirst);
+        view.typeSecond.setText(typeSecond);
+        view.position.setText(pos);
+        view.num.setText(String.valueOf(num));
+
         view.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, DetailActivity.class);
-                intent.putExtra("id", id);
-                mContext.startActivity(intent);
+
             }
         });
 
@@ -62,13 +65,17 @@ public class StockOutListAdapter extends RecyclerView.Adapter {
     //该适配使用的ViewHolder
     class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView id;//单号
-        TextView date;//日期
+        TextView typeFirst;//类型1
+        TextView typeSecond;//类型2
+        TextView position;//位置
+        TextView num;//总数
 
         public ViewHolder(View itemView) {
             super(itemView);
-            id = (TextView) itemView.findViewById(R.id.item_stock_out_id);
-            date = (TextView) itemView.findViewById(R.id.item_stock_out_date);
+            typeFirst = (TextView) itemView.findViewById(R.id.item_stock_out_detail_type_first);
+            typeSecond = (TextView) itemView.findViewById(R.id.item_stock_out_detail_type_second);
+            position = (TextView)itemView.findViewById(R.id.item_stock_out_detail_position);
+            num = (TextView)itemView.findViewById(R.id.item_stock_out_detail_num);
         }
     }
 

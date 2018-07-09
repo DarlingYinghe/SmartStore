@@ -28,7 +28,7 @@
 
     <include
         android:id="@+id/scan_item_title"
-        layout="@layout/item_rfid"
+        layout="@layout/item_scan"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"

@@ -22,6 +22,7 @@ import com.sicong.smartstore.stock_out.model.StockOutCargoReceiveMessage;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -104,6 +105,15 @@ public class StockOutFragment extends Fragment {
      */
     private void initStockOutListView() {
         stockOutList = new ArrayList<Map<String,String>>();
+
+        //测试数据
+        for (int i = 0; i < 10; i++) {
+            Map map = new HashMap<String,String>();
+            map.put("id",String.valueOf(i));
+            map.put("date","日期"+String.valueOf(i));
+            stockOutList.add(map);
+        }
+
         stockOutListAdapter = new StockOutListAdapter(getContext(), stockOutList);
         stockOutListView.setAdapter(stockOutListAdapter);
         stockOutListView.setLayoutManager(new LinearLayoutManager(getContext()));
