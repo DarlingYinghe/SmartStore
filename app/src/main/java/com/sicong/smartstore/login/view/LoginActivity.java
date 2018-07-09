@@ -81,16 +81,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             Thread companyThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    RestTemplate restTemplate = new RestTemplate();
-                    String jsonStr = restTemplate.getForObject(URL_COMPANY, String.class);
                     try {
+                        RestTemplate restTemplate = new RestTemplate();
+                        String jsonStr = restTemplate.getForObject(URL_COMPANY, String.class);
                         companyList.clear();
                         JSONArray companyArray = new JSONArray(jsonStr);
                         for (int i = 0; i < companyArray.length(); i++) {
                             companyList.add((String)companyArray.get(i));
                         }
                         handler.sendEmptyMessage(COMPANY_SUCCESS);
-                    } catch (JSONException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                         handler.sendEmptyMessage(COMPANY_ERROR);
                     }
