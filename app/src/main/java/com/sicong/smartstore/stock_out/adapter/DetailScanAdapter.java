@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.sicong.smartstore.R;
+import com.sicong.smartstore.stock_in.data.model.Cargo;
 import com.sicong.smartstore.stock_out.view.DetailActivity;
 
 import java.util.List;
@@ -19,9 +20,9 @@ public class DetailScanAdapter extends RecyclerView.Adapter {
 
     private static final String TAG = "StockOutListAdapter";
     private Context mContext;
-    private List<Map<String, String>> mList;
+    private List<String> mList;
 
-    public DetailScanAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList) {
+    public DetailScanAdapter(@NonNull Context mContext, @NonNull List<String> mList) {
         this.mContext = mContext;
         this.mList = mList;
     }
@@ -36,7 +37,7 @@ public class DetailScanAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position) {
         ViewHolder view = (ViewHolder) holder;
         view.id.setText(String.valueOf(position+1));
-        view.rfid.setText(mList.get(position).get("rfid"));
+        view.rfid.setText(mList.get(position));
     }
 
 
@@ -56,6 +57,16 @@ public class DetailScanAdapter extends RecyclerView.Adapter {
             id = (TextView) itemView.findViewById(R.id.item_stock_out_id);
             rfid = (TextView) itemView.findViewById(R.id.item_stock_out_date);
         }
+    }
+
+    public void insert(String str) {
+        mList.add(str);
+        notifyItemInserted(mList.size() - 1);
+    }
+
+    public void clear() {
+        mList.clear();
+        notifyDataSetChanged();
     }
 
 

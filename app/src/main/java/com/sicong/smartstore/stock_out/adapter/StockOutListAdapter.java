@@ -23,10 +23,12 @@ public class StockOutListAdapter extends RecyclerView.Adapter {
     private static final String TAG = "StockOutListAdapter";
     private Context mContext;
     private List<Map<String, String>> mList;
+    private String check;
 
-    public StockOutListAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList) {
+    public StockOutListAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList, String check) {
         this.mContext = mContext;
         this.mList = mList;
+        this.check = check;
     }
 
     @NonNull
@@ -46,7 +48,7 @@ public class StockOutListAdapter extends RecyclerView.Adapter {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, DetailActivity.class);
-                intent.putExtra("id", id);
+                intent.putExtra("check", check);
                 mContext.startActivity(intent);
             }
         });

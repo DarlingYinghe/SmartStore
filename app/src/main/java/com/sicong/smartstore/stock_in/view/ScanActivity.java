@@ -467,6 +467,9 @@ public class ScanActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * 接收物品类型
+     */
     public void receiveType(){
         Thread receiveTypeThread = new Thread(new Runnable() {
             @Override

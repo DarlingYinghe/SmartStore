@@ -114,7 +114,7 @@ public class StockOutFragment extends Fragment {
             stockOutList.add(map);
         }
 
-        stockOutListAdapter = new StockOutListAdapter(getContext(), stockOutList);
+        stockOutListAdapter = new StockOutListAdapter(getContext(), stockOutList, check);
         stockOutListView.setAdapter(stockOutListAdapter);
         stockOutListView.setLayoutManager(new LinearLayoutManager(getContext()));
         stockOutListView.setHasFixedSize(true);
