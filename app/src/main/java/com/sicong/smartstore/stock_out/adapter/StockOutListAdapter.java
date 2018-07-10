@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.sicong.smartstore.R;
+import com.sicong.smartstore.stock_change.view.ChangeActivity;
 import com.sicong.smartstore.stock_in.data.model.Cargo;
 import com.sicong.smartstore.stock_out.model.CargoSendListMessage;
 import com.sicong.smartstore.stock_out.view.DetailActivity;
@@ -24,11 +25,13 @@ public class StockOutListAdapter extends RecyclerView.Adapter {
     private Context mContext;
     private List<Map<String, String>> mList;
     private String check;
+    private String tag;
 
-    public StockOutListAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList, String check) {
+    public StockOutListAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList, String check, String tag) {
         this.mContext = mContext;
         this.mList = mList;
         this.check = check;
+        this.tag = tag;
     }
 
     @NonNull
@@ -44,14 +47,25 @@ public class StockOutListAdapter extends RecyclerView.Adapter {
         String date = mList.get(position).get("date");
         view.id.setText(id);
         view.date.setText(date);
-        view.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, DetailActivity.class);
-                intent.putExtra("check", check);
-                mContext.startActivity(intent);
-            }
-        });
+        if(tag.equals("out")) {
+            view.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, DetailActivity.class);
+                    intent.putExtra("check", check);
+                    mContext.startActivity(intent);
+                }
+            });
+        } else if(tag.equals("change")){
+            view.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, ChangeActivity.class);
+                    intent.putExtra("check",check);
+                    mContext.startActivity(intent);
+                }
+            });
+        }
 
     }
 

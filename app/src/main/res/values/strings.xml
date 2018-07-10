@@ -38,6 +38,9 @@
     <string name="item_stock_out_id">单号</string>
     <string name="item_stock_out_detail_num">总量/剩余</string>
     <string name="item_stock_out_detail_position">位置</string>
+    <string name="stock_change">移库</string>
+    <string name="URL_LOGIN_COMPANY">http://</string>
+    <string name="URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST">http://</string>
 
 
 </resources>

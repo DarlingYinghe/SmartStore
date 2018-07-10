@@ -6,4 +6,7 @@
     <item android:id="@+id/stock_out"
         android:title="@string/stock_out"
         android:icon="@drawable/ic_stock_out"/>
+    <item android:id="@+id/stock_change"
+        android:title="@string/stock_change"
+        android:icon="@drawable/ic_stock_change"/>
 </menu>

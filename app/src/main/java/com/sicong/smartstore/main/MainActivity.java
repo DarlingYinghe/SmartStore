@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.MenuItem;
 
 import com.sicong.smartstore.R;
+import com.sicong.smartstore.stock_change.view.StockChangeFragment;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
 import com.sicong.smartstore.stock_in.view.StockInFragment;
 import com.sicong.smartstore.stock_out.view.StockOutFragment;
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         pagers.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
 
             Fragment[] fragments = {
-                new StockInFragment(), new StockOutFragment()
+                new StockInFragment(), new StockOutFragment(),new StockChangeFragment()
             };
 
             @Override
@@ -85,7 +86,8 @@ public class MainActivity extends AppCompatActivity {
             //图标Id
             int[] itemIds = {
                     R.id.stock_in,
-                    R.id.stock_out
+                    R.id.stock_out,
+                    R.id.stock_change
             };
 
             @Override
@@ -123,6 +125,9 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case R.id.stock_out:
                         position = 1;
+                        break;
+                    case R.id.stock_change:
+                        position = 2;
                         break;
                 }
                 Log.w(TAG, "onNavigationItemSelected: Item"+position, null);

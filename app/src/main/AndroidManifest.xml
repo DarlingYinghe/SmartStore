@@ -30,7 +30,8 @@
         <activity
             android:name=".stock_in.view.ScanActivity"
             android:launchMode="singleTask" />
-        <activity android:name=".stock_out.view.DetailActivity"></activity>
+        <activity android:name=".stock_out.view.DetailActivity" />
+        <activity android:name=".stock_change.view.ChangeActivity"></activity>
     </application>
 
 </manifest>

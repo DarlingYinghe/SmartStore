@@ -40,7 +40,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private static final int COMPANY_SUCCESS = 4;
     private static final int COMPANY_FAIL =3;
     private static final int COMPANY_ERROR = 2;
-    private static final String URL_COMPANY = "";
+    private final String URL_LOGIN_COMPANY = getResources().getString(R.string.URL_LOGIN_COMPANY);
 
     //视图
     private TextInputEditText inputUsername;//用户名的输入框
@@ -83,7 +83,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 public void run() {
                     try {
                         RestTemplate restTemplate = new RestTemplate();
-                        String jsonStr = restTemplate.getForObject(URL_COMPANY, String.class);
+                        String jsonStr = restTemplate.getForObject(URL_LOGIN_COMPANY, String.class);
                         companyList.clear();
                         JSONArray companyArray = new JSONArray(jsonStr);
                         for (int i = 0; i < companyArray.length(); i++) {

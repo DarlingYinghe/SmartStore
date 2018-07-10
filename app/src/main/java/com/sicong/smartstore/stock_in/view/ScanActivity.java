@@ -129,7 +129,7 @@ public class ScanActivity extends AppCompatActivity {
                         Toast.makeText(ScanActivity.this,"获取产品类型异常，请检查网络环境", Toast.LENGTH_SHORT).show();
                         break;
                     case FAIL:
-                        Toast.makeText(ScanActivity.this,"获取产品数据失败",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ScanActivity.this,"获取产品类型失败",Toast.LENGTH_SHORT).show();
                         break;
                     case NETWORK_UNAVAILABLE:
                         Toast.makeText(ScanActivity.this, "请连接网络", Toast.LENGTH_SHORT).show();
@@ -144,7 +144,7 @@ public class ScanActivity extends AppCompatActivity {
         Intent intent = getIntent();
         check = intent.getStringExtra("check");
         receiveType();
-        Log.e(TAG, "initReceive: check", null);
+        Log.e(TAG, "getCheck: "+check, null);
     }
 
 
@@ -513,11 +513,11 @@ public class ScanActivity extends AppCompatActivity {
         }
 
         //测试代码
-        String[] strs = {"p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"};
+        /*String[] strs = {"p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"};
         typeFirstList.clear();
         for (int i = 0; i < strs.length; i++) {
             typeFirstList.add(strs[i]);
-        }
+        }*/
     }
 
     /**
@@ -540,7 +540,7 @@ public class ScanActivity extends AppCompatActivity {
             }
         }
         //测试代码
-        switch (typeFirst) {
+        /*switch (typeFirst) {
             case "p1":
                 String[] strs1 = {"p11", "p12", "p13", "p14", "p15"};
                 typeSecondList.clear();
@@ -562,7 +562,7 @@ public class ScanActivity extends AppCompatActivity {
                     break;
 
 
-        }
+        }*/
     }
 
     /**

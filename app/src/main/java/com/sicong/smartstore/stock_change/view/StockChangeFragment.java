@@ -1,4 +1,4 @@
-package com.sicong.smartstore.stock_out.view;
+package com.sicong.smartstore.stock_change.view;
 
 
 import android.content.Context;
@@ -32,17 +32,15 @@ import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
 /**
  * A simple {@link Fragment} subclass.
- * 出库的Fragment
  */
-public class StockOutFragment extends Fragment {
-
+public class StockChangeFragment extends Fragment {
     //基本变量
-    private final static String TAG="StockOutFragment";
-    private final static int SUCCESS=1;
-    private final static int FAIL=0;
-    private final static int ERROR=-1;
+    private static final String TAG = "StockChangeFragment";
+    private static final int SUCCESS = 1;
+    private static final int FAIL = 0;
+    private static final int ERROR = -1;
     private static final int NETWORK_UNAVAILABLE = -2;
-    private final static String URL_REQUEST_DATA_FOR_STOCK_OUT_LIST="";
+    private final String URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST=getContext().getResources().getString(R.string.URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST);
     //数据
     private String check;
     private CargoSendListMessage cargoSendListMessage;
@@ -57,7 +55,7 @@ public class StockOutFragment extends Fragment {
     StockOutListAdapter stockOutListAdapter;
 
 
-    public StockOutFragment() {
+    public StockChangeFragment() {
         // Required empty public constructor
     }
 
@@ -66,14 +64,15 @@ public class StockOutFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        view = inflater.inflate(R.layout.fragment_stock_out, container, false);
+        view = inflater.inflate(R.layout.fragment_stock_change, container, false);
         initView(view);//初始化控件
-        initHandler();
-        initStockOutListView();
+        initHandler();//初始化Handler
+        initStockOutListView();//初始化列表
 
         requestData();
         return view;
     }
+
 
     @Override
     public void onAttach(Context context) {
@@ -117,7 +116,7 @@ public class StockOutFragment extends Fragment {
      */
     private void initStockOutListView() {
         stockOutList = new ArrayList<Map<String,String>>();
-        tag = "out";
+        tag = "change";
         //测试数据
         for (int i = 0; i < 10; i++) {
             Map map = new HashMap<String,String>();
@@ -145,7 +144,7 @@ public class StockOutFragment extends Fragment {
                 public void run() {
                     try {
                         RestTemplate restTemplate = new RestTemplate();
-                        cargoSendListMessage = restTemplate.postForObject(URL_REQUEST_DATA_FOR_STOCK_OUT_LIST, new StockOutCargoReceiveMessage(check), CargoSendListMessage.class);
+                        cargoSendListMessage = restTemplate.postForObject(URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST, new StockOutCargoReceiveMessage(check), CargoSendListMessage.class);
                         if (cargoSendListMessage == null) {
                             handler.sendEmptyMessage(FAIL);
                         } else {
@@ -162,6 +161,7 @@ public class StockOutFragment extends Fragment {
             handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
         }
     }
+
 
 
 
