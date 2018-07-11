@@ -36,7 +36,7 @@
     <string name="detail_address_title">地址：</string>
     <string name="date">日期</string>
     <string name="item_stock_out_id">单号</string>
-    <string name="item_stock_out_detail_num">总量/剩余</string>
+    <string name="item_stock_out_detail_num">剩余/总量</string>
     <string name="item_stock_out_detail_position">位置</string>
     <string name="stock_change">移库</string>
     <string name="cargo_name">货物名称</string>

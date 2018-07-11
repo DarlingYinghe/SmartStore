@@ -34,15 +34,20 @@ import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
 public class StockInFragment extends Fragment {
 
-    //基本变量
+    //常量
     private static final String TAG = "StockInFragment";
+
+    private static final int NETWORK_UNAVAILABLE = 0;
+
     private static final int SEND_SUCCESS = 1;
-    private static final int SEND_FAIL = 0;
-    private static final int SEND_ERROR = -1;
-    private static final int NETWORK_UNAVAILABLE = -2;
+    private static final int SEND_FAIL = 2;
+    private static final int SEND_ERROR = 3;
+
     //数据
     private String check = null;//校验码
+    private String company = null;//公司id
     private String username = null;//操作员
+
     private String describe = null;//描述内容
     private List<Statistic> statisticList;//统计数据集合
     private List<Statistic> statisticListTmp;//从MainActivity获取到的统计数据
@@ -58,6 +63,8 @@ public class StockInFragment extends Fragment {
 
     private Handler handler;
 
+    //线程
+    private Thread sendStatisticThread;
 
     //适配器
     private StatisticAdapter statisticAdapter;
@@ -76,7 +83,9 @@ public class StockInFragment extends Fragment {
         return view;
     }
 
-    //初始化统计视图
+    /**
+     * 初始化统计视图
+     */
     private void initStatistic() {
         statisticList = new ArrayList<>();
         statisticAdapter = new StatisticAdapter(getContext(), statisticList);
@@ -87,12 +96,17 @@ public class StockInFragment extends Fragment {
         statisticView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
     }
 
+    /**
+     * 初始化Handler
+     */
     private void initHandler() {
         handler = new Handler(new Handler.Callback() {
             @Override
             public boolean handleMessage(Message msg) {
                 switch (msg.what) {
                     case SEND_SUCCESS:
+                        statisticList.clear();
+                        statisticAdapter.notifyDataSetChanged();
                         Toast.makeText(getContext(), "提交成功", Toast.LENGTH_SHORT).show();
                         break;
                     case SEND_FAIL:
@@ -114,25 +128,17 @@ public class StockInFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         check = ((MainActivity) context).getCheck();
+        company = ((MainActivity)context).getCompany();
         username = ((MainActivity) context).getUsername();
         statisticListTmp = ((MainActivity) context).getStatisticList();
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-
         onAttach(getContext());
-        //测试代码
-        /*if (statisticList!=null){
-            for (int i = 0; i < statisticList.size(); i++) {
-                Log.e(TAG, "onAttach: "+statisticList.get(i).getTypeFirst(), null);
-            }
-        }
-        Log.e(TAG, "onResume: "+check, null);
-        Log.e(TAG, "onResume: "+username, null);*/
+
         if (statisticListTmp != null && statisticListTmp.size() > 0) {
             statisticList.clear();
             statisticList.addAll(statisticListTmp);
@@ -149,6 +155,7 @@ public class StockInFragment extends Fragment {
         cargoInMessage = new CargoInMessage();
         cargoInMessage.setCheck(check);
         cargoInMessage.setUsername(username);
+        cargoInMessage.setCompany(company);
         cargoInMessage.setStatistic(statisticList);
     }
 
@@ -193,7 +200,7 @@ public class StockInFragment extends Fragment {
     private void submit() {
         if (statisticList != null && statisticList.size() > 0) {
             setDescribe();
-            sendCargoInMessage();
+            startSendStatisticThread();
         } else {
             Toast.makeText(getContext(), "没有可供提交的数据", Toast.LENGTH_SHORT).show();
         }
@@ -204,13 +211,14 @@ public class StockInFragment extends Fragment {
         cargoInMessage.setDescribe(describe);
     }
 
-    private void sendCargoInMessage() {
-        Thread sendThread = new Thread(new Runnable() {
+    private void startSendStatisticThread() {
+        sendStatisticThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 if (isNetworkAvailable(getContext())) {
                     try {
 
+                        //发送请求
                         RestTemplate restTemplate = new RestTemplate();
                         String response = restTemplate.postForObject(URL_POST_CARGO_IN_MESSAGE, cargoInMessage, String.class);
                         if (response.equals("success")) {
@@ -229,7 +237,7 @@ public class StockInFragment extends Fragment {
 
             }
         });
-        sendThread.start();
+        sendStatisticThread.start();
     }
 
 

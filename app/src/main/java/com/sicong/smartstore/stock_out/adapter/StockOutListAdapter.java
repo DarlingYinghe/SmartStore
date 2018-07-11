@@ -22,6 +22,7 @@ import java.util.Map;
 public class StockOutListAdapter extends RecyclerView.Adapter {
 
     private static final String TAG = "StockOutListAdapter";
+
     private Context mContext;
     private List<Map<String, String>> mList;
     private String check;
@@ -43,8 +44,8 @@ public class StockOutListAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position) {
         ViewHolder view = (ViewHolder) holder;
-        final String id = mList.get(position).get("id");
-        String date = mList.get(position).get("date");
+        final String id = (String)mList.get(position).get("id");
+        String date = (String)mList.get(position).get("date");
         view.id.setText(id);
         view.date.setText(date);
         if(tag.equals("out")) {

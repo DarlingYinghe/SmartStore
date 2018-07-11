@@ -4,7 +4,7 @@ public class Login {
 
     private String username;
     private String password;
-    private String company;
+    private String companyName;
 
     public String getUsername() {
         return username;
@@ -22,11 +22,11 @@ public class Login {
         this.password = password;
     }
 
-    public String getCompany() {
-        return company;
+    public String getCompanyName() {
+        return companyName;
     }
 
-    public void setCompany(String companyId) {
-        this.company = companyId;
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
     }
 }

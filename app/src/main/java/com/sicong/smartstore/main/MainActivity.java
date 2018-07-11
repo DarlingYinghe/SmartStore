@@ -21,12 +21,15 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    //基本变量
     private final static String TAG = "MainActivity";
 
+
+    //数据
     private String username;//操作人员的id
     private String check;//校验码
+    private String company;//公司
     private List<Statistic> statisticList;//统计结果
-
 
 
     private ViewPager pagers;//分页
@@ -43,12 +46,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void initRecevicerFromScan() {
         Intent intent = getIntent();
-        if(intent!=null&&intent.hasExtra("statisticList")) {
+        if (intent != null && intent.hasExtra("statisticList")) {
             statisticList = (List<Statistic>) intent.getSerializableExtra("statisticList");
-        } else if(intent!=null&&intent.hasExtra("check")){
+        } else if (intent != null && intent.hasExtra("check")) {
             check = intent.getStringExtra("check");
-        } else if(intent!=null&&intent.hasExtra("username")) {
+        } else if (intent != null && intent.hasExtra("username")) {
             username = intent.getStringExtra("username");
+        } else if (intent != null && intent.hasExtra("company")) {
+            company = intent.getStringExtra("company");
         }
     }
 
@@ -56,8 +61,8 @@ public class MainActivity extends AppCompatActivity {
      * 初始化控件
      */
     private void initView() {
-        pagers = (ViewPager)findViewById(R.id.main_pagers);
-        bottomNav = (BottomNavigationView)findViewById(R.id.main_bottom_nav);
+        pagers = (ViewPager) findViewById(R.id.main_pagers);
+        bottomNav = (BottomNavigationView) findViewById(R.id.main_bottom_nav);
     }
 
     /**
@@ -71,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         pagers.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
 
             Fragment[] fragments = {
-                new StockInFragment(), new StockOutFragment(),new StockChangeFragment()
+                    new StockInFragment(), new StockOutFragment(), new StockChangeFragment()
             };
 
             @Override
@@ -102,7 +107,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 bottomNav.setSelectedItemId(itemIds[position]);
-                Log.w(TAG, "onPageSelected: Pager"+position, null);
             }
 
             @Override
@@ -134,7 +138,6 @@ public class MainActivity extends AppCompatActivity {
                         position = 2;
                         break;
                 }
-                Log.w(TAG, "onNavigationItemSelected: Item"+position, null);
                 //选择分页的页码
                 pagers.setCurrentItem(position);
                 //设置当前图标为选中状态
@@ -160,6 +163,9 @@ public class MainActivity extends AppCompatActivity {
         return check;
     }
 
+    public String getCompany() {
+        return company;
+    }
 
     @Override
     protected void onNewIntent(Intent intent) {

@@ -39,29 +39,39 @@ import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
 public class DetailActivity extends AppCompatActivity {
 
-    //基本变量
+    //常量
     private final static String TAG = "DetailActivity";
-    private static final int SUBMIT_ERROR = -1;
-    private static final int SUBMIT_FAIL = 0;
-    private static final int SUBMIT_SUCCESS = 1;
-    private static final int NETWORK_UNAVAILABLE = -2;
-    private static final String URL_SUBMIT = "";
-    private static final String URL_CLIENT_INFO = "";
-    private static final int CLIENT_INFO_SUCCESS = 4;
-    private static final int CLIENT_INFO_FAIL = 3;
-    private static final int CLIENT_INFO_ERROR = 2;
-    private static final int DETAIL_SUCCESS = 7;
-    private static final int DETAIL_FAIL = 6;
-    private static final int DETAIL_ERROR = 5;
-
     private String model = "U6";
+
+    private static final int NETWORK_UNAVAILABLE = 0;
+
+    private static final int CLIENT_INFO_SUCCESS = 1;
+    private static final int CLIENT_INFO_FAIL = 2;
+    private static final int CLIENT_INFO_ERROR = 3;
+
+    private static final int DETAIL_SUCCESS = 4;
+    private static final int DETAIL_FAIL = 5;
+    private static final int DETAIL_ERROR = 6;
+
+    private static final int SUBMIT_SUCCESS = 7;
+    private static final int SUBMIT_FAIL = 8;
+    private static final int SUBMIT_ERROR = 9;
+
     //数据
     private List<Map<String, String>> detailStockOutList;
+
     private String check;
+    private String company;
+    private String username;
+
+    private String id;
+    private String name;
+    private String phoneNumber;
+    private String address;
+
     public IUSeries mUSeries;//扫描工具
     private List<String> InventoryTaps;//已扫描RFID集合：已扫描过的rfid码，避免重复
     private List<String> rfidList;//货物对象集合：扫描的所有物品的集合
-    private ClientInfo clientInfo;//客户信息
 
     //视图
     private RecyclerView detailStockOutView;
@@ -92,15 +102,19 @@ public class DetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
+
         initView();//初始化控件
         initObject();//初始化一部分对象
         initHandler();//初始化Handler
+
         initDetailStockOutView();//初始化待出库物品列表
         initScanInfoView();//初始化扫描列表
+
         initBtnStart();//初始化开始扫描按钮
         initBtnEnd();//初始化结束扫描按钮
         initBtnReset();//初始化重置扫描按钮
         initBtnSubmit();//初始化提交按钮
+
         initClientInfoView();//初始化用户信息视图
     }
 
@@ -126,10 +140,10 @@ public class DetailActivity extends AppCompatActivity {
                         Toast.makeText(DetailActivity.this, "提交异常，请稍后再试", Toast.LENGTH_SHORT).show();
                         break;
                     case CLIENT_INFO_SUCCESS:
-                        idView.setText(clientInfo.getId());
-                        nameView.setText(clientInfo.getName());
-                        phoneNumberView.setText(clientInfo.getPhoneNumber());
-                        addressView.setText(clientInfo.getAddress());
+                        idView.setText(id);
+                        nameView.setText(name);
+                        phoneNumberView.setText(phoneNumber);
+                        addressView.setText(address);
                         break;
                     case CLIENT_INFO_FAIL:
                         Toast.makeText(DetailActivity.this, "获取用户信息失败", Toast.LENGTH_SHORT).show();
@@ -162,7 +176,13 @@ public class DetailActivity extends AppCompatActivity {
         mUSeries.openSerialPort(model);
 
         Intent intent = getIntent();
-        String check = intent.getStringExtra("check");
+        if (intent.hasExtra("check")) {
+            check = intent.getStringExtra("check");
+        } else if (intent.hasExtra("company")) {
+            company = intent.getStringExtra("company");
+        } else if (intent.hasExtra("username")) {
+            username = intent.getStringExtra("username");
+        }
     }
 
     /**
@@ -319,6 +339,7 @@ public class DetailActivity extends AppCompatActivity {
         }
     }
 
+
     /**
      * 启动客户信息线程
      */
@@ -326,11 +347,27 @@ public class DetailActivity extends AppCompatActivity {
         clientThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                RestTemplate restTemplate = new RestTemplate();
-                Map<String, String> msg = new HashMap<String, String>();
+                Log.w(TAG, "run: clientInfo", null);
+                //发送的信息
+                Map<String,String> msg = new HashMap<String, String>();
                 msg.put("check", check);
-                clientInfo = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_CLIENT_INFO), check, ClientInfo.class);
-                if (clientInfo != null) {
+                msg.put("company", company);
+                msg.put("username", username);
+
+                //用于接收的对象
+                Map<String, String> maps = new HashMap<String, String>();
+
+                //发出请求
+                RestTemplate restTemplate = new RestTemplate();
+                maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_CLIENT_INFO), msg, maps.getClass());
+
+                //处理请求的数据
+                id = maps.get("id");
+                name = maps.get("name");
+                phoneNumber = maps.get("phoneNumber");
+                address =  maps.get("address");
+
+                if (maps != null) {
                     handler.sendEmptyMessage(CLIENT_INFO_SUCCESS);
                 } else {
                     handler.sendEmptyMessage(CLIENT_INFO_FAIL);
@@ -347,11 +384,23 @@ public class DetailActivity extends AppCompatActivity {
         submitThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                Log.w(TAG, "run: submit", null);
                 try {
-                    RestTemplate restTemplate = new RestTemplate();
-                    Map<String, String> msg = new HashMap<String, String>();
+                    //发送的信息
+                    Map<String,String> msg = new HashMap<String, String>();
                     msg.put("check", check);
+                    msg.put("company", company);
+                    msg.put("username", username);
+
+                    //用于接收的对象
+                    List<Map<String, String>> maps = new ArrayList<Map<String, String>>();
+
+                    //发出请求
+                    RestTemplate restTemplate = new RestTemplate();
                     //restTemplate.postForObject(URL_SUBMIT,check,);
+
+                    //处理请求的数据
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     handler.sendEmptyMessage(SUBMIT_ERROR);
@@ -362,20 +411,28 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     /**
-     * 启动
+     * 启动详细信息线程
      */
     private void startDetailThread() {
         detailThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                Log.w(TAG, "run: detail", null);
                 try {
-                    RestTemplate restTemplate = new RestTemplate();
+                    //发送的信息
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("company", company);
 
+                    //用于接收的对象
                     List<Map<String, String>> maps = new ArrayList<Map<String, String>>();
+
+                    //发出请求
+                    RestTemplate restTemplate = new RestTemplate();
                     maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_DETAIL), msg, maps.getClass());
 
+                    //处理请求的数据
                     if (maps != null) {
                         detailStockOutList.clear();
                         detailStockOutList.addAll(maps);

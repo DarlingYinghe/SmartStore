@@ -33,17 +33,18 @@ import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
-    //基本变量
-    private static final int LOGIN_SUCCESS = 1;
-    private static final int LOGIN_ERROR = -1;
-    private static final int LOGIN_FAIL = 0;
-    private static final int NETWORK_UNAVAILABLE = -2;
-    private static final String URL_LOGIN = "";
-    private static final int COMPANY_SUCCESS = 4;
-    private static final int COMPANY_FAIL =3;
-    private static final int COMPANY_ERROR = 2;
+    //常量
     private static final String TAG = "LoginActivity";
 
+    private static final int NETWORK_UNAVAILABLE = 0;
+
+    private static final int LOGIN_SUCCESS = 1;
+    private static final int LOGIN_ERROR = 2;
+    private static final int LOGIN_FAIL = 3;
+
+    private static final int COMPANY_SUCCESS = 4;
+    private static final int COMPANY_FAIL =5;
+    private static final int COMPANY_ERROR = 6;
 
     //视图
     private TextInputEditText inputUsername;//用户名的输入框
@@ -60,6 +61,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     //数据
     private List<String> companyList;
     private String check;
+    private String companyName;
     private String company;
     private String username;
     private String password;
@@ -91,7 +93,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         spinnerCompany.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                company = companyList.get(position);
+                companyName = companyList.get(position);
             }
 
             @Override
@@ -117,11 +119,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     case LOGIN_SUCCESS:
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         intent.putExtra("username", inputUsername.getText().toString());
+                        intent.putExtra("company", company);
                         intent.putExtra("check", check);
                         startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         break;
                     case LOGIN_FAIL:
-                        Snackbar.make(snackbarContainer, "登录失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "登录失败，用户名不存在", Snackbar.LENGTH_SHORT).show();
                         break;
                     case LOGIN_ERROR:
                         Snackbar.make(snackbarContainer, "服务器请求异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
@@ -204,11 +207,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         password = inputPassword.getText().toString();
 
         //若帐户名与密码不为空则实例化login，否则抛出“不可为空”的提示并返回空信息
-        if ((username != null && username.length() > 0) && (password != null && password.length() > 0)&&company!=null) {
+        if ((username != null && username.length() > 0) && (password != null && password.length() > 0)&&companyName!=null) {
             Login login = new Login();
             login.setUsername(username);
             login.setPassword(password);
-            login.setCompany(company);
+            login.setCompanyName(companyName);
             return login;
         } else {
             Snackbar.make(snackbarContainer, "公司、用户名与密码不可为空", Snackbar.LENGTH_SHORT).show();
@@ -224,12 +227,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void run() {
                 try {
+                    Log.w(TAG, "run: company", null);
+                    //用于接收的对象
+                    List<String> maps = new ArrayList<String>();
+
+                    //发送请求
                     RestTemplate restTemplate = new RestTemplate();
-                    List<String> l = new ArrayList<String>();
-                    l = restTemplate.getForObject(getResources().getString(R.string.URL_LOGIN_COMPANY), l.getClass());
-                    if(l!=null) {
+                    maps = restTemplate.getForObject(getResources().getString(R.string.URL_LOGIN_COMPANY), maps.getClass());
+
+                    //处理请求的数据
+                    if(maps != null) {
                         companyList.clear();
-                        companyList.addAll(l);
+                        companyList.addAll(maps);
                         handler.sendEmptyMessage(COMPANY_SUCCESS);
                     } else {
                         handler.sendEmptyMessage(COMPANY_FAIL);
@@ -251,19 +260,26 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void run() {
 
+                Log.w(TAG, "run: login", null);
                 try {
-                    //实例化RestTemplate
-                    RestTemplate restTemplate = new RestTemplate();
+
+                    //用于接收的对象
                     Map<String, String> map = new HashMap<String, String>();
+
+                    //发送请求
+                    RestTemplate restTemplate = new RestTemplate();
                     map = restTemplate.postForObject(getResources().getString(R.string.URL_LOGIN), login, map.getClass());
+
+                    //处理请求的数据
                     check = map.get("check");
-                    Log.e(TAG, "run: "+check, null);
+                    company = map.get("company");
 
                     if (check != null) {
                         handler.sendEmptyMessage(LOGIN_SUCCESS);
                     } else {
                         handler.sendEmptyMessage(LOGIN_FAIL);
                     }
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     handler.sendEmptyMessage(LOGIN_ERROR);

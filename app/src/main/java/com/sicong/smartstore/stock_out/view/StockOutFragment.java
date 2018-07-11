@@ -10,6 +10,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,25 +37,34 @@ import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
  */
 public class StockOutFragment extends Fragment {
 
-    //基本变量
-    private final static String TAG="StockOutFragment";
-    private final static int SUCCESS=1;
-    private final static int FAIL=0;
-    private final static int ERROR=-1;
-    private static final int NETWORK_UNAVAILABLE = -2;
-    private final static String URL_REQUEST_DATA_FOR_STOCK_OUT_LIST="";
+    //常量
+    private final static String TAG = "StockOutFragment";
+
+    private static final int NETWORK_UNAVAILABLE = 0;
+
+    private final static int SUCCESS = 1;
+    private final static int FAIL = 2;
+    private final static int ERROR = 3;
+
     //数据
     private String check;
-    private CargoSendListMessage cargoSendListMessage;
+    private String company;
+    private String username;
+
     private List<Map<String,String>> stockOutList;
+
     private String tag;
+
     //视图
     private View view;
     private RecyclerView stockOutListView;
 
     private Handler handler;
     //适配器
-    StockOutListAdapter stockOutListAdapter;
+    private StockOutListAdapter stockOutListAdapter;
+
+    //线程
+    private Thread requestDataThread;
 
 
     public StockOutFragment() {
@@ -65,7 +75,6 @@ public class StockOutFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_stock_out, container, false);
         initView(view);//初始化控件
         initHandler();
@@ -79,6 +88,8 @@ public class StockOutFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         check = ((MainActivity)context).getCheck();
+        company = ((MainActivity)context).getCompany();
+        username = ((MainActivity)context).getUsername();
     }
 
     /**
@@ -119,13 +130,6 @@ public class StockOutFragment extends Fragment {
     private void initStockOutListView() {
         stockOutList = new ArrayList<Map<String,String>>();
         tag = "out";
-        //测试数据
-        /*for (int i = 0; i < 10; i++) {
-            Map map = new HashMap<String,String>();
-            map.put("id",String.valueOf(i));
-            map.put("date","日期"+String.valueOf(i));
-            stockOutList.add(map);
-        }*/
 
         stockOutListAdapter = new StockOutListAdapter(getContext(), stockOutList, check, tag);
         stockOutListView.setAdapter(stockOutListAdapter);
@@ -140,34 +144,48 @@ public class StockOutFragment extends Fragment {
      */
     private void requestData(){
         if(isNetworkAvailable(getContext())) {
-
-            Thread requestDataThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        RestTemplate restTemplate = new RestTemplate();
-                        Map<String,String> msg = new HashMap<String, String>();
-                        msg.put("check",check);
-
-                        List<Map<String,String>> l = new ArrayList<Map<String, String>>();
-                        l = restTemplate.postForObject(getResources().getString(R.string.URL_REQUEST_DATA_FOR_STOCK_OUT_LIST), msg, l.getClass());
-                        stockOutList.clear();
-                        stockOutList.addAll(l);
-                        if (cargoSendListMessage == null) {
-                            handler.sendEmptyMessage(FAIL);
-                        } else {
-                            handler.sendEmptyMessage(SUCCESS);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        handler.sendEmptyMessage(ERROR);
-                    }
-                }
-            });
-            requestDataThread.start();
+            startRequestDataThread();
         } else {
             handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
         }
+    }
+
+    private void startRequestDataThread(){
+        requestDataThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.w(TAG, "run: requestData", null);
+                try {
+                    //发送的信息
+                    Map<String,String> msg = new HashMap<String, String>();
+                    msg.put("check", check);
+                    msg.put("company", company);
+                    msg.put("username", username);
+
+                    //用于接收的对象
+                    List<Map<String,String>> maps = new ArrayList<Map<String, String>>();
+
+                    //发出请求
+                    RestTemplate restTemplate = new RestTemplate();
+                    maps = restTemplate.postForObject(getResources().getString(R.string.URL_REQUEST_DATA_FOR_STOCK_OUT_LIST), msg, maps.getClass());
+                    Log.e(TAG, "run: "+maps.get(0), null);
+                    //处理请求的数据
+                    stockOutList.clear();
+                    stockOutList.addAll(maps);
+
+                    if (maps == null) {
+                        handler.sendEmptyMessage(FAIL);
+                    } else {
+                        handler.sendEmptyMessage(SUCCESS);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    handler.sendEmptyMessage(ERROR);
+                }
+            }
+        });
+        requestDataThread.start();
     }
 
 

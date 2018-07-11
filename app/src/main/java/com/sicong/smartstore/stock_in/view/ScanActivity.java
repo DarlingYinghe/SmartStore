@@ -47,18 +47,19 @@ import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
  */
 public class ScanActivity extends AppCompatActivity {
 
-    //基本数据
+    //常量
     private static final String TAG = "ScanFragment";
     private String model = "U6";
 
-    private static final int TYPE_ERROR = -1;
-    private static final int TYPE_FAIL = 0;
-    private static final int NETWORK_UNAVAILABLE = -2;
-    private static final int TYPE_SUCCESS = 1;
-    private static final int NAME_SUCCESS = 4;
-    private static final int NAME_FAIL = 3;
-    private static final int NAME_ERROR = 2;
+    private static final int NETWORK_UNAVAILABLE = 0;
 
+    private static final int TYPE_SUCCESS = 1;
+    private static final int TYPE_FAIL = 2;
+    private static final int TYPE_ERROR = 3;
+
+    private static final int NAME_SUCCESS = 4;
+    private static final int NAME_FAIL = 5;
+    private static final int NAME_ERROR = 6;
 
     //视图
     private AppCompatButton startScan;//开始扫描按钮

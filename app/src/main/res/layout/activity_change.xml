@@ -22,7 +22,7 @@
                 android:background="@color/white">
                 <!--出库条目标题头-->
                 <include
-                    android:id="@+id/change_stock_change_title"
+                    android:id="@+id/change_detail_title"
                     layout="@layout/item_stock_change_detail"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -34,7 +34,7 @@
                     android:layout_marginTop="8dp"/>
                 <!--待出库列表-->
                 <android.support.v7.widget.RecyclerView
-                    android:id="@+id/change_stock_change"
+                    android:id="@+id/change_detail_rv"
                     android:layout_width="0dp"
                     android:layout_height="136dp"
                     android:layout_margin="8dp"
@@ -43,7 +43,9 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/change_stock_change_title"></android.support.v7.widget.RecyclerView>
+                    app:layout_constraintTop_toBottomOf="@id/change_detail_title">
+
+                </android.support.v7.widget.RecyclerView>
             </android.support.constraint.ConstraintLayout>
 
             <!--扫描面板-->
