@@ -8,25 +8,16 @@ import java.util.List;
  */
 public class Statistic implements Serializable{
 
-    private String typeFirst;
-    private String typeSecond;
+    private String name;
     private int num;
     private List<String> rfid;
 
-    public String getTypeFirst() {
-        return typeFirst;
+    public String getName() {
+        return name;
     }
 
-    public void setTypeFirst(String typeFirst) {
-        this.typeFirst = typeFirst;
-    }
-
-    public String getTypeSecond() {
-        return typeSecond;
-    }
-
-    public void setTypeSecond(String typeSecond) {
-        this.typeSecond = typeSecond;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public int getNum() {

@@ -7,6 +7,8 @@ import com.sicong.smartstore.R;
 
 public class ChangeActivity extends AppCompatActivity {
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

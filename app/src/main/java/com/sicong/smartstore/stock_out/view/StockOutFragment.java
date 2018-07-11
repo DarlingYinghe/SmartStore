@@ -101,7 +101,8 @@ public class StockOutFragment extends Fragment {
                         stockOutListAdapter.notifyDataSetChanged();
                         break;
                     case FAIL:
-                        Toast.makeText(getContext(), "请求无响应，请稍后再试", Toast.LENGTH_SHORT).show();
+                        /**UI优化时用背景图片代替**/
+                        Toast.makeText(getContext(), "暂时没有单号", Toast.LENGTH_SHORT).show();
                         break;
                     case ERROR:
                         Toast.makeText(getContext(),"获取单号列表失败，请检查网络环境", Toast.LENGTH_SHORT).show();
@@ -119,12 +120,12 @@ public class StockOutFragment extends Fragment {
         stockOutList = new ArrayList<Map<String,String>>();
         tag = "out";
         //测试数据
-        for (int i = 0; i < 10; i++) {
+        /*for (int i = 0; i < 10; i++) {
             Map map = new HashMap<String,String>();
             map.put("id",String.valueOf(i));
             map.put("date","日期"+String.valueOf(i));
             stockOutList.add(map);
-        }
+        }*/
 
         stockOutListAdapter = new StockOutListAdapter(getContext(), stockOutList, check, tag);
         stockOutListView.setAdapter(stockOutListAdapter);
@@ -145,7 +146,13 @@ public class StockOutFragment extends Fragment {
                 public void run() {
                     try {
                         RestTemplate restTemplate = new RestTemplate();
-                        cargoSendListMessage = restTemplate.postForObject(URL_REQUEST_DATA_FOR_STOCK_OUT_LIST, new StockOutCargoReceiveMessage(check), CargoSendListMessage.class);
+                        Map<String,String> msg = new HashMap<String, String>();
+                        msg.put("check",check);
+
+                        List<Map<String,String>> l = new ArrayList<Map<String, String>>();
+                        l = restTemplate.postForObject(getResources().getString(R.string.URL_REQUEST_DATA_FOR_STOCK_OUT_LIST), msg, l.getClass());
+                        stockOutList.clear();
+                        stockOutList.addAll(l);
                         if (cargoSendListMessage == null) {
                             handler.sendEmptyMessage(FAIL);
                         } else {

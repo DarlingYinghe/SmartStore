@@ -25,7 +25,9 @@ import org.json.JSONObject;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
@@ -40,7 +42,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private static final int COMPANY_SUCCESS = 4;
     private static final int COMPANY_FAIL =3;
     private static final int COMPANY_ERROR = 2;
-    private final String URL_LOGIN_COMPANY = getResources().getString(R.string.URL_LOGIN_COMPANY);
+    private static final String TAG = "LoginActivity";
+
 
     //视图
     private TextInputEditText inputUsername;//用户名的输入框
@@ -56,6 +59,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     
     //数据
     private List<String> companyList;
+    private String check;
+    private String company;
+    private String username;
+    private String password;
+
+    //线程
+    private Thread companyThread;
+    private Thread loginThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,26 +88,19 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         companyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCompany.setAdapter(companyAdapter);
 
+        spinnerCompany.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                company = companyList.get(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
         if(isNetworkAvailable(LoginActivity.this)) {
-            Thread companyThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        RestTemplate restTemplate = new RestTemplate();
-                        String jsonStr = restTemplate.getForObject(URL_LOGIN_COMPANY, String.class);
-                        companyList.clear();
-                        JSONArray companyArray = new JSONArray(jsonStr);
-                        for (int i = 0; i < companyArray.length(); i++) {
-                            companyList.add((String)companyArray.get(i));
-                        }
-                        handler.sendEmptyMessage(COMPANY_SUCCESS);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        handler.sendEmptyMessage(COMPANY_ERROR);
-                    }
-                }
-            });
-            companyThread.start();
+            startCompanyThread();
         } else {
             handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
         }
@@ -113,6 +117,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     case LOGIN_SUCCESS:
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         intent.putExtra("username", inputUsername.getText().toString());
+                        intent.putExtra("check", check);
                         startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         break;
                     case LOGIN_FAIL:
@@ -166,6 +171,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.login_enter:
+
                 postAccount();
         }
     }
@@ -175,38 +181,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
      * 发送登录信息并处理
      */
     private void postAccount() {
-        final Login login = checkInput();//检查输入
+        Login login = checkInput();//检查输入
         if (login != null) {//若用户的登录信息形式正确则发送post请求到服务器
+            //通过Post请求发送Json数据并接收返回的数据
+            if (isNetworkAvailable(LoginActivity.this)) {
+                startLoginThread(login);
+            } else{
+                handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
+            }
 
-            Thread loginThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    //实例化RestTemplate
-                    RestTemplate restTemplate = new RestTemplate();
-
-                    //通过Post请求发送Json数据并接收返回的数据
-                    if (isNetworkAvailable(LoginActivity.this)) {
-
-                        try {
-                            String response = restTemplate.postForObject(URL_LOGIN, login, String.class);
-                            JSONObject resultJson = new JSONObject(response);
-                            String check = resultJson.getString("check");
-
-                            if (check != null) {
-                                handler.sendEmptyMessage(LOGIN_SUCCESS);
-                            } else {
-                                handler.sendEmptyMessage(LOGIN_FAIL);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            handler.sendEmptyMessage(LOGIN_ERROR);
-                        }
-                    } else {
-                        handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
-                    }
-                }
-            });
-            loginThread.start();
         }
     }
 
@@ -217,18 +200,79 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
      */
     private Login checkInput() {
         //获取用户名与密码
-        String username = inputUsername.getText().toString();
-        String password = inputPassword.getText().toString();
+        username = inputUsername.getText().toString();
+        password = inputPassword.getText().toString();
 
         //若帐户名与密码不为空则实例化login，否则抛出“不可为空”的提示并返回空信息
-        if ((username != null && username.length() > 0) && (password != null && password.length() > 0)) {
+        if ((username != null && username.length() > 0) && (password != null && password.length() > 0)&&company!=null) {
             Login login = new Login();
             login.setUsername(username);
             login.setPassword(password);
+            login.setCompany(company);
             return login;
         } else {
-            Snackbar.make(snackbarContainer, "用户名与密码不可为空", Snackbar.LENGTH_SHORT).show();
+            Snackbar.make(snackbarContainer, "公司、用户名与密码不可为空", Snackbar.LENGTH_SHORT).show();
             return null;
         }
     }
+
+    /**
+     * 启动公司信息线程
+     */
+    private void startCompanyThread() {
+        companyThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    RestTemplate restTemplate = new RestTemplate();
+                    List<String> l = new ArrayList<String>();
+                    l = restTemplate.getForObject(getResources().getString(R.string.URL_LOGIN_COMPANY), l.getClass());
+                    if(l!=null) {
+                        companyList.clear();
+                        companyList.addAll(l);
+                        handler.sendEmptyMessage(COMPANY_SUCCESS);
+                    } else {
+                        handler.sendEmptyMessage(COMPANY_FAIL);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    handler.sendEmptyMessage(COMPANY_ERROR);
+                }
+            }
+        });
+        companyThread.start();
+    }
+
+    /**
+     * 启动登录信息线程
+     */
+    private void startLoginThread(final Login login) {
+        loginThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    //实例化RestTemplate
+                    RestTemplate restTemplate = new RestTemplate();
+                    Map<String, String> map = new HashMap<String, String>();
+                    map = restTemplate.postForObject(getResources().getString(R.string.URL_LOGIN), login, map.getClass());
+                    check = map.get("check");
+                    Log.e(TAG, "run: "+check, null);
+
+                    if (check != null) {
+                        handler.sendEmptyMessage(LOGIN_SUCCESS);
+                    } else {
+                        handler.sendEmptyMessage(LOGIN_FAIL);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    handler.sendEmptyMessage(LOGIN_ERROR);
+
+                }
+            }
+
+        });
+        loginThread.start();
+    }
+
 }

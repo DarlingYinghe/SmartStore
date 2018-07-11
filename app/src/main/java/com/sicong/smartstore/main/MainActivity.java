@@ -23,8 +23,8 @@ public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = "MainActivity";
 
-    private String operatorId = "16905121";//操作人员的id
-    private String check = "73EAB1";//校验码
+    private String username;//操作人员的id
+    private String check;//校验码
     private List<Statistic> statisticList;//统计结果
 
 
@@ -45,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if(intent!=null&&intent.hasExtra("statisticList")) {
             statisticList = (List<Statistic>) intent.getSerializableExtra("statisticList");
+        } else if(intent!=null&&intent.hasExtra("check")){
+            check = intent.getStringExtra("check");
+        } else if(intent!=null&&intent.hasExtra("username")) {
+            username = intent.getStringExtra("username");
         }
     }
 
@@ -61,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initPagers() {
         //设置屏幕外分页数量
-        pagers.setOffscreenPageLimit(1);
+        pagers.setOffscreenPageLimit(2);
 
         //适配器
         pagers.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
@@ -146,8 +150,9 @@ public class MainActivity extends AppCompatActivity {
         initRecevicerFromScan();
     }
 
-    public String getOperatorId() {
-        return operatorId;
+
+    public String getUsername() {
+        return username;
     }
 
 

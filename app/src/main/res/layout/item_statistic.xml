@@ -13,29 +13,20 @@
         android:textSize="15sp"
         app:layout_constraintHorizontal_weight="1"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/statistic_type_first" />
+        app:layout_constraintRight_toLeftOf="@id/statistic_name" />
 
     <TextView
-        android:id="@+id/statistic_type_first"
+        android:id="@+id/statistic_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/type_first"
+        android:text="@string/cargo_name"
         android:textColor="@color/black"
         android:textSize="15sp"
         app:layout_constraintHorizontal_weight="2"
         app:layout_constraintLeft_toRightOf="@id/statistic_id"
-        app:layout_constraintRight_toLeftOf="@id/statistic_type_second" />
-
-    <TextView
-        android:id="@+id/statistic_type_second"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/type_second"
-        android:textColor="@color/black"
-        android:textSize="15sp"
-        app:layout_constraintHorizontal_weight="2"
-        app:layout_constraintLeft_toRightOf="@id/statistic_type_first"
         app:layout_constraintRight_toLeftOf="@id/statistic_num" />
+
+
 
     <TextView
         android:id="@+id/statistic_num"
@@ -45,7 +36,7 @@
         android:textColor="@color/black"
         android:textSize="15sp"
         app:layout_constraintHorizontal_weight="2"
-        app:layout_constraintLeft_toRightOf="@id/statistic_type_second"
+        app:layout_constraintLeft_toRightOf="@id/statistic_name"
         app:layout_constraintRight_toRightOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

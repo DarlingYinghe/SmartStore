@@ -4,8 +4,7 @@ import java.io.Serializable;
 
 public class Cargo implements Serializable{
 
-    private String typeFirst;
-    private String typeSecond;
+    private String name;
     private String rfid;
 
     public String getRfid() {
@@ -16,19 +15,11 @@ public class Cargo implements Serializable{
         this.rfid = rfid;
     }
 
-    public String getTypeFirst() {
-        return typeFirst;
+    public String getName() {
+        return name;
     }
 
-    public void setTypeFirst(String typeFirst) {
-        this.typeFirst = typeFirst;
-    }
-
-    public String getTypeSecond() {
-        return typeSecond;
-    }
-
-    public void setTypeSecond(String typeSecond) {
-        this.typeSecond = typeSecond;
+    public void setName(String name) {
+        this.name = name;
     }
 }

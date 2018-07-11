@@ -40,7 +40,6 @@ public class StockChangeFragment extends Fragment {
     private static final int FAIL = 0;
     private static final int ERROR = -1;
     private static final int NETWORK_UNAVAILABLE = -2;
-    private final String URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST=getContext().getResources().getString(R.string.URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST);
     //数据
     private String check;
     private CargoSendListMessage cargoSendListMessage;
@@ -48,7 +47,7 @@ public class StockChangeFragment extends Fragment {
     private String tag;
     //视图
     private View view;
-    private RecyclerView stockOutListView;
+    private RecyclerView stockChangeListView;
 
     private Handler handler;
     //适配器
@@ -67,7 +66,7 @@ public class StockChangeFragment extends Fragment {
         view = inflater.inflate(R.layout.fragment_stock_change, container, false);
         initView(view);//初始化控件
         initHandler();//初始化Handler
-        initStockOutListView();//初始化列表
+        initstockChangeListView();//初始化列表
 
         requestData();
         return view;
@@ -85,7 +84,7 @@ public class StockChangeFragment extends Fragment {
      * @param view 当前Fragment视图
      */
     private void initView(View view) {
-        stockOutListView = (RecyclerView)view.findViewById(R.id.stock_out_rv);
+        stockChangeListView = (RecyclerView)view.findViewById(R.id.stock_change_rv);
     }
 
     /**
@@ -114,7 +113,7 @@ public class StockChangeFragment extends Fragment {
     /**
      * 初始化单号列表
      */
-    private void initStockOutListView() {
+    private void initstockChangeListView() {
         stockOutList = new ArrayList<Map<String,String>>();
         tag = "change";
         //测试数据
@@ -126,11 +125,11 @@ public class StockChangeFragment extends Fragment {
         }
 
         stockOutListAdapter = new StockOutListAdapter(getContext(), stockOutList, check, tag);
-        stockOutListView.setAdapter(stockOutListAdapter);
-        stockOutListView.setLayoutManager(new LinearLayoutManager(getContext()));
-        stockOutListView.setHasFixedSize(true);
-        stockOutListView.setItemAnimator(new DefaultItemAnimator());
-        stockOutListView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+        stockChangeListView.setAdapter(stockOutListAdapter);
+        stockChangeListView.setLayoutManager(new LinearLayoutManager(getContext()));
+        stockChangeListView.setHasFixedSize(true);
+        stockChangeListView.setItemAnimator(new DefaultItemAnimator());
+        stockChangeListView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
     }
 
     /**
@@ -144,7 +143,7 @@ public class StockChangeFragment extends Fragment {
                 public void run() {
                     try {
                         RestTemplate restTemplate = new RestTemplate();
-                        cargoSendListMessage = restTemplate.postForObject(URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST, new StockOutCargoReceiveMessage(check), CargoSendListMessage.class);
+                        cargoSendListMessage = restTemplate.postForObject(getContext().getResources().getString(R.string.URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST), new StockOutCargoReceiveMessage(check), CargoSendListMessage.class);
                         if (cargoSendListMessage == null) {
                             handler.sendEmptyMessage(FAIL);
                         } else {

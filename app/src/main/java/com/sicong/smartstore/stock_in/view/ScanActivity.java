@@ -25,19 +25,18 @@ import com.sicong.smartstore.main.MainActivity;
 import com.sicong.smartstore.stock_in.adapter.ScanInfoAdapter;
 import com.sicong.smartstore.stock_in.data.model.Cargo;
 import com.sicong.smartstore.stock_in.data.model.CargoInSendMessage;
-import com.sicong.smartstore.stock_in.data.model.CheckMessage;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
 import com.sicong.smartstore.util.fn.u6.model.ResponseHandler;
 import com.sicong.smartstore.util.fn.u6.model.Tag;
 import com.sicong.smartstore.util.fn.u6.operation.IUSeries;
 import com.sicong.smartstore.util.fn.u6.operation.U6Series;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,14 +49,16 @@ public class ScanActivity extends AppCompatActivity {
 
     //基本数据
     private static final String TAG = "ScanFragment";
-    private static final String URL_RECEVICE_TYPE = "";
-    private static final int ERROR = -1;
-    private static final int FAIL = 0;
-    private static final int NETWORK_UNAVAILABLE = -2;
-
-
     private String model = "U6";
-    private String URL_POST_SCAN_RESULTS = "";
+
+    private static final int TYPE_ERROR = -1;
+    private static final int TYPE_FAIL = 0;
+    private static final int NETWORK_UNAVAILABLE = -2;
+    private static final int TYPE_SUCCESS = 1;
+    private static final int NAME_SUCCESS = 4;
+    private static final int NAME_FAIL = 3;
+    private static final int NAME_ERROR = 2;
+
 
     //视图
     private AppCompatButton startScan;//开始扫描按钮
@@ -67,10 +68,13 @@ public class ScanActivity extends AppCompatActivity {
 
     private View typeViewFirst;//一级类型选择器的布局视图
     private View typeViewSecond;//二级类型选择器的布局视图
+    private View nameView;//货物名称的布局视图
     private TextView textTypeFirst;//一级选择器的标题
     private TextView textTypeSecond;//二级选择器的标题
+    private TextView textName;//名称的标题
     private Spinner spinnerTypeFirst;//一级类型选择器
     private Spinner spinnerTypeSecond;//二级类型选择器
+    private Spinner spinnerName;//货物名称选择器
 
     private RecyclerView scanInfoView;//扫描信息的列表
 
@@ -80,6 +84,7 @@ public class ScanActivity extends AppCompatActivity {
     private ScanInfoAdapter scanInfoAdapter;//扫描信息的列标的适配器
     private ArrayAdapter<String> typeFirstAdapter;//一级类型适配器
     private ArrayAdapter<String> typeSecondAdapter;//二级类型适配器
+    private ArrayAdapter<String> nameAdapter;//货物名称适配器
 
     //数据
     public IUSeries mUSeries;//扫描工具
@@ -88,8 +93,10 @@ public class ScanActivity extends AppCompatActivity {
 
     private String typeFirst;
     private String typeSecond;
+    private String name;
     private List<String> typeFirstList;
     private List<String> typeSecondList;
+    private List<String > nameList;
 
     private String check;
     private CargoInSendMessage cargoInSendMessage;
@@ -125,15 +132,27 @@ public class ScanActivity extends AppCompatActivity {
             @Override
             public boolean handleMessage(Message msg) {
                 switch (msg.what) {
-                    case ERROR:
+                    case TYPE_SUCCESS:
+                        break;
+                    case TYPE_ERROR:
                         Toast.makeText(ScanActivity.this,"获取产品类型异常，请检查网络环境", Toast.LENGTH_SHORT).show();
                         break;
-                    case FAIL:
+                    case TYPE_FAIL:
                         Toast.makeText(ScanActivity.this,"获取产品类型失败",Toast.LENGTH_SHORT).show();
                         break;
                     case NETWORK_UNAVAILABLE:
                         Toast.makeText(ScanActivity.this, "请连接网络", Toast.LENGTH_SHORT).show();
                         break;
+                    case NAME_SUCCESS:
+                        nameAdapter.notifyDataSetChanged();
+                        break;
+                    case NAME_FAIL:
+                        Toast.makeText(ScanActivity.this, "请求货物名称数据失败", Toast.LENGTH_SHORT).show();
+                        break;
+                    case NAME_ERROR:
+                        Toast.makeText(ScanActivity.this, "请求货物名称数据异常", Toast.LENGTH_SHORT).show();
+                        break;
+
                 }
                 return false;
             }
@@ -159,12 +178,15 @@ public class ScanActivity extends AppCompatActivity {
 
         typeViewFirst = (View) findViewById(R.id.scan_type_first);
         typeViewSecond = (View) findViewById(R.id.scan_type_second);
+        nameView = (View)findViewById(R.id.scan_name);
 
         spinnerTypeFirst = (Spinner) typeViewFirst.findViewById(R.id.item_choose_type);
         spinnerTypeSecond = (Spinner) typeViewSecond.findViewById(R.id.item_choose_type);
+        spinnerName = (Spinner)nameView.findViewById(R.id.item_choose_type);
 
         textTypeFirst = (TextView)typeViewFirst.findViewById(R.id.item_choose_tv);
         textTypeSecond = (TextView)typeViewSecond.findViewById(R.id.item_choose_tv);
+        textName = (TextView)nameView.findViewById(R.id.item_choose_tv);
 
         scanInfoView = (RecyclerView) findViewById(R.id.scan_info_view);
     }
@@ -221,15 +243,15 @@ public class ScanActivity extends AppCompatActivity {
         //初始化第一、第二级类型的数组
         typeFirstList = new ArrayList<String>();
         typeSecondList = new ArrayList<String>();
-
+        nameList = new ArrayList<String>();
         setTypeFirstList();
         //在确保typeFirstList可用的情况下对typeSecondList进行初始化
         if(typeFirstList!=null&&typeFirstList.size()>0) {
             try {
                 setTypeSecondList(typeFirstList.get(0));
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
-                Log.e(TAG, "initChooseType: JSON格式解析错误", null);
+                Log.e(TAG, "initChooseType: 数据解析错误", null);
             }
         }
 
@@ -241,15 +263,15 @@ public class ScanActivity extends AppCompatActivity {
         spinnerTypeFirst.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.e(TAG, "onItemSelected: ",null );
+                typeFirst = typeFirstList.get(position);
                 try {
-                    setTypeSecondList(typeFirstList.get(position));
-                } catch (JSONException e) {
+                    setTypeSecondList(typeFirst);
+                } catch (Exception e) {
                     e.printStackTrace();
-                    Log.e(TAG, "initChooseType: JSON格式解析错误", null);
+                    Log.e(TAG, "initChooseType: 数据解析错误", null);
                 }
                 typeSecondAdapter.notifyDataSetChanged();
-                typeFirst = typeFirstList.get(position);
-
             }
 
             @Override
@@ -266,6 +288,28 @@ public class ScanActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 typeSecond = typeSecondList.get(position);
+                try {
+                    setNameList(typeSecond);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Toast.makeText(ScanActivity.this,"数据解析错误",Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //初始化货物名称选择器
+        nameAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, nameList);
+        nameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerName.setAdapter(nameAdapter);
+        spinnerName.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                name = nameList.get(position);
             }
 
             @Override
@@ -329,40 +373,42 @@ public class ScanActivity extends AppCompatActivity {
              */
             @Override
             public void onSuccess(String msg, Object data, byte[] parameters) {
-                Log.e(TAG, "onSuccess: 启动了", null);
-                List<Tag> InventoryOnceResult = (List<Tag>) data;//一次扫描到的数据，因为不排除扫描到周围其他物体的可能性，故用数组接收结果，但是数组内部已做好对其他数组的过滤
+                if (name != null) {
+                    Log.e(TAG, "onSuccess: 启动了", null);
+                    List<Tag> InventoryOnceResult = (List<Tag>) data;//一次扫描到的数据，因为不排除扫描到周围其他物体的可能性，故用数组接收结果，但是数组内部已做好对其他数组的过滤
 
 
+                    //对扫描结果进行筛选
+                    for (int i = 0; i < InventoryOnceResult.size(); i++) {
+                        Tag map = InventoryOnceResult.get(i);
 
-                //对扫描结果进行筛选
-                for (int i = 0; i < InventoryOnceResult.size(); i++) {
-                    Tag map = InventoryOnceResult.get(i);
+                        if (!InventoryTaps.contains(map.epc)) {//避免RFID码重复扫入与空类型扫入
+                            //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
+                            InventoryTaps.add(map.epc);
 
-                    if (!InventoryTaps.contains(map.epc)) {//避免RFID码重复扫入
-                        //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
-                        InventoryTaps.add(map.epc);
 
-                        //创建新的货物对象
-                        Cargo cargo = new Cargo();
+                            //创建新的货物对象
+                            Cargo cargo = new Cargo();
 
-                        cargo.setTypeFirst(typeFirst);
-                        cargo.setTypeSecond(typeSecond);
-                        cargo.setRfid(map.epc);
+                            cargo.setName(name);
+                            cargo.setRfid(map.epc);
 
-                        //更新视图
-                        scanInfoAdapter.insert(cargo);
+                            //更新视图
+                            scanInfoAdapter.insert(cargo);
 
-                    } else {
+                        } else {
 
+                        }
                     }
                 }
             }
 
-            @Override
-            public void onFailure(String msg) {
-                super.onFailure(msg);
-                Log.e(TAG, "onFailure", null);
-            }
+                @Override
+                public void onFailure (String msg){
+                    super.onFailure(msg);
+                    Log.e(TAG, "onFailure", null);
+                }
+
         });
     }
 
@@ -386,31 +432,30 @@ public class ScanActivity extends AppCompatActivity {
 
         for (int i = 0; i < cargos.size(); i++) {
             Cargo cargo1 = cargos.get(i);
-            String typeFirstTmp = cargo1.getTypeFirst();//存放当前统计的一级类型
-            String typeSecondTmp = cargo1.getTypeSecond();//存放当前统计的二级类型
+            String nameTmp = cargo1.getName();//存放当前统计的名称
             List<String> rfidList = new ArrayList<String>();
 
-            String tmp = typeFirstTmp+" "+typeSecondTmp;
-            int num=0;//当前物品的统计值
-            if(!types.contains(tmp)) {
-                types.add(tmp);
-                for (int j = 0; j < cargos.size(); j++) {//若当前扫描的物品与比对的物品相同，则归为同一类，该类物品的数量加一并从列表中移除。
-                    Cargo cargo2=cargos.get(j);
-                    if(cargo2.getTypeFirst().equals(typeFirstTmp)&&cargo2.getTypeSecond().equals(typeSecondTmp)){
-                        num++;
-                        rfidList.add(cargo2.getRfid());
-                        cargos.remove(j);
-                        j--;
+            if(nameTmp!=null) {
+                int num = 0;//当前物品的统计值
+                if (!types.contains(nameTmp)) {
+                    types.add(nameTmp);
+                    for (int j = 0; j < cargos.size(); j++) {//若当前扫描的物品与比对的物品相同，则归为同一类，该类物品的数量加一并从列表中移除。
+                        Cargo cargo2 = cargos.get(j);
+                        if (cargo2.getName().equals(nameTmp)) {
+                            num++;
+                            rfidList.add(cargo2.getRfid());
+                            cargos.remove(j);
+                            j--;
+                        }
                     }
                 }
+                //将该类物品的统计结果加入统计集合中
+                Statistic statistic = new Statistic();
+                statistic.setNum(num);
+                statistic.setName(nameTmp);
+                statistic.setRfid(rfidList);
+                statisticList.add(statistic);
             }
-            //将该类物品的统计结果加入统计集合中
-            Statistic statistic = new Statistic();
-            statistic.setNum(num);
-            statistic.setTypeFirst(typeFirstTmp);
-            statistic.setTypeSecond(typeSecondTmp);
-            statistic.setRfid(rfidList);
-            statisticList.add(statistic);
         }
         //测试代码,测试发送是否成功
         /*List<String>  fType = new ArrayList<String>();
@@ -478,18 +523,19 @@ public class ScanActivity extends AppCompatActivity {
                     try {
 
                         RestTemplate restTemplate = new RestTemplate();
-                        CheckMessage checkMessage = new CheckMessage(check);
+                       Map<String,String> map = new HashMap<String,String>();
+                       map.put("check",check);
 
-                        cargoInSendMessage = restTemplate.postForObject(URL_RECEVICE_TYPE, checkMessage, cargoInSendMessage.getClass());
+                        typeList = restTemplate.postForObject(getResources().getString(R.string.URL_RECEVICE_TYPE), map, typeList.getClass());
                         if (cargoInSendMessage != null) {
-                            typeList = cargoInSendMessage.getType();
+                            handler.sendEmptyMessage(TYPE_SUCCESS);
                         } else {
-                            handler.sendEmptyMessage(FAIL);
+                            handler.sendEmptyMessage(TYPE_FAIL);
                         }
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        handler.sendEmptyMessage(ERROR);
+                        handler.sendEmptyMessage(TYPE_ERROR);
                     }
                 }else{
                     handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
@@ -499,16 +545,19 @@ public class ScanActivity extends AppCompatActivity {
         receiveTypeThread.start();
     }
     /**
-     * 获取一级物品类型
+     * 设置一级物品类型数组
      */
     public void setTypeFirstList() {
 
         if(typeFirstList.size()!=0) {
             typeFirstList.clear();
         }
+
         if(typeList!=null&&typeList.size()>0) {
             for (int i = 0; i < typeList.size(); i++) {
-                typeFirstList.add((String) typeList.get(i).get("typeFirst"));
+                Map<String,Object> map = typeList.get(i);
+                String typeFirstTmp = (String)map.get("typeFirst");
+                typeFirstList.add(typeFirstTmp);
             }
         }
 
@@ -521,21 +570,22 @@ public class ScanActivity extends AppCompatActivity {
     }
 
     /**
-     * 获取二级物品类型
+     * 设置二级物品类型数组
      */
-    public void setTypeSecondList(String typeFirst) throws JSONException {
+    public void setTypeSecondList(String typeFirst)  {
         if(typeSecondList.size()!=0) {
             typeSecondList.clear();
         }
 
-        if(typeList!=null) {
+        if(typeList!=null&&typeList.size()>0) {
             for (int i = 0; i < typeList.size(); i++) {
-                if (typeList.get(i).get("typeFirst").equals(typeFirst)) {
-                    JSONArray jsonArray = new JSONArray((String) typeList.get(i).get("typeSecond"));
-                    for (int j = 0; j < jsonArray.length(); j++) {
-                        typeSecondList.add(jsonArray.getString(j));
+                Map<String,Object> map1 = typeList.get(i);
+                String typeFirstTmp = (String)map1.get("typeFirst");
+                if(typeFirst.equals(typeFirstTmp)){
+                    List<String> stringList = (List<String>) map1.get("typeSeconds");
+                    for (int j = 0; j < stringList.size(); j++) {
+                        typeSecondList.addAll(stringList);
                     }
-                    return;
                 }
             }
         }
@@ -566,6 +616,14 @@ public class ScanActivity extends AppCompatActivity {
     }
 
     /**
+     * 设置货物名称数组
+     * @param typeSecond 当前二级类型
+     */
+    public void setNameList(String typeSecond) throws JSONException {
+        startNameThread(typeSecond);
+    }
+
+    /**
      * 跳转至MainActivity
      * 将扫描结果发送消息给MainActivity
      *
@@ -578,6 +636,36 @@ public class ScanActivity extends AppCompatActivity {
             startActivity(intent);
         }
         this.overridePendingTransition(R.anim.activity_out_left, R.anim.activity_in_right);
+    }
+
+    /**
+     * 请求货物名称列表的线程
+     */
+    public void startNameThread(final String typeSecond) {
+        Thread nameThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(isNetworkAvailable(ScanActivity.this)) {
+                    try{
+                        Map map = new HashMap<String,String>();
+                        map.put("check",check);
+                        map.put("typeSecond",typeSecond);
+                        RestTemplate restTemplate = new RestTemplate();
+                        nameList = restTemplate.postForObject(getResources().getString(R.string.URL_SCAN_NAME), map, nameList.getClass());
+                        if(nameList==null) {
+                            handler.sendEmptyMessage(NAME_FAIL);
+                        } else {
+                            handler.sendEmptyMessage(NAME_SUCCESS);
+                        }
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                        handler.sendEmptyMessage(NAME_ERROR);
+                    }
+                }
+            }
+        });
+        nameThread.start();
+
     }
 
     /*class postScanResults implements Runnable {

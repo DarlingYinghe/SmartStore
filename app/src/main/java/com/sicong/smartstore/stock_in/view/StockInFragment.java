@@ -42,7 +42,7 @@ public class StockInFragment extends Fragment {
     private static final int NETWORK_UNAVAILABLE = -2;
     //数据
     private String check = null;//校验码
-    private String operatorId = null;//操作员
+    private String username = null;//操作员
     private String describe = null;//描述内容
     private List<Statistic> statisticList;//统计数据集合
     private List<Statistic> statisticListTmp;//从MainActivity获取到的统计数据
@@ -113,9 +113,8 @@ public class StockInFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        Log.e(TAG, "onAttach: start", null);
         check = ((MainActivity) context).getCheck();
-        operatorId = ((MainActivity) context).getOperatorId();
+        username = ((MainActivity) context).getUsername();
         statisticListTmp = ((MainActivity) context).getStatisticList();
 
     }
@@ -133,7 +132,7 @@ public class StockInFragment extends Fragment {
             }
         }
         Log.e(TAG, "onResume: "+check, null);
-        Log.e(TAG, "onResume: "+operatorId, null);*/
+        Log.e(TAG, "onResume: "+username, null);*/
         if (statisticListTmp != null && statisticListTmp.size() > 0) {
             statisticList.clear();
             statisticList.addAll(statisticListTmp);
@@ -149,7 +148,7 @@ public class StockInFragment extends Fragment {
     private void packCargoInMessage() {
         cargoInMessage = new CargoInMessage();
         cargoInMessage.setCheck(check);
-        cargoInMessage.setOperatorId(operatorId);
+        cargoInMessage.setUsername(username);
         cargoInMessage.setStatistic(statisticList);
     }
 

@@ -17,7 +17,7 @@ import java.util.Map;
 public class CargoInMessage implements Serializable{
     private String check;
     private List<Statistic> statistic;
-    private String operatorId;
+    private String username;
     private String describe;
 
     public CargoInMessage() {
@@ -27,7 +27,7 @@ public class CargoInMessage implements Serializable{
     public CargoInMessage(String check, List<Statistic> statistic, String operatorId, String describe) {
         this.check = check;
         this.statistic = statistic;
-        this.operatorId = operatorId;
+        this.username = operatorId;
         this.describe = describe;
     }
 
@@ -47,12 +47,12 @@ public class CargoInMessage implements Serializable{
         this.statistic = statistic;
     }
 
-    public String getOperatorId() {
-        return operatorId;
+    public String getUsername() {
+        return username;
     }
 
-    public void setOperatorId(String operatorId) {
-        this.operatorId = operatorId;
+    public void setUsername(String operatorId) {
+        this.username = operatorId;
     }
 
     public String getDescribe() {
@@ -68,7 +68,7 @@ public class CargoInMessage implements Serializable{
         return "CargoInMessage{" +
                 "check='" + check + '\'' +
                 ", statistic=" + statistic +
-                ", operatorId='" + operatorId + '\'' +
+                ", operatorId='" + username + '\'' +
                 ", describe='" + describe + '\'' +
                 '}';
     }

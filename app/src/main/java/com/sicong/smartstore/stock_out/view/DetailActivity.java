@@ -31,6 +31,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,12 +50,14 @@ public class DetailActivity extends AppCompatActivity {
     private static final int CLIENT_INFO_SUCCESS = 4;
     private static final int CLIENT_INFO_FAIL = 3;
     private static final int CLIENT_INFO_ERROR = 2;
+    private static final int DETAIL_SUCCESS = 7;
+    private static final int DETAIL_FAIL = 6;
+    private static final int DETAIL_ERROR = 5;
 
     private String model = "U6";
     //数据
-    private CargoListSendMessage cargoListSendMessage;
-    private List<Map<String,Object>> detailStockOutList;
-    private CheckMessage checkMessage;
+    private List<Map<String, String>> detailStockOutList;
+    private String check;
     public IUSeries mUSeries;//扫描工具
     private List<String> InventoryTaps;//已扫描RFID集合：已扫描过的rfid码，避免重复
     private List<String> rfidList;//货物对象集合：扫描的所有物品的集合
@@ -74,10 +77,15 @@ public class DetailActivity extends AppCompatActivity {
     private TextView addressView;
 
     private Handler handler;
-    
+
     //适配器
     private DetailStockOutAdapter detailStockOutAdapter;
     private DetailScanAdapter scanInfoAdapter;
+
+    //线程
+    private Thread detailThread;//出库细节信息线程
+    private Thread clientThread;//客户信息线程
+    private Thread submitThread;//提交线程
 
 
     @Override
@@ -95,7 +103,6 @@ public class DetailActivity extends AppCompatActivity {
         initBtnSubmit();//初始化提交按钮
         initClientInfoView();//初始化用户信息视图
     }
-
 
 
     /**
@@ -130,6 +137,15 @@ public class DetailActivity extends AppCompatActivity {
                     case CLIENT_INFO_ERROR:
                         Toast.makeText(DetailActivity.this, "获取用户信息异常", Toast.LENGTH_SHORT).show();
                         break;
+                    case DETAIL_SUCCESS:
+                        detailStockOutAdapter.notifyDataSetChanged();
+                        break;
+                    case DETAIL_FAIL:
+                        Toast.makeText(DetailActivity.this, "获取出库信息失败", Toast.LENGTH_SHORT).show();
+                        break;
+                    case DETAIL_ERROR:
+                        Toast.makeText(DetailActivity.this, "获取出库信息异常", Toast.LENGTH_SHORT).show();
+                        break;
 
                 }
                 return false;
@@ -147,14 +163,13 @@ public class DetailActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         String check = intent.getStringExtra("check");
-        checkMessage = new CheckMessage(check);
     }
 
     /**
      * 初始化扫描列表
      */
     private void initScanInfoView() {
-        rfidList  = new ArrayList<String>();
+        rfidList = new ArrayList<String>();
         scanInfoAdapter = new DetailScanAdapter(this, rfidList);
         scanInfoView.setAdapter(scanInfoAdapter);
         scanInfoView.setLayoutManager(new LinearLayoutManager(this));
@@ -167,13 +182,15 @@ public class DetailActivity extends AppCompatActivity {
      * 初始化待出库物品列表
      */
     private void initDetailStockOutView() {
-        detailStockOutList = new ArrayList<Map<String,Object>>();
+        detailStockOutList = new ArrayList<Map<String, String>>();
         detailStockOutAdapter = new DetailStockOutAdapter(DetailActivity.this, detailStockOutList);
         detailStockOutView.setAdapter(detailStockOutAdapter);
         detailStockOutView.setLayoutManager(new LinearLayoutManager(this));
         detailStockOutView.setHasFixedSize(true);
         detailStockOutView.setItemAnimator(new DefaultItemAnimator());
         detailStockOutView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+
+        startDetailThread();
     }
 
     /**
@@ -182,7 +199,7 @@ public class DetailActivity extends AppCompatActivity {
     private void initView() {
         detailStockOutView = findViewById(R.id.detail_stock_out);
         scanInfoView = findViewById(R.id.detail_scan);
-        
+
         btnStart = findViewById(R.id.detail_btn_start);
         btnStop = findViewById(R.id.detail_btn_stop);
         btnReset = findViewById(R.id.detail_btn_reset);
@@ -197,7 +214,7 @@ public class DetailActivity extends AppCompatActivity {
     /**
      * 开始扫描按钮
      */
-    private void initBtnStart(){
+    private void initBtnStart() {
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -279,59 +296,99 @@ public class DetailActivity extends AppCompatActivity {
      * 初始化提交扫描按钮
      */
     private void initBtnSubmit() {
-       btnSubmit.setOnClickListener(new View.OnClickListener() {
-           @Override
-           public void onClick(View v) {
-               if(isNetworkAvailable(DetailActivity.this)) {
-                    try{
-
-                        Thread submitThread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                RestTemplate restTemplate = new RestTemplate();
-                                //restTemplate.postForObject(URL_SUBMIT,);
-                            }
-                        });
-                        submitThread.start();
-
-                    }catch (Exception e) {
-                        e.printStackTrace();
-                        handler.sendEmptyMessage(SUBMIT_ERROR);
-                    }
-               } else {
-                   handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
-               }
-           }
-       });
+        btnSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isNetworkAvailable(DetailActivity.this)) {
+                    startSubmitThread();
+                } else {
+                    handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
+                }
+            }
+        });
     }
 
     /**
      * 初始化用户信息视图
      */
     private void initClientInfoView() {
-        if(isNetworkAvailable(DetailActivity.this)) {
-            try{
-
-                Thread submitThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        RestTemplate restTemplate = new RestTemplate();
-                        clientInfo = restTemplate.postForObject(URL_CLIENT_INFO, checkMessage, ClientInfo.class);
-                        if(clientInfo!=null) {
-                            handler.sendEmptyMessage(CLIENT_INFO_SUCCESS);
-                        } else {
-                            handler.sendEmptyMessage(CLIENT_INFO_FAIL);
-                        }
-                    }
-                });
-                submitThread.start();
-
-            }catch (Exception e) {
-                e.printStackTrace();
-                handler.sendEmptyMessage(CLIENT_INFO_ERROR);
-            }
+        if (isNetworkAvailable(DetailActivity.this)) {
+            startClientThread();//启动客户信息线程
         } else {
             handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
         }
+    }
+
+    /**
+     * 启动客户信息线程
+     */
+    private void startClientThread() {
+        clientThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                RestTemplate restTemplate = new RestTemplate();
+                Map<String, String> msg = new HashMap<String, String>();
+                msg.put("check", check);
+                clientInfo = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_CLIENT_INFO), check, ClientInfo.class);
+                if (clientInfo != null) {
+                    handler.sendEmptyMessage(CLIENT_INFO_SUCCESS);
+                } else {
+                    handler.sendEmptyMessage(CLIENT_INFO_FAIL);
+                }
+            }
+        });
+        clientThread.start();
+    }
+
+    /**
+     * 启动提交线程
+     */
+    private void startSubmitThread() {
+        submitThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    RestTemplate restTemplate = new RestTemplate();
+                    Map<String, String> msg = new HashMap<String, String>();
+                    msg.put("check", check);
+                    //restTemplate.postForObject(URL_SUBMIT,check,);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    handler.sendEmptyMessage(SUBMIT_ERROR);
+                }
+            }
+        });
+        submitThread.start();
+    }
+
+    /**
+     * 启动
+     */
+    private void startDetailThread() {
+        detailThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    RestTemplate restTemplate = new RestTemplate();
+                    Map<String, String> msg = new HashMap<String, String>();
+                    msg.put("check", check);
+
+                    List<Map<String, String>> maps = new ArrayList<Map<String, String>>();
+                    maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_DETAIL), msg, maps.getClass());
+
+                    if (maps != null) {
+                        detailStockOutList.clear();
+                        detailStockOutList.addAll(maps);
+                        handler.sendEmptyMessage(DETAIL_SUCCESS);
+                    } else {
+                        handler.sendEmptyMessage(DETAIL_FAIL);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    handler.sendEmptyMessage(DETAIL_ERROR);
+                }
+            }
+        });
+        detailThread.start();
     }
 }

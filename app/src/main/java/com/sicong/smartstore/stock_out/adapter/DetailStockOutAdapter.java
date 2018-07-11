@@ -19,9 +19,9 @@ public class DetailStockOutAdapter extends RecyclerView.Adapter {
 
     private static final String TAG = "StockOutListAdapter";
     private Context mContext;
-    private List<Map<String, Object>> mList;
+    private List<Map<String, String>> mList;
 
-    public DetailStockOutAdapter(@NonNull Context mContext, @NonNull List<Map<String, Object>> mList) {
+    public DetailStockOutAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList) {
         this.mContext = mContext;
         this.mList = mList;
     }
@@ -37,15 +37,13 @@ public class DetailStockOutAdapter extends RecyclerView.Adapter {
 
         ViewHolder view = (ViewHolder) holder;
 
-        String typeFirst = (String)mList.get(position).get("typeFirst");
-        String typeSecond = (String)mList.get(position).get("typeSecond");
+        String name = (String)mList.get(position).get("name");
         String pos = (String)mList.get(position).get("position");
-        Integer num = (Integer)mList.get(position).get("num");
+        String num = (String)mList.get(position).get("num");
 
-        view.typeFirst.setText(typeFirst);
-        view.typeSecond.setText(typeSecond);
+        view.name.setText(name);
         view.position.setText(pos);
-        view.num.setText(String.valueOf(num));
+        view.num.setText(num);
 
         view.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,15 +63,13 @@ public class DetailStockOutAdapter extends RecyclerView.Adapter {
     //该适配使用的ViewHolder
     class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView typeFirst;//类型1
-        TextView typeSecond;//类型2
+        TextView name;//货物名称
         TextView position;//位置
         TextView num;//总数
 
         public ViewHolder(View itemView) {
             super(itemView);
-            typeFirst = (TextView) itemView.findViewById(R.id.item_stock_out_detail_type_first);
-            typeSecond = (TextView) itemView.findViewById(R.id.item_stock_out_detail_type_second);
+            name = (TextView) itemView.findViewById(R.id.item_stock_out_detail_name);
             position = (TextView)itemView.findViewById(R.id.item_stock_out_detail_position);
             num = (TextView)itemView.findViewById(R.id.item_stock_out_detail_num);
         }
