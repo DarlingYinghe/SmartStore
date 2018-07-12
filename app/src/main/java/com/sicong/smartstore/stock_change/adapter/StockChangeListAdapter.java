@@ -1,10 +1,9 @@
-package com.sicong.smartstore.stock_out.adapter;
+package com.sicong.smartstore.stock_change.adapter;
 
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,14 +11,12 @@ import android.widget.TextView;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_change.view.ChangeActivity;
-import com.sicong.smartstore.stock_in.data.model.Cargo;
-import com.sicong.smartstore.stock_out.model.CargoSendListMessage;
 import com.sicong.smartstore.stock_out.view.DetailActivity;
 
 import java.util.List;
 import java.util.Map;
 
-public class StockOutListAdapter extends RecyclerView.Adapter {
+public class StockChangeListAdapter extends RecyclerView.Adapter {
 
     private static final String TAG = "StockOutListAdapter";
 
@@ -29,7 +26,7 @@ public class StockOutListAdapter extends RecyclerView.Adapter {
     private String company;
     private String username;
 
-    public StockOutListAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList, String check, String company, String username) {
+    public StockChangeListAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList, String check, String company, String username) {
         this.mContext = mContext;
         this.mList = mList;
         this.check = check;
@@ -52,10 +49,11 @@ public class StockOutListAdapter extends RecyclerView.Adapter {
         view.id.setText(id);
         view.date.setText(date);
         view.title.setText(title);
+
             view.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(mContext, DetailActivity.class);
+                    Intent intent = new Intent(mContext, ChangeActivity.class);
                     intent.putExtra("check", check);
                     intent.putExtra("id", id);
                     intent.putExtra("company", company);
@@ -82,9 +80,9 @@ public class StockOutListAdapter extends RecyclerView.Adapter {
 
         public ViewHolder(View itemView) {
             super(itemView);
-            id = (TextView) itemView.findViewById(R.id.item_stock_out_id);
-            date = (TextView) itemView.findViewById(R.id.item_stock_out_date);
-            title = (TextView)itemView.findViewById(R.id.item_stock_out_title);
+            id = (TextView) itemView.findViewById(R.id.item_stock_change_id);
+            date = (TextView) itemView.findViewById(R.id.item_stock_change_date);
+            title = (TextView)itemView.findViewById(R.id.item_stock_change_title);
         }
     }
 

@@ -2,9 +2,12 @@ package com.sicong.smartstore.stock_in.view;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -24,6 +27,7 @@ import com.sicong.smartstore.stock_in.adapter.ScanInfoAdapter;
 import com.sicong.smartstore.stock_in.adapter.StatisticAdapter;
 import com.sicong.smartstore.stock_in.data.model.CargoInMessage;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
+import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
 import org.springframework.web.client.RestTemplate;
 
@@ -116,7 +120,7 @@ public class StockInFragment extends Fragment {
                         Toast.makeText(getContext(), "提交异常，请检查网络环境", Toast.LENGTH_SHORT).show();
                         break;
                     case NETWORK_UNAVAILABLE:
-                        Toast.makeText(getContext(), "请连接网络", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();
                         break;
                 }
                 return false;
@@ -202,7 +206,7 @@ public class StockInFragment extends Fragment {
             setDescribe();
             startSendStatisticThread();
         } else {
-            Toast.makeText(getContext(), "没有可供提交的数据", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "无可供提交的数据，请检查数据", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -239,6 +243,7 @@ public class StockInFragment extends Fragment {
         });
         sendStatisticThread.start();
     }
+
 
 
 }

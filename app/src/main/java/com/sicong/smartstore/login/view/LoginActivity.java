@@ -1,6 +1,8 @@
 package com.sicong.smartstore.login.view;
 
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -14,10 +16,12 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.login.data.model.Login;
 import com.sicong.smartstore.main.MainActivity;
+import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -70,6 +74,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private Thread companyThread;
     private Thread loginThread;
 
+    //广播
+    private NetBroadcastReceiver netBroadcastReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,6 +86,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         initHandler();//初始化handler
         initSpinnerCompany();//初始化公司选择器
         initEnter();//登录操作
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initNetBoardcastReceiver();//初始化广播
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(netBroadcastReceiver);
     }
 
     /**
@@ -93,6 +112,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         spinnerCompany.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.e(TAG, "onItemSelected: "+position, null);
                 companyName = companyList.get(position);
             }
 
@@ -101,11 +121,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             }
         });
-        if(isNetworkAvailable(LoginActivity.this)) {
-            startCompanyThread();
-        } else {
-            handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
-        }
+
     }
 
     /**
@@ -124,13 +140,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         break;
                     case LOGIN_FAIL:
-                        Snackbar.make(snackbarContainer, "登录失败，用户名不存在", Snackbar.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "登录失败，请检查用户名与密码是否正确", Snackbar.LENGTH_SHORT).show();
                         break;
                     case LOGIN_ERROR:
                         Snackbar.make(snackbarContainer, "服务器请求异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case NETWORK_UNAVAILABLE:
-                        Snackbar.make(snackbarContainer, "请连接网络", Snackbar.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
                         break;
                     case COMPANY_SUCCESS:
                         companyAdapter.notifyDataSetChanged();
@@ -174,7 +190,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.login_enter:
-
                 postAccount();
         }
     }
@@ -236,7 +251,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     maps = restTemplate.getForObject(getResources().getString(R.string.URL_LOGIN_COMPANY), maps.getClass());
 
                     //处理请求的数据
-                    if(maps != null) {
+                    if(maps != null && maps.size()>0) {
                         companyList.clear();
                         companyList.addAll(maps);
                         handler.sendEmptyMessage(COMPANY_SUCCESS);
@@ -274,7 +289,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     check = map.get("check");
                     company = map.get("company");
 
-                    if (check != null) {
+                    Log.e(TAG, "run: check is "+check+", company is "+company, null);
+
+                    if (check != null && company != null) {
                         handler.sendEmptyMessage(LOGIN_SUCCESS);
                     } else {
                         handler.sendEmptyMessage(LOGIN_FAIL);
@@ -289,6 +306,28 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         });
         loginThread.start();
+    }
+
+    /**
+     * 初始化网络广播
+     */
+    private void initNetBoardcastReceiver() {
+        if (netBroadcastReceiver == null) {
+            netBroadcastReceiver = new NetBroadcastReceiver();
+            netBroadcastReceiver.setNetChangeListern(new NetBroadcastReceiver.NetChangeListener() {
+                @Override
+                public void onChangeListener(boolean status) {
+                    if(status) {
+                        startCompanyThread();
+                    } else {
+                        Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(netBroadcastReceiver, filter);
     }
 
 }

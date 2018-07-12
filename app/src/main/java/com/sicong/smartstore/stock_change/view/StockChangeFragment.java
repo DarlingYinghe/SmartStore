@@ -3,6 +3,8 @@ package com.sicong.smartstore.stock_change.view;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -19,9 +21,11 @@ import android.widget.Toast;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.main.MainActivity;
+import com.sicong.smartstore.stock_change.adapter.StockChangeListAdapter;
 import com.sicong.smartstore.stock_out.adapter.StockOutListAdapter;
 import com.sicong.smartstore.stock_out.model.CargoSendListMessage;
 import com.sicong.smartstore.stock_out.model.StockOutCargoReceiveMessage;
+import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
 import org.springframework.web.client.RestTemplate;
 
@@ -50,7 +54,6 @@ public class StockChangeFragment extends Fragment {
     private String company;
     private String username;
     private List<Map<String,String>> stockOutList;
-    private String tag;
 
     //视图
     private View view;
@@ -59,7 +62,7 @@ public class StockChangeFragment extends Fragment {
     private Handler handler;
 
     //适配器
-    StockOutListAdapter stockOutListAdapter;
+    StockChangeListAdapter stockChangeListAdapter;
 
     //线程
     private Thread requestDataThread;
@@ -109,7 +112,7 @@ public class StockChangeFragment extends Fragment {
             public boolean handleMessage(Message msg) {
                 switch (msg.what) {
                     case SUCCESS:
-                        stockOutListAdapter.notifyDataSetChanged();
+                        stockChangeListAdapter.notifyDataSetChanged();
                         break;
                     case FAIL:
                         Toast.makeText(getContext(), "请求无响应，请稍后再试", Toast.LENGTH_SHORT).show();
@@ -128,10 +131,9 @@ public class StockChangeFragment extends Fragment {
      */
     private void initstockChangeListView() {
         stockOutList = new ArrayList<Map<String,String>>();
-        tag = "change";
 
-        stockOutListAdapter = new StockOutListAdapter(getContext(), stockOutList, check, tag);
-        stockChangeListView.setAdapter(stockOutListAdapter);
+        stockChangeListAdapter = new StockChangeListAdapter(getContext(), stockOutList, check, company, username);
+        stockChangeListView.setAdapter(stockChangeListAdapter);
         stockChangeListView.setLayoutManager(new LinearLayoutManager(getContext()));
         stockChangeListView.setHasFixedSize(true);
         stockChangeListView.setItemAnimator(new DefaultItemAnimator());
@@ -152,7 +154,7 @@ public class StockChangeFragment extends Fragment {
     /**
      * 启动请求列表数据的线程
      */
-    private void startRequestDataThread() {
+    public void startRequestDataThread() {
         requestDataThread = new Thread(new Runnable() {
             @Override
             public void run() {

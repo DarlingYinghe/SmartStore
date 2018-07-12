@@ -89,7 +89,7 @@
                     android:layout_height="48dp"
                     android:layout_marginLeft="8dp"
                     android:layout_marginBottom="8dp"
-                    android:background="@drawable/bg_r_primary"
+                    android:background="@drawable/bg_btn"
                     android:text="@string/stock_in_start_scan"
                     android:textColor="@color/white"
                     android:textSize="16sp"
@@ -105,7 +105,7 @@
                     android:layout_marginLeft="4dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:background="@drawable/bg_r_primary"
+                    android:background="@drawable/bg_btn"
                     android:text="@string/stock_in_stop_scan"
                     android:textColor="@color/white"
                     android:textSize="16sp"
@@ -121,7 +121,7 @@
                     android:layout_marginLeft="4dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:background="@drawable/bg_r_primary"
+                    android:background="@drawable/bg_btn"
                     android:text="@string/stock_in_reset_scan"
                     android:textColor="@color/white"
                     android:textSize="16sp"
@@ -138,7 +138,7 @@
                     android:layout_marginRight="8dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:background="@drawable/bg_r_primary"
+                    android:background="@drawable/bg_btn"
                     android:text="@string/stock_in_submit_scan"
                     android:textColor="@color/white"
                     android:textSize="16sp"
@@ -243,12 +243,61 @@
                     android:layout_marginEnd="8dp"
                     android:layout_marginStart="8dp"
                     android:text=""
-                    android:layout_marginBottom="8dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toEndOf="@+id/detail_address_title"
-                    app:layout_constraintTop_toTopOf="@+id/detail_address_title"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
+                    app:layout_constraintTop_toTopOf="@+id/detail_address_title" />
+
+                <TextView
+                    android:id="@+id/detail_title_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/detail_title_title"
+                    android:textColor="@color/black"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/detail_address" />
+
+                <TextView
+                    android:id="@+id/detail_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
+                    android:text=""
+                    android:layout_marginBottom="8dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toEndOf="@+id/detail_title_title"
+                    app:layout_constraintTop_toTopOf="@+id/detail_title_title"/>
+
+                <TextView
+                    android:id="@+id/detail_title_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/detail_description_title"
+                    android:textColor="@color/black"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/detail_title" />
+
+                <TextView
+                    android:id="@+id/detail_description"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
+                    android:text=""
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toEndOf="@+id/detail_title_description"
+                    app:layout_constraintTop_toTopOf="@+id/detail_title_description" />
+
+
             </android.support.constraint.ConstraintLayout>
 
 

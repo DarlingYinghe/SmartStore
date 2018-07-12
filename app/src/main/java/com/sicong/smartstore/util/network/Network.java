@@ -5,6 +5,9 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import static android.app.DownloadManager.Request.NETWORK_MOBILE;
+import static android.app.DownloadManager.Request.NETWORK_WIFI;
+
 public class Network {
 
     /**
@@ -31,5 +34,11 @@ public class Network {
 
         return true;
     }
+
+
+
+
+
+
 
 }

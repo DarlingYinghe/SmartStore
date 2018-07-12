@@ -85,7 +85,7 @@
 
     <android.support.v7.widget.AppCompatButton
         android:id="@+id/login_enter"
-        android:background="@drawable/bg_r_primary"
+        android:background="@drawable/bg_btn"
         android:text="@string/login_enter"
         android:textColor="@color/white"
         android:layout_width="match_parent"

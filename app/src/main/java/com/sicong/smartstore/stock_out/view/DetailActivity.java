@@ -1,7 +1,9 @@
 package com.sicong.smartstore.stock_out.view;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Address;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -18,6 +20,7 @@ import android.widget.Toast;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_in.data.model.CheckMessage;
+import com.sicong.smartstore.stock_in.view.ScanActivity;
 import com.sicong.smartstore.stock_out.adapter.DetailScanAdapter;
 import com.sicong.smartstore.stock_out.adapter.DetailStockOutAdapter;
 import com.sicong.smartstore.stock_out.model.CargoListSendMessage;
@@ -26,6 +29,7 @@ import com.sicong.smartstore.util.fn.u6.model.ResponseHandler;
 import com.sicong.smartstore.util.fn.u6.model.Tag;
 import com.sicong.smartstore.util.fn.u6.operation.IUSeries;
 import com.sicong.smartstore.util.fn.u6.operation.U6Series;
+import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
 import org.springframework.web.client.RestTemplate;
 
@@ -68,8 +72,11 @@ public class DetailActivity extends AppCompatActivity {
     private String name;
     private String phoneNumber;
     private String address;
+    private String title;
+    private String description;
+    private String idFromIntent;
 
-    public IUSeries mUSeries;//扫描工具
+    private IUSeries mUSeries;//扫描工具
     private List<String> InventoryTaps;//已扫描RFID集合：已扫描过的rfid码，避免重复
     private List<String> rfidList;//货物对象集合：扫描的所有物品的集合
 
@@ -85,6 +92,8 @@ public class DetailActivity extends AppCompatActivity {
     private TextView nameView;
     private TextView phoneNumberView;
     private TextView addressView;
+    private TextView titleView;
+    private TextView descriptionView;
 
     private Handler handler;
 
@@ -97,6 +106,8 @@ public class DetailActivity extends AppCompatActivity {
     private Thread clientThread;//客户信息线程
     private Thread submitThread;//提交线程
 
+    //广播
+    private NetBroadcastReceiver netBroadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +126,18 @@ public class DetailActivity extends AppCompatActivity {
         initBtnReset();//初始化重置扫描按钮
         initBtnSubmit();//初始化提交按钮
 
-        initClientInfoView();//初始化用户信息视图
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initNetBoardcastReceiver();//注册广播
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(netBroadcastReceiver);
     }
 
 
@@ -128,7 +150,7 @@ public class DetailActivity extends AppCompatActivity {
             public boolean handleMessage(Message msg) {
                 switch (msg.what) {
                     case NETWORK_UNAVAILABLE:
-                        Toast.makeText(DetailActivity.this, "请连接网络", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DetailActivity.this, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();
                         break;
                     case SUBMIT_SUCCESS:
                         Toast.makeText(DetailActivity.this, "提交成功", Toast.LENGTH_SHORT).show();
@@ -144,21 +166,23 @@ public class DetailActivity extends AppCompatActivity {
                         nameView.setText(name);
                         phoneNumberView.setText(phoneNumber);
                         addressView.setText(address);
+                        titleView.setText(title);
+                        descriptionView.setText(description);
                         break;
                     case CLIENT_INFO_FAIL:
-                        Toast.makeText(DetailActivity.this, "获取用户信息失败", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DetailActivity.this, "获取用户信息失败，请稍后再试", Toast.LENGTH_SHORT).show();
                         break;
                     case CLIENT_INFO_ERROR:
-                        Toast.makeText(DetailActivity.this, "获取用户信息异常", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DetailActivity.this, "获取用户信息异常，请稍后再试", Toast.LENGTH_SHORT).show();
                         break;
                     case DETAIL_SUCCESS:
                         detailStockOutAdapter.notifyDataSetChanged();
                         break;
                     case DETAIL_FAIL:
-                        Toast.makeText(DetailActivity.this, "获取出库信息失败", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DetailActivity.this, "获取出库信息失败，请稍后再试", Toast.LENGTH_SHORT).show();
                         break;
                     case DETAIL_ERROR:
-                        Toast.makeText(DetailActivity.this, "获取出库信息异常", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DetailActivity.this, "获取出库信息异常，请稍后再试", Toast.LENGTH_SHORT).show();
                         break;
 
                 }
@@ -182,6 +206,8 @@ public class DetailActivity extends AppCompatActivity {
             company = intent.getStringExtra("company");
         } else if (intent.hasExtra("username")) {
             username = intent.getStringExtra("username");
+        } else if (intent.hasExtra("id")){
+            idFromIntent = intent.getStringExtra("id");
         }
     }
 
@@ -209,8 +235,6 @@ public class DetailActivity extends AppCompatActivity {
         detailStockOutView.setHasFixedSize(true);
         detailStockOutView.setItemAnimator(new DefaultItemAnimator());
         detailStockOutView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-
-        startDetailThread();
     }
 
     /**
@@ -229,6 +253,8 @@ public class DetailActivity extends AppCompatActivity {
         nameView = findViewById(R.id.detail_name);
         phoneNumberView = findViewById(R.id.detail_phone_number);
         addressView = findViewById(R.id.detail_address);
+        titleView = findViewById(R.id.detail_title);
+        descriptionView = findViewById(R.id.detail_description);
     }
 
     /**
@@ -328,49 +354,49 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * 初始化用户信息视图
-     */
-    private void initClientInfoView() {
-        if (isNetworkAvailable(DetailActivity.this)) {
-            startClientThread();//启动客户信息线程
-        } else {
-            handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
-        }
-    }
+
 
 
     /**
      * 启动客户信息线程
      */
     private void startClientThread() {
+
         clientThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.w(TAG, "run: clientInfo", null);
-                //发送的信息
-                Map<String,String> msg = new HashMap<String, String>();
-                msg.put("check", check);
-                msg.put("company", company);
-                msg.put("username", username);
+                try {
+                    Log.w(TAG, "run: clientInfo", null);
+                    //发送的信息
+                    Map<String, String> msg = new HashMap<String, String>();
+                    msg.put("check", check);
+                    msg.put("company", company);
+                    msg.put("username", username);
+                    msg.put("id", idFromIntent);
 
-                //用于接收的对象
-                Map<String, String> maps = new HashMap<String, String>();
+                    //用于接收的对象
+                    Map<String, String> map = new HashMap<String, String>();
 
-                //发出请求
-                RestTemplate restTemplate = new RestTemplate();
-                maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_CLIENT_INFO), msg, maps.getClass());
+                    //发出请求
+                    RestTemplate restTemplate = new RestTemplate();
+                    map = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_CLIENT_INFO), msg, map.getClass());
 
-                //处理请求的数据
-                id = maps.get("id");
-                name = maps.get("name");
-                phoneNumber = maps.get("phoneNumber");
-                address =  maps.get("address");
+                    //处理请求的数据
+                    id = map.get("id");
+                    name = map.get("name");
+                    phoneNumber = map.get("phoneNumber");
+                    address = map.get("address");
+                    title = map.get("title");
+                    description = map.get("description");
 
-                if (maps != null) {
-                    handler.sendEmptyMessage(CLIENT_INFO_SUCCESS);
-                } else {
-                    handler.sendEmptyMessage(CLIENT_INFO_FAIL);
+                    if (map != null) {
+                        handler.sendEmptyMessage(CLIENT_INFO_SUCCESS);
+                    } else {
+                        handler.sendEmptyMessage(CLIENT_INFO_FAIL);
+                    }
+                }catch (Exception e) {
+                    e.printStackTrace();
+                    handler.sendEmptyMessage(CLIENT_INFO_ERROR);
                 }
             }
         });
@@ -433,7 +459,7 @@ public class DetailActivity extends AppCompatActivity {
                     maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_DETAIL), msg, maps.getClass());
 
                     //处理请求的数据
-                    if (maps != null) {
+                    if (maps != null && maps.size()>0) {
                         detailStockOutList.clear();
                         detailStockOutList.addAll(maps);
                         handler.sendEmptyMessage(DETAIL_SUCCESS);
@@ -447,5 +473,28 @@ public class DetailActivity extends AppCompatActivity {
             }
         });
         detailThread.start();
+    }
+
+    /**
+     * 初始化网络广播
+     */
+    private void initNetBoardcastReceiver() {
+        if (netBroadcastReceiver == null) {
+            netBroadcastReceiver = new NetBroadcastReceiver();
+            netBroadcastReceiver.setNetChangeListern(new NetBroadcastReceiver.NetChangeListener() {
+                @Override
+                public void onChangeListener(boolean status) {
+                    if(status) {
+                        startDetailThread();
+                        startClientThread();
+                    } else {
+                        Toast.makeText(DetailActivity.this, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(netBroadcastReceiver, filter);
     }
 }

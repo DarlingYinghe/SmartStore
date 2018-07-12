@@ -40,8 +40,11 @@
     <string name="item_stock_out_detail_position">位置</string>
     <string name="stock_change">移库</string>
     <string name="cargo_name">货物名称</string>
+    <string name="name">名称</string>
     <string name="item_stock_change_detail_position_out">原始位置</string>
     <string name="item_stock_change_detail_position_in">目标位置</string>
+    <string name="detail_title_title">标题：</string>
+    <string name="detail_description_title">描述：</string>
 
     <!--URL-->
     <string name="URL_STOCK_OUT_DETAIL">http://</string>
@@ -49,9 +52,12 @@
     <string name="URL_SCAN_NAME">http://</string>
     <string name="URL_RECEVICE_TYPE">http://</string>
     <string name="URL_LOGIN">http://47.106.156.193:8080/api/login</string>
-    <string name="URL_LOGIN_COMPANY">http://47.106.156.193:8080/api/try</string>
+    <string name="URL_LOGIN_COMPANY">http://47.106.156.193:8080/api/company</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST">http://</string>
-    <string name="URL_REQUEST_DATA_FOR_STOCK_OUT_LIST">http://</string>
+    <string name="URL_REQUEST_DATA_FOR_STOCK_OUT_LIST">http://47.106.156.193:8080/api/stockOutList
+</string>
+    <string name="URL_STOCK_CHANGE_DETAIL">http://</string>
+    <string name="title">标题</string>
 
 
 </resources>

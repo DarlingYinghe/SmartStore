@@ -1,6 +1,8 @@
 package com.sicong.smartstore.main;
 
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -10,13 +12,16 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_change.view.StockChangeFragment;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
 import com.sicong.smartstore.stock_in.view.StockInFragment;
 import com.sicong.smartstore.stock_out.view.StockOutFragment;
+import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,8 +37,16 @@ public class MainActivity extends AppCompatActivity {
     private List<Statistic> statisticList;//统计结果
 
 
+    //视图
     private ViewPager pagers;//分页
     private BottomNavigationView bottomNav;//底部导航栏
+    private List<Fragment> fragments;
+    private StockInFragment stockInFragment;
+    private StockOutFragment stockOutFragment;
+    private StockChangeFragment stockChangeFragment;
+
+    //广播
+    private NetBroadcastReceiver netBroadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
         initView();//初始化控件
         initPagers();//初始化分页
         initBottomNav();//初始化底部导航栏
+
+        initNetBoardcastReceiver();//初始化广播
     }
 
     private void initRecevicerFromScan() {
@@ -72,21 +87,26 @@ public class MainActivity extends AppCompatActivity {
         //设置屏幕外分页数量
         pagers.setOffscreenPageLimit(2);
 
+        stockInFragment = new StockInFragment();
+        stockOutFragment = new StockOutFragment();
+        stockChangeFragment = new StockChangeFragment();
+
+        fragments = new ArrayList<Fragment>();
+        fragments.add(stockInFragment);
+        fragments.add(stockOutFragment);
+        fragments.add(stockChangeFragment);
+
         //适配器
         pagers.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
 
-            Fragment[] fragments = {
-                    new StockInFragment(), new StockOutFragment(), new StockChangeFragment()
-            };
-
             @Override
             public Fragment getItem(int position) {
-                return fragments[position];
+                return fragments.get(position);
             }
 
             @Override
             public int getCount() {
-                return fragments.length;
+                return fragments.size();
             }
         });
 
@@ -151,6 +171,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         initRecevicerFromScan();
+        initNetBoardcastReceiver();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(netBroadcastReceiver);
     }
 
 
@@ -175,5 +202,30 @@ public class MainActivity extends AppCompatActivity {
 
     public List<Statistic> getStatisticList() {
         return statisticList;
+    }
+
+    /**
+     * 初始化网络广播
+     */
+    private void initNetBoardcastReceiver() {
+        if (netBroadcastReceiver == null) {
+            netBroadcastReceiver = new NetBroadcastReceiver();
+            netBroadcastReceiver.setNetChangeListern(new NetBroadcastReceiver.NetChangeListener() {
+                @Override
+                public void onChangeListener(boolean status) {
+                    if(status) {
+                        Log.e(TAG, "onChangeListener: 可行", null);
+                        StockOutFragment stockOutFragmentTmp  = (StockOutFragment)fragments.get(1);
+                        stockOutFragmentTmp.startRequestDataThread();
+
+                    } else {
+                        Toast.makeText(MainActivity.this, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(netBroadcastReceiver, filter);
     }
 }

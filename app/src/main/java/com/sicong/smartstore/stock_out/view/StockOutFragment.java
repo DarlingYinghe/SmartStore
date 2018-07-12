@@ -2,6 +2,8 @@ package com.sicong.smartstore.stock_out.view;
 
 
 import android.content.Context;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -21,6 +23,7 @@ import com.sicong.smartstore.main.MainActivity;
 import com.sicong.smartstore.stock_out.adapter.StockOutListAdapter;
 import com.sicong.smartstore.stock_out.model.CargoSendListMessage;
 import com.sicong.smartstore.stock_out.model.StockOutCargoReceiveMessage;
+import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
 import org.springframework.web.client.RestTemplate;
 
@@ -53,7 +56,6 @@ public class StockOutFragment extends Fragment {
 
     private List<Map<String,String>> stockOutList;
 
-    private String tag;
 
     //视图
     private View view;
@@ -67,8 +69,9 @@ public class StockOutFragment extends Fragment {
     private Thread requestDataThread;
 
 
+
     public StockOutFragment() {
-        // Required empty public constructor
+
     }
 
 
@@ -80,7 +83,8 @@ public class StockOutFragment extends Fragment {
         initHandler();
         initStockOutListView();
 
-        requestData();
+
+
         return view;
     }
 
@@ -129,9 +133,8 @@ public class StockOutFragment extends Fragment {
      */
     private void initStockOutListView() {
         stockOutList = new ArrayList<Map<String,String>>();
-        tag = "out";
 
-        stockOutListAdapter = new StockOutListAdapter(getContext(), stockOutList, check, tag);
+        stockOutListAdapter = new StockOutListAdapter(getContext(), stockOutList, check, company, username);
         stockOutListView.setAdapter(stockOutListAdapter);
         stockOutListView.setLayoutManager(new LinearLayoutManager(getContext()));
         stockOutListView.setHasFixedSize(true);
@@ -139,18 +142,7 @@ public class StockOutFragment extends Fragment {
         stockOutListView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
     }
 
-    /**
-     * 请求数据
-     */
-    private void requestData(){
-        if(isNetworkAvailable(getContext())) {
-            startRequestDataThread();
-        } else {
-            handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
-        }
-    }
-
-    private void startRequestDataThread(){
+    public void startRequestDataThread(){
         requestDataThread = new Thread(new Runnable() {
             @Override
             public void run() {
