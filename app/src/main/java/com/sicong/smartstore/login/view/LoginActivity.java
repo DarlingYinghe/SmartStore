@@ -92,6 +92,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onResume() {
         super.onResume();
         initNetBoardcastReceiver();//初始化广播
+
     }
 
     @Override
@@ -137,7 +138,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         intent.putExtra("username", inputUsername.getText().toString());
                         intent.putExtra("company", company);
                         intent.putExtra("check", check);
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        startActivity(intent);
                         break;
                     case LOGIN_FAIL:
                         Snackbar.make(snackbarContainer, "登录失败，请检查用户名与密码是否正确", Snackbar.LENGTH_SHORT).show();

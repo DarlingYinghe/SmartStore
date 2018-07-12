@@ -122,9 +122,11 @@ public class DetailActivity extends AppCompatActivity {
         initScanInfoView();//初始化扫描列表
 
         initBtnStart();//初始化开始扫描按钮
-        initBtnEnd();//初始化结束扫描按钮
+        initBtnStop();//初始化停止扫描按钮
         initBtnReset();//初始化重置扫描按钮
         initBtnSubmit();//初始化提交按钮
+
+        initBtnStatus();//初始化按钮状态
 
     }
 
@@ -258,31 +260,69 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     /**
-     * 开始扫描按钮
+     * 初始化开始扫描按钮
      */
     private void initBtnStart() {
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.e(TAG, "onClick: start", null);
+                setBtnStatus(false, true, true, true);
                 getRfidCode();
             }
         });
     }
 
     /**
-     * 初始化结束扫描按钮
+     * 初始化停止扫描按钮
      */
-    private void initBtnEnd() {
+    private void initBtnStop() {
         btnStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.e(TAG, "onClick: stop", null);
+                setBtnStatus(true, false, true, true);
                 mUSeries.stopInventory();
             }
         });
     }
 
+
+
     /**
-     * 初始化开始扫描按钮
+     * 初始化重置扫描按钮
+     */
+    private void initBtnReset() {
+        btnReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e(TAG, "onClick: reset", null);
+                setBtnStatus(true, false, false, false);
+                mUSeries.stopInventory();
+                scanInfoAdapter.clear();
+                InventoryTaps.clear();
+            }
+        });
+    }
+
+    /**
+     * 初始化提交扫描按钮
+     */
+    private void initBtnSubmit() {
+        btnSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isNetworkAvailable(DetailActivity.this)) {
+                    startSubmitThread();
+                } else {
+                    handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
+                }
+            }
+        });
+    }
+
+    /**
+     * 开始扫描
      */
     public void getRfidCode() {
         InventoryTaps = new ArrayList<String>();
@@ -324,37 +364,13 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * 初始化重置扫描按钮
-     */
-    private void initBtnReset() {
-        btnReset.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mUSeries.stopInventory();
-                scanInfoAdapter.clear();
-                InventoryTaps.clear();
-            }
-        });
-    }
 
     /**
-     * 初始化提交扫描按钮
+     * 初始化按钮状态
      */
-    private void initBtnSubmit() {
-        btnSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isNetworkAvailable(DetailActivity.this)) {
-                    startSubmitThread();
-                } else {
-                    handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
-                }
-            }
-        });
+    private void initBtnStatus() {
+        setBtnStatus(true, false, false, false);
     }
-
-
 
 
     /**
@@ -496,5 +512,15 @@ public class DetailActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(netBroadcastReceiver, filter);
+    }
+
+    /**
+     * 设置四个按钮的可用性
+     */
+    private void setBtnStatus(boolean start, boolean stop, boolean reset, boolean submit){
+        btnStart.setEnabled(start);
+        btnStop.setEnabled(stop);
+        btnReset.setEnabled(reset);
+        btnSubmit.setEnabled(submit);
     }
 }

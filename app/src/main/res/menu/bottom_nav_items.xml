@@ -9,4 +9,7 @@
     <item android:id="@+id/stock_change"
         android:title="@string/stock_change"
         android:icon="@drawable/ic_stock_change"/>
+    <item android:id="@+id/stock_check"
+        android:title="@string/stock_check"
+        android:icon="@drawable/ic_stock_check"/>
 </menu>

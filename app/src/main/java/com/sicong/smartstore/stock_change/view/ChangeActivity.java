@@ -98,9 +98,12 @@ public class ChangeActivity extends AppCompatActivity {
         initScanInfoView();//初始化扫描列表
 
         initBtnStart();//初始化开始扫描按钮
-        initBtnEnd();//初始化结束扫描按钮
+        initBtnStop();//初始化结束扫描按钮
         initBtnReset();//初始化重置扫描按钮
         initBtnSubmit();//初始化提交按钮
+
+        initBtnStatus();//初始化按钮状态
+
 
     }
 
@@ -193,21 +196,97 @@ public class ChangeActivity extends AppCompatActivity {
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.e(TAG, "onClick: start", null);
+                setBtnStatus(false, true, true, true);
                 getRfidCode();
             }
         });
     }
 
     /**
-     * 初始化结束扫描按钮
+     * 初始化停止扫描按钮
      */
-    private void initBtnEnd() {
+    private void initBtnStop() {
         btnStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.e(TAG, "onClick: stop", null);
+                setBtnStatus(true, false, true, true);
                 mUSeries.stopInventory();
             }
         });
+    }
+
+    /**
+     * 初始化重置扫描按钮
+     */
+    private void initBtnReset() {
+        btnReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e(TAG, "onClick: reset", null);
+                setBtnStatus(true, false, false, false);
+                mUSeries.stopInventory();
+                scanInfoAdapter.clear();
+                InventoryTaps.clear();
+            }
+        });
+    }
+
+    /**
+     * 初始化提交扫描按钮
+     */
+    private void initBtnSubmit() {
+        btnSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isNetworkAvailable(ChangeActivity.this)) {
+                    startSubmitThread();
+                } else {
+                    handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
+                }
+            }
+        });
+    }
+
+    /**
+     * 启动提交线程
+     */
+    private void startSubmitThread() {
+        submitThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.w(TAG, "run: submit", null);
+                try {
+                    //发送的信息
+                    Map<String,String> msg = new HashMap<String, String>();
+                    msg.put("check", check);
+                    msg.put("company", company);
+                    msg.put("username", username);
+
+                    //用于接收的对象
+                    List<Map<String, String>> maps = new ArrayList<Map<String, String>>();
+
+                    //发出请求
+                    RestTemplate restTemplate = new RestTemplate();
+                    //restTemplate.postForObject(URL_SUBMIT,check,);
+
+                    //处理请求的数据
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    handler.sendEmptyMessage(SUBMIT_ERROR);
+                }
+            }
+        });
+        submitThread.start();
+    }
+
+    /**
+     * 初始化按钮状态
+     */
+    private void initBtnStatus() {
+        setBtnStatus(true, false, false, false);
     }
 
     /**
@@ -281,68 +360,7 @@ public class ChangeActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * 初始化重置扫描按钮
-     */
-    private void initBtnReset() {
-        btnReset.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mUSeries.stopInventory();
-                scanInfoAdapter.clear();
-                InventoryTaps.clear();
-            }
-        });
-    }
 
-    /**
-     * 初始化提交扫描按钮
-     */
-    private void initBtnSubmit() {
-        btnSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isNetworkAvailable(ChangeActivity.this)) {
-                    startSubmitThread();
-                } else {
-                    handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
-                }
-            }
-        });
-    }
-
-    /**
-     * 启动提交线程
-     */
-    private void startSubmitThread() {
-        submitThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Log.w(TAG, "run: submit", null);
-                try {
-                    //发送的信息
-                    Map<String,String> msg = new HashMap<String, String>();
-                    msg.put("check", check);
-                    msg.put("company", company);
-                    msg.put("username", username);
-
-                    //用于接收的对象
-                    List<Map<String, String>> maps = new ArrayList<Map<String, String>>();
-
-                    //发出请求
-                    RestTemplate restTemplate = new RestTemplate();
-                    //restTemplate.postForObject(URL_SUBMIT,check,);
-
-                    //处理请求的数据
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    handler.sendEmptyMessage(SUBMIT_ERROR);
-                }
-            }
-        });
-        submitThread.start();
-    }
 
     /**
      * 启动详细信息线程
@@ -403,5 +421,15 @@ public class ChangeActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(netBroadcastReceiver, filter);
+    }
+
+    /**
+     * 设置四个按钮的可用性
+     */
+    private void setBtnStatus(boolean start, boolean stop, boolean reset, boolean submit){
+        btnStart.setEnabled(start);
+        btnStop.setEnabled(stop);
+        btnReset.setEnabled(reset);
+        btnSubmit.setEnabled(submit);
     }
 }

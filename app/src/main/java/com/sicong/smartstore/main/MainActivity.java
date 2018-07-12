@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_change.view.StockChangeFragment;
+import com.sicong.smartstore.stock_check.view.StockCheckFragment;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
 import com.sicong.smartstore.stock_in.view.StockInFragment;
 import com.sicong.smartstore.stock_out.view.StockOutFragment;
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private StockInFragment stockInFragment;
     private StockOutFragment stockOutFragment;
     private StockChangeFragment stockChangeFragment;
+    private StockCheckFragment stockCheckFragment;
 
     //广播
     private NetBroadcastReceiver netBroadcastReceiver;
@@ -85,16 +87,18 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initPagers() {
         //设置屏幕外分页数量
-        pagers.setOffscreenPageLimit(2);
+        pagers.setOffscreenPageLimit(3);
 
         stockInFragment = new StockInFragment();
         stockOutFragment = new StockOutFragment();
         stockChangeFragment = new StockChangeFragment();
+        stockCheckFragment = new StockCheckFragment();
 
         fragments = new ArrayList<Fragment>();
         fragments.add(stockInFragment);
         fragments.add(stockOutFragment);
         fragments.add(stockChangeFragment);
+        fragments.add(stockCheckFragment);
 
         //适配器
         pagers.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
@@ -157,6 +161,9 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.stock_change:
                         position = 2;
                         break;
+                    case R.id.stock_check:
+                        position = 3;
+                        break;
                 }
                 //选择分页的页码
                 pagers.setCurrentItem(position);
@@ -217,6 +224,12 @@ public class MainActivity extends AppCompatActivity {
                         Log.e(TAG, "onChangeListener: 可行", null);
                         StockOutFragment stockOutFragmentTmp  = (StockOutFragment)fragments.get(1);
                         stockOutFragmentTmp.startRequestDataThread();
+
+                        StockChangeFragment stockChangeFragment = (StockChangeFragment)fragments.get(2);
+                        stockChangeFragment.startRequestDataThread();
+
+                        StockCheckFragment stockCheckFragment = (StockCheckFragment)fragments.get(3);
+                        stockCheckFragment.startRequestDataThread();
 
                     } else {
                         Toast.makeText(MainActivity.this, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();

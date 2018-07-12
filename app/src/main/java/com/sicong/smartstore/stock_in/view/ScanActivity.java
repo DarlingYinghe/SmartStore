@@ -64,10 +64,10 @@ public class ScanActivity extends AppCompatActivity {
     private static final int NAME_ERROR = 6;
 
     //视图
-    private AppCompatButton startScan;//开始扫描按钮
-    private AppCompatButton stopScan;//停止扫描按钮
-    private AppCompatButton resetScan;//重置按钮
-    private AppCompatButton submitScan;//提交按钮
+    private AppCompatButton btnStart;//开始扫描按钮
+    private AppCompatButton btnStop;//停止扫描按钮
+    private AppCompatButton btnReset;//重置按钮
+    private AppCompatButton btnSubmit;//提交按钮
 
     private View typeViewFirst;//一级类型选择器的布局视图
     private View typeViewSecond;//二级类型选择器的布局视图
@@ -121,17 +121,18 @@ public class ScanActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
+
         initView();//初始化控件
         initReceive();//初始化接收数据
         initHandler();//初始化Handler
         initUSeries();//初始化所需对象
 
-        initBtnStatus();//初始化按钮状态
+        initBtnStart();//初始化开始扫描
+        initBtnStop();//初始化停止扫描
+        initBtnReset();//初始化重置扫描
+        initBtnSubmit();//初始化提交扫描
 
-        initStartScan();//初始化开始扫描
-        initStopScan();//初始化停止扫描
-        initResetScan();//初始化重置扫描
-        initSubmitScan();//初始化提交扫描
+        initBtnStatus();//初始化按钮状态
 
         initTextType();//初始化选择器的标题
         initChooseType();//初始化类型选择器
@@ -139,12 +140,7 @@ public class ScanActivity extends AppCompatActivity {
 
     }
 
-    private void initBtnStatus() {
-        startScan.setEnabled(true);
-        stopScan.setEnabled(false);
-        resetScan.setEnabled(false);
-        submitScan.setEnabled(false);
-    }
+
 
 
     @Override
@@ -206,10 +202,11 @@ public class ScanActivity extends AppCompatActivity {
      * 初始化控件
      */
     private void initView() {
-        startScan = (AppCompatButton) findViewById(R.id.scan_btn_start);
-        stopScan = (AppCompatButton) findViewById(R.id.scan_btn_stop);
-        resetScan = (AppCompatButton) findViewById(R.id.scan_btn_reset);
-        submitScan = (AppCompatButton) findViewById(R.id.scan_btn_submit);
+        btnStart = (AppCompatButton) findViewById(R.id.scan_btn_start);
+        btnStop = (AppCompatButton) findViewById(R.id.scan_btn_stop);
+        btnReset = (AppCompatButton) findViewById(R.id.scan_btn_reset);
+        btnSubmit = (AppCompatButton) findViewById(R.id.scan_btn_submit);
+        
 
         typeViewFirst = (View) findViewById(R.id.scan_type_first);
         typeViewSecond = (View) findViewById(R.id.scan_type_second);
@@ -226,34 +223,6 @@ public class ScanActivity extends AppCompatActivity {
         scanInfoView = (RecyclerView) findViewById(R.id.scan_info_view);
     }
 
-    /**
-     * 初始化重置扫描
-     */
-    private void initResetScan() {
-        startScan.setEnabled(true);
-        stopScan.setEnabled(false);
-        resetScan.setEnabled(false);
-        submitScan.setEnabled(false);
-        resetScan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                reset();
-            }
-        });
-    }
-
-
-    /**
-     * 初始化提交扫描
-     */
-    private void initSubmitScan() {
-        submitScan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                submit();
-            }
-        });
-    }
 
     /**
      * 初始化扫描信息视图
@@ -375,14 +344,12 @@ public class ScanActivity extends AppCompatActivity {
     /**
      * 初始化开始扫描按钮
      */
-    private void initStartScan() {
-        startScan.setOnClickListener(new View.OnClickListener() {
+    private void initBtnStart() {
+        btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startScan.setEnabled(false);
-                stopScan.setEnabled(true);
-                resetScan.setEnabled(true);
-                submitScan.setEnabled(true);
+                Log.e(TAG, "onClick: start", null);
+                setBtnStatus(false, true, true, true);
                 getRfidCode();
             }
         });
@@ -392,17 +359,55 @@ public class ScanActivity extends AppCompatActivity {
     /**
      * 初始化停止扫描按钮
      */
-    private void initStopScan() {
-        startScan.setEnabled(true);
-        stopScan.setEnabled(false);
-        resetScan.setEnabled(true);
-        submitScan.setEnabled(true);
-        stopScan.setOnClickListener(new View.OnClickListener() {
+    private void initBtnStop() {
+
+
+        btnStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.e(TAG, "onClick: stop", null);
+                setBtnStatus(true, false, true, true);
                 stopRfidCode();
             }
         });
+    }
+
+
+    /**
+     * 初始化重置扫描
+     */
+    private void initBtnReset() {
+
+
+        btnReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e(TAG, "onClick: reset", null);
+                setBtnStatus(true, false, false, false);
+                reset();
+            }
+        });
+    }
+
+
+    /**
+     * 初始化提交扫描
+     */
+    private void initBtnSubmit() {
+        btnSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e(TAG, "onClick: submit", null);
+                submit();
+            }
+        });
+    }
+
+    /**
+     * 初始化按钮状态
+     */
+    private void initBtnStatus() {
+        setBtnStatus(true, false, false, false);
     }
 
 
@@ -761,6 +766,16 @@ public class ScanActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(netBroadcastReceiver, filter);
+    }
+
+    /**
+     * 设置四个按钮的可用性
+     */
+    private void setBtnStatus(boolean start, boolean stop, boolean reset, boolean submit){
+        btnStart.setEnabled(start);
+        btnStop.setEnabled(stop);
+        btnReset.setEnabled(reset);
+        btnSubmit.setEnabled(submit);
     }
 }
 
