@@ -33,9 +33,9 @@
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden|adjustPan" />
         <activity
-            android:name=".stock_in.view.ScanActivity"
+            android:name=".stock_in.view.InActivity"
             android:launchMode="singleTask" />
-        <activity android:name=".stock_out.view.DetailActivity" />
+        <activity android:name=".stock_out.view.OutActivity" />
         <activity android:name=".stock_change.view.ChangeActivity" />
         <activity android:name=".stock_check.view.CheckActivity"></activity>
     </application>

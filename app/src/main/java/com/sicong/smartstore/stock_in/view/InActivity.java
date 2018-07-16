@@ -7,6 +7,8 @@ import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
@@ -20,11 +22,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.main.MainActivity;
-import com.sicong.smartstore.stock_in.adapter.ScanInfoAdapter;
+import com.sicong.smartstore.stock_in.adapter.InScanAdapter;
 import com.sicong.smartstore.stock_in.data.model.Cargo;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
 import com.sicong.smartstore.util.fn.u6.model.ResponseHandler;
@@ -33,7 +34,6 @@ import com.sicong.smartstore.util.fn.u6.operation.IUSeries;
 import com.sicong.smartstore.util.fn.u6.operation.U6Series;
 import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
-import org.json.JSONException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.Serializable;
@@ -47,7 +47,7 @@ import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ScanActivity extends AppCompatActivity {
+public class InActivity extends AppCompatActivity {
 
     //常量
     private static final String TAG = "ScanFragment";
@@ -79,12 +79,14 @@ public class ScanActivity extends AppCompatActivity {
     private Spinner spinnerTypeSecond;//二级类型选择器
     private Spinner spinnerName;//货物名称选择器
 
+    private CoordinatorLayout snackbarContainer;//Snackbar的容器
+
     private RecyclerView scanInfoView;//扫描信息的列表
 
     private Handler handler;
 
     //适配器
-    private ScanInfoAdapter scanInfoAdapter;//扫描信息的列标的适配器
+    private InScanAdapter inScanAdapter;//扫描信息的列标的适配器
     private ArrayAdapter<String> typeFirstAdapter;//一级类型适配器
     private ArrayAdapter<String> typeSecondAdapter;//二级类型适配器
     private ArrayAdapter<String> nameAdapter;//货物名称适配器
@@ -102,6 +104,8 @@ public class ScanActivity extends AppCompatActivity {
     private List<String > nameList;
 
     private String check;
+    private String username;
+    private String company;
     private List<Map<String,Object>> typeList;//包含两级类型的集合
 
     //线程
@@ -112,7 +116,7 @@ public class ScanActivity extends AppCompatActivity {
     private NetBroadcastReceiver netBroadcastReceiver;
 
 
-    public ScanActivity() {
+    public InActivity() {
         // Required empty public constructor
     }
 
@@ -120,7 +124,7 @@ public class ScanActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_scan);
+        setContentView(R.layout.activity_in);
 
         initView();//初始化控件
         initReceive();//初始化接收数据
@@ -165,24 +169,26 @@ public class ScanActivity extends AppCompatActivity {
             public boolean handleMessage(Message msg) {
                 switch (msg.what) {
                     case TYPE_SUCCESS:
+                        typeFirstAdapter.notifyDataSetChanged();
+                        typeSecondAdapter.notifyDataSetChanged();
                         break;
                     case TYPE_ERROR:
-                        Toast.makeText(ScanActivity.this,"获取产品类型异常，请稍后再试", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer,"获取产品类型异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case TYPE_FAIL:
-                        Toast.makeText(ScanActivity.this,"获取产品类型失败，请稍后再试",Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer,"获取产品类型失败，请稍后再试",Snackbar.LENGTH_SHORT).show();
                         break;
                     case NETWORK_UNAVAILABLE:
-                        Toast.makeText(ScanActivity.this, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
                         break;
                     case NAME_SUCCESS:
                         nameAdapter.notifyDataSetChanged();
                         break;
                     case NAME_FAIL:
-                        Toast.makeText(ScanActivity.this, "请求货物名称数据失败，请稍后再试", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "请求货物名称数据失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case NAME_ERROR:
-                        Toast.makeText(ScanActivity.this, "请求货物名称数据异常，请稍后再试", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "请求货物名称数据异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
 
                 }
@@ -193,8 +199,15 @@ public class ScanActivity extends AppCompatActivity {
 
     private void initReceive() {
         Intent intent = getIntent();
-        check = intent.getStringExtra("check");
-        Log.e(TAG, "getCheck: "+check, null);
+        if (intent.hasExtra("check")) {
+            check = intent.getStringExtra("check");
+        }
+        if (intent.hasExtra("company")) {
+            company = intent.getStringExtra("company");
+        }
+        if (intent.hasExtra("username")) {
+            username = intent.getStringExtra("username");
+        }
     }
 
 
@@ -221,6 +234,8 @@ public class ScanActivity extends AppCompatActivity {
         textName = (TextView)nameView.findViewById(R.id.item_choose_tv);
 
         scanInfoView = (RecyclerView) findViewById(R.id.scan_info_view);
+
+        snackbarContainer = (CoordinatorLayout) findViewById(R.id.in_scan_snackbar_container);
     }
 
 
@@ -228,8 +243,8 @@ public class ScanActivity extends AppCompatActivity {
      * 初始化扫描信息视图
      */
     private void initScanInfo() {
-        scanInfoAdapter = new ScanInfoAdapter(this, cargos);
-        scanInfoView.setAdapter(scanInfoAdapter);
+        inScanAdapter = new InScanAdapter(this, cargos);
+        scanInfoView.setAdapter(inScanAdapter);
         scanInfoView.setLayoutManager(new LinearLayoutManager(this));
         scanInfoView.setHasFixedSize(true);
         scanInfoView.setItemAnimator(new DefaultItemAnimator());
@@ -272,8 +287,9 @@ public class ScanActivity extends AppCompatActivity {
         spinnerTypeFirst.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.e(TAG, "onItemSelected: ",null );
                 typeFirst = typeFirstList.get(position);
+                Log.e(TAG, "onItemSelected: typeFirst is "+typeFirst,null );
+
                 try {
                     setTypeSecondList(typeFirst);
                 } catch (Exception e) {
@@ -297,11 +313,13 @@ public class ScanActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 typeSecond = typeSecondList.get(position);
+                Log.e(TAG, "onItemSelected: typeSecond is "+typeSecond,null );
+
                 try {
                     setNameList(typeSecond);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Toast.makeText(ScanActivity.this,"数据解析错误",Toast.LENGTH_SHORT).show();
+                    Snackbar.make(snackbarContainer, "数据解析错误", Snackbar.LENGTH_SHORT).show();
                 }
             }
 
@@ -319,6 +337,8 @@ public class ScanActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 name = nameList.get(position);
+                Log.e(TAG, "onItemSelected: name is "+name,null );
+
             }
 
             @Override
@@ -348,6 +368,10 @@ public class ScanActivity extends AppCompatActivity {
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(typeFirst==null || typeSecond == null || name == null) {
+                    Snackbar.make(snackbarContainer, "请先选择类型", Snackbar.LENGTH_SHORT).show();
+                    return;
+                }
                 Log.e(TAG, "onClick: start", null);
                 setBtnStatus(false, true, true, true);
                 getRfidCode();
@@ -439,7 +463,6 @@ public class ScanActivity extends AppCompatActivity {
                             //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
                             InventoryTaps.add(map.epc);
 
-
                             //创建新的货物对象
                             Cargo cargo = new Cargo();
 
@@ -447,7 +470,7 @@ public class ScanActivity extends AppCompatActivity {
                             cargo.setRfid(map.epc);
 
                             //更新视图
-                            scanInfoAdapter.insert(cargo);
+                            inScanAdapter.insert(cargo);
 
                         } else {
 
@@ -483,6 +506,21 @@ public class ScanActivity extends AppCompatActivity {
         List<Statistic> statisticList = new ArrayList<>();//存放统计数据的列表
         List<String> types = new ArrayList<>();//储存已经统计过的类型，已经统计过的类型以字符串的形式存放到数组中，用于比对
 
+        //测试代码
+        for (int i = 0; i < 10; i++) {
+            Cargo cargo = new Cargo();
+            cargo.setName("锌电池");
+            cargo.setRfid("JDIOA"+i);
+            cargos.add(cargo);
+        }
+        for (int i = 0; i < 5; i++) {
+            Cargo cargo = new Cargo();
+            cargo.setName("锌锰电池");
+            cargo.setRfid("XINFAM"+i);
+            cargos.add(cargo);
+        }
+        //测试代码完毕
+
         if(cargos!=null&&cargos.size()>0) {
             for (int i = 0; i < cargos.size(); i++) {
                 Cargo cargo1 = cargos.get(i);
@@ -510,10 +548,13 @@ public class ScanActivity extends AppCompatActivity {
                     statistic.setName(nameTmp);
                     statistic.setRfid(rfidList);
                     statisticList.add(statistic);
+
                 }
             }
+
+
         } else {
-            Toast.makeText(this, "扫描数据为空，请检查数据", Toast.LENGTH_SHORT).show();
+            Snackbar.make(snackbarContainer, "扫描数据为空，请检查数据", Snackbar.LENGTH_SHORT).show();
             return;
         }
         //测试代码,测试发送是否成功
@@ -557,7 +598,7 @@ public class ScanActivity extends AppCompatActivity {
         if (statisticList != null && statisticList.size() > 0) {
             toMainActivity(statisticList);
         } else {
-            Toast.makeText(this, "无扫描结果，无法提交", Toast.LENGTH_SHORT).show();
+            Snackbar.make(snackbarContainer, "无扫描结果，无法提交", Snackbar.LENGTH_SHORT).show();
         }
     }
 
@@ -566,7 +607,7 @@ public class ScanActivity extends AppCompatActivity {
      */
     private void reset() {
         stopRfidCode();
-        scanInfoAdapter.clear();
+        inScanAdapter.clear();
         InventoryTaps.clear();
     }
 
@@ -584,9 +625,44 @@ public class ScanActivity extends AppCompatActivity {
                     RestTemplate restTemplate = new RestTemplate();
                     Map<String, String> map = new HashMap<String, String>();
                     map.put("check", check);
+                    map.put("username",username);
+                    map.put("company",company);
 
+                    typeList = new ArrayList<Map<String, Object>>();
                     typeList = restTemplate.postForObject(getResources().getString(R.string.URL_RECEVICE_TYPE), map, typeList.getClass());
+
                     if (typeList != null) {
+                        for (int i = 0; i < typeList.size(); i++) {
+
+                            String  typeSecondsStr = (String)typeList.get(i).get("typeSeconds");
+
+                            String[] typeSecondsTmp = typeSecondsStr.split(",");
+                            List<String> typeSecondsListTmp = new ArrayList<String>();
+                            for (int j = 0; j < typeSecondsTmp.length; j++) {
+                                typeSecondsListTmp.add(j, typeSecondsTmp[j]);
+                            }
+                            String typeFirstTmp = (String)typeList.get(i).get("typeFirst");
+
+                            Map<String, Object> mapTmp = new HashMap<String, Object>();
+                            mapTmp.put("typeFirst", typeFirstTmp);
+                            mapTmp.put("typeSeconds", typeSecondsListTmp);
+
+                            typeList.set(i, mapTmp);
+
+                        }
+
+                        setTypeFirstList();
+                        typeFirst = (String)typeList.get(0).get("typeFirst");
+                        setTypeSecondList(typeFirst);
+
+                        //测试代码
+                        /*for (int i = 0; i < typeList.size(); i++) {
+                            Log.e(TAG, "run: "+typeList.get(i).get("typeFirst"), null);
+                            for (int j = 0; j < ((ArrayList<String>)typeList.get(i).get("typeSeconds")).size(); j++) {
+                                List<String> tmp = (ArrayList<String>)typeList.get(i).get("typeSeconds");
+                                Log.e(TAG, "run: "+tmp.get(j), null);
+                            }
+                        }*/
                         handler.sendEmptyMessage(TYPE_SUCCESS);
                     } else {
                         handler.sendEmptyMessage(TYPE_FAIL);
@@ -630,6 +706,7 @@ public class ScanActivity extends AppCompatActivity {
      * 设置二级物品类型数组
      */
     public void setTypeSecondList(String typeFirst)  {
+
         if(typeSecondList.size()!=0) {
             typeSecondList.clear();
         }
@@ -640,12 +717,11 @@ public class ScanActivity extends AppCompatActivity {
                 String typeFirstTmp = (String)map1.get("typeFirst");
                 if(typeFirst.equals(typeFirstTmp)){
                     List<String> stringList = (List<String>) map1.get("typeSeconds");
-                    for (int j = 0; j < stringList.size(); j++) {
-                        typeSecondList.addAll(stringList);
-                    }
+                    typeSecondList.addAll(stringList);
                 }
             }
         }
+
         //测试代码
         /*switch (typeFirst) {
             case "p1":
@@ -699,22 +775,32 @@ public class ScanActivity extends AppCompatActivity {
      * 请求货物名称列表的线程
      */
     public void startNameThread(final String typeSecond) {
-
-        if(isNetworkAvailable(ScanActivity.this)) {
+        Log.e(TAG, "startNameThread: start", null);
+        if(isNetworkAvailable(InActivity.this)) {
         nameThread = new Thread(new Runnable() {
             @Override
             public void run() {
 
                     try{
                         Map map = new HashMap<String,String>();
-                        map.put("check",check);
-                        map.put("typeSecond",typeSecond);
+
+                        map.put("check", check);
+                        map.put("typeSecond", typeSecond);
+                        map.put("company", company);
+
+                        Log.e(TAG, "run: check is "+check, null);
+                        Log.e(TAG, "run: typeSecond is "+typeSecond, null);
+                        Log.e(TAG, "run: company is "+company, null);
+
                         RestTemplate restTemplate = new RestTemplate();
-                        nameList = restTemplate.postForObject(getResources().getString(R.string.URL_SCAN_NAME), map, nameList.getClass());
-                        if(nameList==null) {
-                            handler.sendEmptyMessage(NAME_FAIL);
-                        } else {
+                        List<String> nameListTmp = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_IN_SCAN_NAME), map, nameList.getClass());
+                        if(nameListTmp!=null) {
+                            nameList.clear();
+                            nameList.addAll(nameListTmp);
                             handler.sendEmptyMessage(NAME_SUCCESS);
+                            Log.e(TAG, "run: nameList is "+nameList, null);
+                        } else {
+                            handler.sendEmptyMessage(NAME_FAIL);
                         }
                     }catch (Exception e) {
                         e.printStackTrace();
@@ -758,7 +844,7 @@ public class ScanActivity extends AppCompatActivity {
                     if(status) {
                         startReceiveTypeThread();
                     } else {
-                        Toast.makeText(ScanActivity.this, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
                     }
                 }
             });

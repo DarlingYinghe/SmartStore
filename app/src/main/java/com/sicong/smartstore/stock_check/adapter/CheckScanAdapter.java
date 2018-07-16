@@ -1,7 +1,6 @@
-package com.sicong.smartstore.stock_out.adapter;
+package com.sicong.smartstore.stock_check.adapter;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,19 +10,17 @@ import android.widget.TextView;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_in.data.model.Cargo;
-import com.sicong.smartstore.stock_out.view.DetailActivity;
 
 import java.util.List;
 import java.util.Map;
 
-public class DetailScanAdapter extends RecyclerView.Adapter {
+public class CheckScanAdapter extends RecyclerView.Adapter {
 
-    private static final String TAG = "DetailScanAdapter";
-
+    private static final String TAG = "CheckScanAdapter";
     private Context mContext;
-    private List<String> mList;
+    private List<Map<String, String>> mList;
 
-    public DetailScanAdapter(@NonNull Context mContext, @NonNull List<String> mList) {
+    public CheckScanAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList) {
         this.mContext = mContext;
         this.mList = mList;
     }
@@ -31,14 +28,15 @@ public class DetailScanAdapter extends RecyclerView.Adapter {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_stock_out, parent, false));
+        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_detail_scan, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ViewHolder view = (ViewHolder) holder;
+
         view.id.setText(String.valueOf(position+1));
-        view.rfid.setText((String)mList.get(position));
+        view.rfid.setText(mList.get(position).get("rfid"));
     }
 
 
@@ -55,13 +53,13 @@ public class DetailScanAdapter extends RecyclerView.Adapter {
 
         public ViewHolder(View itemView) {
             super(itemView);
-            id = (TextView) itemView.findViewById(R.id.item_stock_out_id);
-            rfid = (TextView) itemView.findViewById(R.id.item_stock_out_date);
+            id = (TextView) itemView.findViewById(R.id.item_scan_id);
+            rfid = (TextView) itemView.findViewById(R.id.item_scan_rfid);
         }
     }
 
-    public void insert(String str) {
-        mList.add(str);
+    public void insert(Map<String,String> map) {
+        mList.add(map);
         notifyItemInserted(mList.size() - 1);
     }
 
@@ -69,6 +67,4 @@ public class DetailScanAdapter extends RecyclerView.Adapter {
         mList.clear();
         notifyDataSetChanged();
     }
-
-
 }

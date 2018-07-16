@@ -6,6 +6,8 @@ import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -14,12 +16,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import com.sicong.smartstore.R;
-import com.sicong.smartstore.stock_change.adapter.DetailStockChangeAdapter;
-import com.sicong.smartstore.stock_out.adapter.DetailScanAdapter;
-import com.sicong.smartstore.stock_out.view.DetailActivity;
+import com.sicong.smartstore.stock_change.adapter.ChangeDetailAdapter;
+import com.sicong.smartstore.stock_change.adapter.ChangeScanAdapter;
+import com.sicong.smartstore.stock_out.view.OutActivity;
 import com.sicong.smartstore.util.fn.u6.model.ResponseHandler;
 import com.sicong.smartstore.util.fn.u6.model.Tag;
 import com.sicong.smartstore.util.fn.u6.operation.IUSeries;
@@ -59,24 +60,29 @@ public class ChangeActivity extends AppCompatActivity {
     private AppCompatButton btnReset;
     private AppCompatButton btnSubmit;
 
+    private CoordinatorLayout snackbarContainer;//Snackbar的容器
+
+
     private Handler handler;
     
     //数据
-    private List<Map<String, String>> detailStockChangeList;
+    private List<Map<String, Object>> detailMaps;
+    private List<Map<String, String>> scanMaps;
 
     private String check;
     private String company;
     private String username;
-    
+
+    private int curItem;
+
     private String idFromIntent;
 
     private IUSeries mUSeries;//扫描工具
     private List<String> InventoryTaps;//已扫描RFID集合：已扫描过的rfid码，避免重复
-    private List<String> rfidList;//货物对象集合：扫描的所有物品的集合
     
     //适配器
-    private DetailStockChangeAdapter detailStockChangeAdapter;
-    private DetailScanAdapter scanInfoAdapter;
+    private ChangeDetailAdapter changeDetailAdapter;
+    private ChangeScanAdapter scanInfoAdapter;
     
     //线程
     private Thread detailThread;
@@ -128,25 +134,25 @@ public class ChangeActivity extends AppCompatActivity {
             public boolean handleMessage(Message msg) {
                 switch (msg.what) {
                     case NETWORK_UNAVAILABLE:
-                        Toast.makeText(ChangeActivity.this, "请连接网络", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "请连接网络", Snackbar.LENGTH_SHORT).show();
                         break;
                     case SUBMIT_SUCCESS:
-                        Toast.makeText(ChangeActivity.this, "提交成功", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "提交成功", Snackbar.LENGTH_SHORT).show();
                         break;
                     case SUBMIT_FAIL:
-                        Toast.makeText(ChangeActivity.this, "提交失败，请稍后再试", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "提交失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case SUBMIT_ERROR:
-                        Toast.makeText(ChangeActivity.this, "提交异常，请稍后再试", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "提交异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case DETAIL_SUCCESS:
-                        detailStockChangeAdapter.notifyDataSetChanged();
+                        changeDetailAdapter.notifyDataSetChanged();
                         break;
                     case DETAIL_FAIL:
-                        Toast.makeText(ChangeActivity.this, "获取出库信息失败", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "获取出库信息失败", Snackbar.LENGTH_SHORT).show();
                         break;
                     case DETAIL_ERROR:
-                        Toast.makeText(ChangeActivity.this, "获取出库信息异常", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "获取出库信息异常", Snackbar.LENGTH_SHORT).show();
                         break;
 
                 }
@@ -167,12 +173,15 @@ public class ChangeActivity extends AppCompatActivity {
         btnReset = findViewById(R.id.change_btn_reset);
         btnSubmit = findViewById(R.id.change_btn_submit);
         
+        snackbarContainer = findViewById(R.id.change_scan_snackbar_container);
     }
 
     /**
      * 初始化一部分对象
      */
     private void initObject() {
+        curItem = -1;
+
         U6Series.setContext(this);
         mUSeries = U6Series.getInstance();
         mUSeries.openSerialPort(model);
@@ -180,11 +189,14 @@ public class ChangeActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent.hasExtra("check")) {
             check = intent.getStringExtra("check");
-        } else if (intent.hasExtra("company")) {
+        }
+        if (intent.hasExtra("company")) {
             company = intent.getStringExtra("company");
-        } else if (intent.hasExtra("username")) {
+        }
+        if (intent.hasExtra("username")) {
             username = intent.getStringExtra("username");
-        } else if (intent.hasExtra("id")){
+        }
+        if (intent.hasExtra("id")){
             idFromIntent = intent.getStringExtra("id");
         }
     }
@@ -197,8 +209,16 @@ public class ChangeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Log.e(TAG, "onClick: start", null);
-                setBtnStatus(false, true, true, true);
-                getRfidCode();
+                curItem = changeDetailAdapter.getCurItem();
+                Log.e(TAG, "onClick: curItem is "+curItem, null);
+
+                if(curItem!=-1) {
+                    setBtnStatus(false, true, true, true);
+                    getRfidCode();
+                } else {
+                    Snackbar.make(snackbarContainer, "请选择需要扫描的条目", Snackbar.LENGTH_SHORT).show();
+                }
+
             }
         });
     }
@@ -241,10 +261,123 @@ public class ChangeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isNetworkAvailable(ChangeActivity.this)) {
-                    startSubmitThread();
+                    if(checkResult()) {
+                        startSubmitThread();
+                    } else {
+                        Snackbar.make(snackbarContainer, "存在未扫描完成的条目，请检查", Snackbar.LENGTH_SHORT).show();
+                    }
                 } else {
                     handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
                 }
+            }
+        });
+
+    }
+
+    private boolean checkResult() {
+        int n = 0;
+        for (int i = 0; i < detailMaps.size(); i++) {
+            int num = Integer.valueOf((String)detailMaps.get(i).get("num"));
+            int count = (Integer)detailMaps.get(i).get("count");
+            if(num==count) {
+                n++;
+            }
+        }
+        if(n==detailMaps.size()) {
+            return true;
+        }
+        return false;
+    }
+
+
+
+    /**
+     * 初始化按钮状态
+     */
+    private void initBtnStatus() {
+        setBtnStatus(true, false, false, false);
+    }
+
+    /**
+     * 初始化扫描列表
+     */
+    private void initScanInfoView() {
+        scanMaps = new ArrayList<Map<String, String>>();
+        scanInfoAdapter = new ChangeScanAdapter(this, scanMaps);
+        scanInfoView.setAdapter(scanInfoAdapter);
+        scanInfoView.setLayoutManager(new LinearLayoutManager(this));
+        scanInfoView.setHasFixedSize(true);
+        scanInfoView.setItemAnimator(new DefaultItemAnimator());
+        scanInfoView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+    }
+
+    /**
+     * 初始化待出库物品列表
+     */
+    private void initDetailStockChangeView() {
+        detailMaps = new ArrayList<Map<String, Object>>();
+        changeDetailAdapter = new ChangeDetailAdapter(ChangeActivity.this, detailMaps);
+        detailStockChangeView.setAdapter(changeDetailAdapter);
+        detailStockChangeView.setLayoutManager(new LinearLayoutManager(this));
+        detailStockChangeView.setHasFixedSize(true);
+        detailStockChangeView.setItemAnimator(new DefaultItemAnimator());
+        detailStockChangeView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+
+        startDetailThread();
+    }
+
+    /**
+     * 初始化开始扫描按钮
+     */
+    public void getRfidCode() {
+        InventoryTaps = new ArrayList<String>();
+        mUSeries.startInventory(new ResponseHandler() {
+            /**
+             * 扫描成功一次，就触发一次该方法
+             * 方法内通过ScanInfo对象实现“物品类型”与“RFID码”的绑定
+             * @param msg
+             * @param data 扫描到的数据
+             * @param parameters
+             */
+            @Override
+            public void onSuccess(String msg, Object data, byte[] parameters) {
+                Log.e(TAG, "onSuccess: 启动了", null);
+                if(!((boolean)changeDetailAdapter.getmList().get(curItem).get("over"))) {
+
+                    List<Tag> InventoryOnceResult = (List<Tag>) data;//一次扫描到的数据，因为不排除扫描到周围其他物体的可能性，故用数组接收结果，但是数组内部已做好对其他数组的过滤
+
+                    //对扫描结果进行筛选
+                    for (int i = 0; i < InventoryOnceResult.size(); i++) {
+                        Tag map = InventoryOnceResult.get(i);
+
+                        if (!InventoryTaps.contains(map.epc)) {//避免RFID码重复扫入
+                            //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
+                            InventoryTaps.add(map.epc);
+
+                            Map<String, String> scanMap = new HashMap<String, String>();
+                            scanMap.put("rfid", map.epc);
+
+                            Map<String, Object> detailMap = detailMaps.get(curItem);
+                            Integer count = (Integer) detailMap.get("count");
+                            count++;
+                            detailMap.put("count", count);
+                            detailMaps.set(curItem, detailMap);
+
+                            //更新视图
+                            scanInfoAdapter.insert(scanMap);
+                            changeDetailAdapter.changeCurItemCount(curItem);
+
+                        } else {
+
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(String msg) {
+                super.onFailure(msg);
+                Log.e(TAG, "onFailure", null);
             }
         });
     }
@@ -283,86 +416,6 @@ public class ChangeActivity extends AppCompatActivity {
     }
 
     /**
-     * 初始化按钮状态
-     */
-    private void initBtnStatus() {
-        setBtnStatus(true, false, false, false);
-    }
-
-    /**
-     * 初始化扫描列表
-     */
-    private void initScanInfoView() {
-        rfidList = new ArrayList<String>();
-        scanInfoAdapter = new DetailScanAdapter(this, rfidList);
-        scanInfoView.setAdapter(scanInfoAdapter);
-        scanInfoView.setLayoutManager(new LinearLayoutManager(this));
-        scanInfoView.setHasFixedSize(true);
-        scanInfoView.setItemAnimator(new DefaultItemAnimator());
-        scanInfoView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-    }
-
-    /**
-     * 初始化待出库物品列表
-     */
-    private void initDetailStockChangeView() {
-        detailStockChangeList = new ArrayList<Map<String, String>>();
-        detailStockChangeAdapter = new DetailStockChangeAdapter(ChangeActivity.this, detailStockChangeList);
-        detailStockChangeView.setAdapter(detailStockChangeAdapter);
-        detailStockChangeView.setLayoutManager(new LinearLayoutManager(this));
-        detailStockChangeView.setHasFixedSize(true);
-        detailStockChangeView.setItemAnimator(new DefaultItemAnimator());
-        detailStockChangeView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-
-        startDetailThread();
-    }
-
-    /**
-     * 初始化开始扫描按钮
-     */
-    public void getRfidCode() {
-        InventoryTaps = new ArrayList<String>();
-        mUSeries.startInventory(new ResponseHandler() {
-            /**
-             * 扫描成功一次，就触发一次该方法
-             * 方法内通过ScanInfo对象实现“物品类型”与“RFID码”的绑定
-             * @param msg
-             * @param data 扫描到的数据
-             * @param parameters
-             */
-            @Override
-            public void onSuccess(String msg, Object data, byte[] parameters) {
-                Log.e(TAG, "onSuccess: 启动了", null);
-                List<Tag> InventoryOnceResult = (List<Tag>) data;//一次扫描到的数据，因为不排除扫描到周围其他物体的可能性，故用数组接收结果，但是数组内部已做好对其他数组的过滤
-
-                //对扫描结果进行筛选
-                for (int i = 0; i < InventoryOnceResult.size(); i++) {
-                    Tag map = InventoryOnceResult.get(i);
-
-                    if (!InventoryTaps.contains(map.epc)) {//避免RFID码重复扫入
-                        //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
-                        InventoryTaps.add(map.epc);
-
-                        //更新视图
-                        scanInfoAdapter.insert(map.epc);
-
-                    } else {
-
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(String msg) {
-                super.onFailure(msg);
-                Log.e(TAG, "onFailure", null);
-            }
-        });
-    }
-
-
-
-    /**
      * 启动详细信息线程
      */
     private void startDetailThread() {
@@ -378,16 +431,23 @@ public class ChangeActivity extends AppCompatActivity {
                     msg.put("company", company);
 
                     //用于接收的对象
-                    List<Map<String, String>> maps = new ArrayList<Map<String, String>>();
+                    List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
 
                     //发出请求
                     RestTemplate restTemplate = new RestTemplate();
                     maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_CHANGE_DETAIL), msg, maps.getClass());
 
+
                     //处理请求的数据
                     if (maps != null && maps.size()>0) {
-                        detailStockChangeList.clear();
-                        detailStockChangeList.addAll(maps);
+                        for (int i = 0; i < maps.size(); i++) {
+                            Map<String,Object> mapTmp = new HashMap<String,Object>();
+                            mapTmp.put("count", 0);
+                            mapTmp.put("over", false);
+                            maps.set(i, mapTmp);
+                        }
+                        detailMaps.clear();
+                        detailMaps.addAll(maps);
                         handler.sendEmptyMessage(DETAIL_SUCCESS);
                     } else {
                         handler.sendEmptyMessage(DETAIL_FAIL);
@@ -413,7 +473,7 @@ public class ChangeActivity extends AppCompatActivity {
                     if(status) {
                         startDetailThread();
                     } else {
-                        Toast.makeText(ChangeActivity.this, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
                     }
                 }
             });

@@ -2,8 +2,6 @@ package com.sicong.smartstore.stock_out.view;
 
 
 import android.content.Context;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -20,10 +18,7 @@ import android.widget.Toast;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.main.MainActivity;
-import com.sicong.smartstore.stock_out.adapter.StockOutListAdapter;
-import com.sicong.smartstore.stock_out.model.CargoSendListMessage;
-import com.sicong.smartstore.stock_out.model.StockOutCargoReceiveMessage;
-import com.sicong.smartstore.util.network.NetBroadcastReceiver;
+import com.sicong.smartstore.stock_out.adapter.OutListAdapter;
 
 import org.springframework.web.client.RestTemplate;
 
@@ -32,16 +27,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
-
 /**
  * A simple {@link Fragment} subclass.
  * 出库的Fragment
  */
-public class StockOutFragment extends Fragment {
+public class OutFragment extends Fragment {
 
     //常量
-    private final static String TAG = "StockOutFragment";
+    private final static String TAG = "OutFragment";
 
     private static final int NETWORK_UNAVAILABLE = 0;
 
@@ -63,14 +56,14 @@ public class StockOutFragment extends Fragment {
 
     private Handler handler;
     //适配器
-    private StockOutListAdapter stockOutListAdapter;
+    private OutListAdapter outListAdapter;
 
     //线程
     private Thread requestDataThread;
 
 
 
-    public StockOutFragment() {
+    public OutFragment() {
 
     }
 
@@ -113,7 +106,7 @@ public class StockOutFragment extends Fragment {
             public boolean handleMessage(Message msg) {
                 switch (msg.what) {
                     case SUCCESS:
-                        stockOutListAdapter.notifyDataSetChanged();
+                        outListAdapter.notifyDataSetChanged();
                         break;
                     case FAIL:
                         /**UI优化时用背景图片代替**/
@@ -134,8 +127,8 @@ public class StockOutFragment extends Fragment {
     private void initStockOutListView() {
         stockOutList = new ArrayList<Map<String,String>>();
 
-        stockOutListAdapter = new StockOutListAdapter(getContext(), stockOutList, check, company, username);
-        stockOutListView.setAdapter(stockOutListAdapter);
+        outListAdapter = new OutListAdapter(getContext(), stockOutList, check, company, username);
+        stockOutListView.setAdapter(outListAdapter);
         stockOutListView.setLayoutManager(new LinearLayoutManager(getContext()));
         stockOutListView.setHasFixedSize(true);
         stockOutListView.setItemAnimator(new DefaultItemAnimator());

@@ -2,12 +2,9 @@ package com.sicong.smartstore.stock_in.view;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -23,11 +20,9 @@ import android.widget.Toast;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.main.MainActivity;
-import com.sicong.smartstore.stock_in.adapter.ScanInfoAdapter;
-import com.sicong.smartstore.stock_in.adapter.StatisticAdapter;
+import com.sicong.smartstore.stock_in.adapter.InStatisticAdapter;
 import com.sicong.smartstore.stock_in.data.model.CargoInMessage;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
-import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
 import org.springframework.web.client.RestTemplate;
 
@@ -36,10 +31,10 @@ import java.util.List;
 
 import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
-public class StockInFragment extends Fragment {
+public class InFragment extends Fragment {
 
     //常量
-    private static final String TAG = "StockInFragment";
+    private static final String TAG = "InFragment";
 
     private static final int NETWORK_UNAVAILABLE = 0;
 
@@ -48,9 +43,9 @@ public class StockInFragment extends Fragment {
     private static final int SEND_ERROR = 3;
 
     //数据
-    private String check = null;//校验码
-    private String company = null;//公司id
-    private String username = null;//操作员
+    private String check ;//校验码
+    private String company;//公司id
+    private String username;//操作员
 
     private String describe = null;//描述内容
     private List<Statistic> statisticList;//统计数据集合
@@ -71,7 +66,7 @@ public class StockInFragment extends Fragment {
     private Thread sendStatisticThread;
 
     //适配器
-    private StatisticAdapter statisticAdapter;
+    private InStatisticAdapter inStatisticAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -92,8 +87,8 @@ public class StockInFragment extends Fragment {
      */
     private void initStatistic() {
         statisticList = new ArrayList<>();
-        statisticAdapter = new StatisticAdapter(getContext(), statisticList);
-        statisticView.setAdapter(statisticAdapter);
+        inStatisticAdapter = new InStatisticAdapter(getContext(), statisticList);
+        statisticView.setAdapter(inStatisticAdapter);
         statisticView.setLayoutManager(new LinearLayoutManager(getContext()));
         statisticView.setHasFixedSize(true);
         statisticView.setItemAnimator(new DefaultItemAnimator());
@@ -110,7 +105,7 @@ public class StockInFragment extends Fragment {
                 switch (msg.what) {
                     case SEND_SUCCESS:
                         statisticList.clear();
-                        statisticAdapter.notifyDataSetChanged();
+                        inStatisticAdapter.notifyDataSetChanged();
                         Toast.makeText(getContext(), "提交成功", Toast.LENGTH_SHORT).show();
                         break;
                     case SEND_FAIL:
@@ -137,6 +132,8 @@ public class StockInFragment extends Fragment {
         statisticListTmp = ((MainActivity) context).getStatisticList();
     }
 
+
+
     @Override
     public void onResume() {
         super.onResume();
@@ -146,7 +143,7 @@ public class StockInFragment extends Fragment {
         if (statisticListTmp != null && statisticListTmp.size() > 0) {
             statisticList.clear();
             statisticList.addAll(statisticListTmp);
-            statisticAdapter.notifyDataSetChanged();
+            inStatisticAdapter.notifyDataSetChanged();
             packCargoInMessage();
         }
 
@@ -177,8 +174,9 @@ public class StockInFragment extends Fragment {
         toScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), ScanActivity.class);
+                Intent intent = new Intent(getActivity(), InActivity.class);
                 intent.putExtra("check", check);
+                intent.putExtra("company", company);
                 startActivity(intent);
             }
         });
@@ -243,6 +241,7 @@ public class StockInFragment extends Fragment {
         });
         sendStatisticThread.start();
     }
+
 
 
 

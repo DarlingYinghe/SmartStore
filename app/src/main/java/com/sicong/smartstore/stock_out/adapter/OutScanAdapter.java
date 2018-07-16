@@ -1,4 +1,4 @@
-package com.sicong.smartstore.stock_in.adapter;
+package com.sicong.smartstore.stock_out.adapter;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -9,18 +9,18 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.sicong.smartstore.R;
-import com.sicong.smartstore.stock_in.data.model.Cargo;
-import com.sicong.smartstore.stock_in.data.model.Statistic;
 
 import java.util.List;
+import java.util.Map;
 
-public class StatisticAdapter extends RecyclerView.Adapter {
+public class OutScanAdapter extends RecyclerView.Adapter {
 
-    private static final String TAG = "StockOutListAdapter";
+    private static final String TAG = "OutScanAdapter";
+
     private Context mContext;
-    private List<Statistic> mList;
+    private List<Map<String, String>> mList;
 
-    public StatisticAdapter(@NonNull Context mContext, @NonNull List<Statistic> mList) {
+    public OutScanAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList) {
         this.mContext = mContext;
         this.mList = mList;
     }
@@ -28,16 +28,14 @@ public class StatisticAdapter extends RecyclerView.Adapter {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_statistic, parent, false));
+        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_stock_out, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position) {
         ViewHolder view = (ViewHolder) holder;
-
         view.id.setText(String.valueOf(position+1));
-        view.name.setText(mList.get(position).getName());
-        view.num.setText(String.valueOf(mList.get(position).getNum()));
+        view.rfid.setText(mList.get(position).get("rfid"));
     }
 
 
@@ -50,19 +48,17 @@ public class StatisticAdapter extends RecyclerView.Adapter {
     class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView id;//扫描的顺序编号的视图
-        TextView name;//货物名称的视图
-        TextView num;//数量
+        TextView rfid;//rfid码的视图
 
         public ViewHolder(View itemView) {
             super(itemView);
-            id = (TextView) itemView.findViewById(R.id.statistic_id);
-            name = (TextView) itemView.findViewById(R.id.statistic_name);
-            num = (TextView) itemView.findViewById(R.id.statistic_num);
+            id = (TextView) itemView.findViewById(R.id.item_stock_out_id);
+            rfid = (TextView) itemView.findViewById(R.id.item_stock_out_date);
         }
     }
 
-    public void insert(Statistic statistic) {
-        mList.add(statistic);
+    public void insert(Map<String, String> str) {
+        mList.add(str);
         notifyItemInserted(mList.size() - 1);
     }
 
@@ -70,4 +66,6 @@ public class StatisticAdapter extends RecyclerView.Adapter {
         mList.clear();
         notifyDataSetChanged();
     }
+
+
 }

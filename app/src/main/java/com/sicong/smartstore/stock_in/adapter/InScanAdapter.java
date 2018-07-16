@@ -13,13 +13,13 @@ import com.sicong.smartstore.stock_in.data.model.Cargo;
 
 import java.util.List;
 
-public class ScanInfoAdapter extends RecyclerView.Adapter {
+public class InScanAdapter extends RecyclerView.Adapter {
 
-    private static final String TAG = "StockOutListAdapter";
+    private static final String TAG = "OutListAdapter";
     private Context mContext;
     private List<Cargo> mList;
 
-    public ScanInfoAdapter(@NonNull Context mContext, @NonNull List<Cargo> mList) {
+    public InScanAdapter(@NonNull Context mContext, @NonNull List<Cargo> mList) {
         this.mContext = mContext;
         this.mList = mList;
     }

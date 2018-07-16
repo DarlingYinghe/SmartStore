@@ -13,12 +13,13 @@ import com.sicong.smartstore.R;
 import java.util.List;
 import java.util.Map;
 
-public class DetailStockChangeAdapter extends RecyclerView.Adapter {
+public class ChangeDetailAdapter extends RecyclerView.Adapter {
 
     private Context mContext;
-    private List<Map<String, String>> mList;
+    private List<Map<String, Object>> mList;
+    private int curItem = -1;
 
-    public DetailStockChangeAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList) {
+    public ChangeDetailAdapter(@NonNull Context mContext, @NonNull List<Map<String, Object>> mList) {
         this.mContext = mContext;
         this.mList = mList;
     }
@@ -34,10 +35,15 @@ public class DetailStockChangeAdapter extends RecyclerView.Adapter {
 
         ViewHolder view = (ViewHolder) holder;
 
-        String name = (String)mList.get(position).get("name");
-        String outPosition = (String)mList.get(position).get("outPosition");
-        String inPosition = (String)mList.get(position).get("inPosition");
-        String num = (String)mList.get(position).get("num");
+        Map<String,Object> map = mList.get(position);
+        if(map.get("count")==map.get("num")) {
+            map.put("over", true);
+        }
+
+        String name = (String)map.get("name");
+        String outPosition = (String)map.get("outPosition");
+        String inPosition = (String)map.get("inPosition");
+        String num = map.get("count")+"/"+map.get("num");
 
         view.name.setText(name);
         view.num.setText(num);
@@ -48,9 +54,25 @@ public class DetailStockChangeAdapter extends RecyclerView.Adapter {
         view.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                setCurItem(position);
             }
         });
+
+        if(curItem!=-1) {
+            if(curItem == position) {
+                holder.itemView.setBackgroundResource(R.color.colorPrimary);
+                view.name.setTextColor(mContext.getResources().getColor(R.color.white));
+                view.num.setTextColor(mContext.getResources().getColor(R.color.white));
+                view.outPosition.setTextColor(mContext.getResources().getColor(R.color.white));
+                view.inPosition.setTextColor(mContext.getResources().getColor(R.color.white));
+            } else {
+                holder.itemView.setBackgroundResource(R.color.white);
+                view.name.setTextColor(mContext.getResources().getColor(R.color.black));
+                view.outPosition.setTextColor(mContext.getResources().getColor(R.color.black));
+                view.inPosition.setTextColor(mContext.getResources().getColor(R.color.black));
+            }
+        }
+
 
     }
 
@@ -77,5 +99,20 @@ public class DetailStockChangeAdapter extends RecyclerView.Adapter {
         }
     }
 
+    public void setCurItem(int position) {
+        this.curItem = position;
+        notifyDataSetChanged();
+    }
 
+    public int getCurItem() {
+        return curItem;
+    }
+
+    public void changeCurItemCount(int position) {
+        notifyItemChanged(position);
+    }
+
+    public List<Map<String, Object>> getmList() {
+        return mList;
+    }
 }

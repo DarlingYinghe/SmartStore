@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".stock_out.view.StockOutFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".stock_out.view.OutFragment">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/stock_out_rv"
@@ -11,5 +12,6 @@
         android:layout_height="match_parent">
 
     </android.support.v7.widget.RecyclerView>
+
 
 </FrameLayout>

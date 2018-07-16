@@ -287,6 +287,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     map = restTemplate.postForObject(getResources().getString(R.string.URL_LOGIN), login, map.getClass());
 
                     //处理请求的数据
+
                     check = map.get("check");
                     company = map.get("company");
 

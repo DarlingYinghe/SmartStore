@@ -15,11 +15,11 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.sicong.smartstore.R;
-import com.sicong.smartstore.stock_change.view.StockChangeFragment;
-import com.sicong.smartstore.stock_check.view.StockCheckFragment;
+import com.sicong.smartstore.stock_change.view.ChangeFragment;
+import com.sicong.smartstore.stock_check.view.CheckFragment;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
-import com.sicong.smartstore.stock_in.view.StockInFragment;
-import com.sicong.smartstore.stock_out.view.StockOutFragment;
+import com.sicong.smartstore.stock_in.view.InFragment;
+import com.sicong.smartstore.stock_out.view.OutFragment;
 import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
 import java.util.ArrayList;
@@ -38,14 +38,15 @@ public class MainActivity extends AppCompatActivity {
     private List<Statistic> statisticList;//统计结果
 
 
+
     //视图
     private ViewPager pagers;//分页
     private BottomNavigationView bottomNav;//底部导航栏
     private List<Fragment> fragments;
-    private StockInFragment stockInFragment;
-    private StockOutFragment stockOutFragment;
-    private StockChangeFragment stockChangeFragment;
-    private StockCheckFragment stockCheckFragment;
+    private InFragment inFragment;
+    private OutFragment outFragment;
+    private ChangeFragment changeFragment;
+    private CheckFragment checkFragment;
 
     //广播
     private NetBroadcastReceiver netBroadcastReceiver;
@@ -65,12 +66,17 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("statisticList")) {
             statisticList = (List<Statistic>) intent.getSerializableExtra("statisticList");
-        } else if (intent != null && intent.hasExtra("check")) {
+        }
+        if (intent != null && intent.hasExtra("check")) {
             check = intent.getStringExtra("check");
-        } else if (intent != null && intent.hasExtra("username")) {
+
+        }
+        if (intent != null && intent.hasExtra("username")) {
             username = intent.getStringExtra("username");
-        } else if (intent != null && intent.hasExtra("company")) {
+        }
+        if (intent != null && intent.hasExtra("company")) {
             company = intent.getStringExtra("company");
+            Log.e(TAG, "initRecevicerFromScan: "+company, null);
         }
     }
 
@@ -89,16 +95,16 @@ public class MainActivity extends AppCompatActivity {
         //设置屏幕外分页数量
         pagers.setOffscreenPageLimit(3);
 
-        stockInFragment = new StockInFragment();
-        stockOutFragment = new StockOutFragment();
-        stockChangeFragment = new StockChangeFragment();
-        stockCheckFragment = new StockCheckFragment();
+        inFragment = new InFragment();
+        outFragment = new OutFragment();
+        changeFragment = new ChangeFragment();
+        checkFragment = new CheckFragment();
 
         fragments = new ArrayList<Fragment>();
-        fragments.add(stockInFragment);
-        fragments.add(stockOutFragment);
-        fragments.add(stockChangeFragment);
-        fragments.add(stockCheckFragment);
+        fragments.add(inFragment);
+        fragments.add(outFragment);
+        fragments.add(changeFragment);
+        fragments.add(checkFragment);
 
         //适配器
         pagers.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
@@ -120,7 +126,8 @@ public class MainActivity extends AppCompatActivity {
             int[] itemIds = {
                     R.id.stock_in,
                     R.id.stock_out,
-                    R.id.stock_change
+                    R.id.stock_change,
+                    R.id.stock_check
             };
 
             @Override
@@ -222,14 +229,14 @@ public class MainActivity extends AppCompatActivity {
                 public void onChangeListener(boolean status) {
                     if(status) {
                         Log.e(TAG, "onChangeListener: 可行", null);
-                        StockOutFragment stockOutFragmentTmp  = (StockOutFragment)fragments.get(1);
-                        stockOutFragmentTmp.startRequestDataThread();
+                        OutFragment outFragmentTmp = (OutFragment)fragments.get(1);
+                        outFragmentTmp.startRequestDataThread();
 
-                        StockChangeFragment stockChangeFragment = (StockChangeFragment)fragments.get(2);
-                        stockChangeFragment.startRequestDataThread();
+                        ChangeFragment changeFragment = (ChangeFragment)fragments.get(2);
+                        changeFragment.startRequestDataThread();
 
-                        StockCheckFragment stockCheckFragment = (StockCheckFragment)fragments.get(3);
-                        stockCheckFragment.startRequestDataThread();
+                        CheckFragment checkFragment = (CheckFragment)fragments.get(3);
+                        checkFragment.startRequestDataThread();
 
                     } else {
                         Toast.makeText(MainActivity.this, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();

@@ -1,10 +1,7 @@
 package com.sicong.smartstore.stock_change.view;
 
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -21,11 +18,7 @@ import android.widget.Toast;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.main.MainActivity;
-import com.sicong.smartstore.stock_change.adapter.StockChangeListAdapter;
-import com.sicong.smartstore.stock_out.adapter.StockOutListAdapter;
-import com.sicong.smartstore.stock_out.model.CargoSendListMessage;
-import com.sicong.smartstore.stock_out.model.StockOutCargoReceiveMessage;
-import com.sicong.smartstore.util.network.NetBroadcastReceiver;
+import com.sicong.smartstore.stock_change.adapter.ChangeListAdapter;
 
 import org.springframework.web.client.RestTemplate;
 
@@ -39,9 +32,9 @@ import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class StockChangeFragment extends Fragment {
+public class ChangeFragment extends Fragment {
     //常量
-    private static final String TAG = "StockChangeFragment";
+    private static final String TAG = "ChangeFragment";
 
     private static final int NETWORK_UNAVAILABLE = 0;
 
@@ -62,13 +55,13 @@ public class StockChangeFragment extends Fragment {
     private Handler handler;
 
     //适配器
-    StockChangeListAdapter stockChangeListAdapter;
+    ChangeListAdapter stockChangeListAdapter;
 
     //线程
     private Thread requestDataThread;
 
 
-    public StockChangeFragment() {
+    public ChangeFragment() {
         // Required empty public constructor
     }
 
@@ -132,7 +125,7 @@ public class StockChangeFragment extends Fragment {
     private void initstockChangeListView() {
         stockOutList = new ArrayList<Map<String,String>>();
 
-        stockChangeListAdapter = new StockChangeListAdapter(getContext(), stockOutList, check, company, username);
+        stockChangeListAdapter = new ChangeListAdapter(getContext(), stockOutList, check, company, username);
         stockChangeListView.setAdapter(stockChangeListAdapter);
         stockChangeListView.setLayoutManager(new LinearLayoutManager(getContext()));
         stockChangeListView.setHasFixedSize(true);

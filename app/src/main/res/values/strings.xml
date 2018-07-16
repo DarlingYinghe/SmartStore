@@ -36,7 +36,7 @@
     <string name="detail_address_title">地址：</string>
     <string name="date">日期</string>
     <string name="item_stock_out_id">单号</string>
-    <string name="item_stock_out_detail_num">剩余/总量</string>
+    <string name="item_stock_out_detail_num">已扫/总量</string>
     <string name="item_stock_out_detail_position">位置</string>
     <string name="stock_change">移库</string>
     <string name="cargo_name">货物名称</string>
@@ -45,20 +45,24 @@
     <string name="item_stock_change_detail_position_in">目标位置</string>
     <string name="detail_title_title">标题：</string>
     <string name="detail_description_title">描述：</string>
+    <string name="stock_check">盘点</string>
+    <string name="title">标题</string>
 
     <!--URL-->
-    <string name="URL_STOCK_OUT_DETAIL">http://</string>
-    <string name="URL_STOCK_OUT_CLIENT_INFO">http://</string>
-    <string name="URL_SCAN_NAME">http://</string>
-    <string name="URL_RECEVICE_TYPE">http://</string>
+    <string name="URL_STOCK_OUT_DETAIL">http://47.106.156.193:8080/api/stockOutProduct</string>
+    <string name="URL_STOCK_OUT_CLIENT_INFO">http://47.106.156.193:8080/api/stockOutInfo</string>
+    <string name="URL_STOCK_IN_SCAN_NAME">http://47.106.156.193:8080/api/findProduct</string>
+    <string name="URL_RECEVICE_TYPE">http://47.106.156.193:8080/api/findType</string>
     <string name="URL_LOGIN">http://47.106.156.193:8080/api/login</string>
     <string name="URL_LOGIN_COMPANY">http://47.106.156.193:8080/api/company</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST">http://</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_OUT_LIST">http://47.106.156.193:8080/api/stockOutList</string>
     <string name="URL_STOCK_CHANGE_DETAIL">http://</string>
-    <string name="title">标题</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_CHECK_LIST">http://</string>
-    <string name="stock_check">盘点</string>
+    <string name="item_stock_check_detail_position">位置</string>
+    <string name="item_stock_check_detail_num">数量</string>
+    <string name="URL_STOCK_CHECK_DETAIL">http://</string>
+    <string name="item_stock_out_detail_store">仓库</string>
 
 
 </resources>

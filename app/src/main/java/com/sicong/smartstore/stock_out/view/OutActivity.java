@@ -2,11 +2,12 @@ package com.sicong.smartstore.stock_out.view;
 
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.location.Address;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -16,15 +17,10 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sicong.smartstore.R;
-import com.sicong.smartstore.stock_in.data.model.CheckMessage;
-import com.sicong.smartstore.stock_in.view.ScanActivity;
-import com.sicong.smartstore.stock_out.adapter.DetailScanAdapter;
-import com.sicong.smartstore.stock_out.adapter.DetailStockOutAdapter;
-import com.sicong.smartstore.stock_out.model.CargoListSendMessage;
-import com.sicong.smartstore.stock_out.model.ClientInfo;
+import com.sicong.smartstore.stock_out.adapter.OutDetailAdapter;
+import com.sicong.smartstore.stock_out.adapter.OutScanAdapter;
 import com.sicong.smartstore.util.fn.u6.model.ResponseHandler;
 import com.sicong.smartstore.util.fn.u6.model.Tag;
 import com.sicong.smartstore.util.fn.u6.operation.IUSeries;
@@ -33,7 +29,6 @@ import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
 import org.springframework.web.client.RestTemplate;
 
-import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,10 +36,10 @@ import java.util.Map;
 
 import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
-public class DetailActivity extends AppCompatActivity {
+public class OutActivity extends AppCompatActivity {
 
     //常量
-    private final static String TAG = "DetailActivity";
+    private final static String TAG = "OutActivity";
     private String model = "U6";
 
     private static final int NETWORK_UNAVAILABLE = 0;
@@ -62,7 +57,7 @@ public class DetailActivity extends AppCompatActivity {
     private static final int SUBMIT_ERROR = 9;
 
     //数据
-    private List<Map<String, String>> detailStockOutList;
+    private List<Map<String, Object>> detailMaps;
 
     private String check;
     private String company;
@@ -78,7 +73,9 @@ public class DetailActivity extends AppCompatActivity {
 
     private IUSeries mUSeries;//扫描工具
     private List<String> InventoryTaps;//已扫描RFID集合：已扫描过的rfid码，避免重复
-    private List<String> rfidList;//货物对象集合：扫描的所有物品的集合
+    private List<Map<String, String>> scanMaps;//货物对象集合：扫描的所有物品的集合
+    
+    private int curItem;
 
     //视图
     private RecyclerView detailStockOutView;
@@ -95,11 +92,13 @@ public class DetailActivity extends AppCompatActivity {
     private TextView titleView;
     private TextView descriptionView;
 
+    private CoordinatorLayout snackbarContainer;//Snackbar的容器
+
     private Handler handler;
 
     //适配器
-    private DetailStockOutAdapter detailStockOutAdapter;
-    private DetailScanAdapter scanInfoAdapter;
+    private OutDetailAdapter outDetailAdapter;
+    private OutScanAdapter scanInfoAdapter;
 
     //线程
     private Thread detailThread;//出库细节信息线程
@@ -112,7 +111,7 @@ public class DetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
+        setContentView(R.layout.activity_out);
 
         initView();//初始化控件
         initObject();//初始化一部分对象
@@ -152,16 +151,16 @@ public class DetailActivity extends AppCompatActivity {
             public boolean handleMessage(Message msg) {
                 switch (msg.what) {
                     case NETWORK_UNAVAILABLE:
-                        Toast.makeText(DetailActivity.this, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
                         break;
                     case SUBMIT_SUCCESS:
-                        Toast.makeText(DetailActivity.this, "提交成功", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "提交成功", Snackbar.LENGTH_SHORT).show();
                         break;
                     case SUBMIT_FAIL:
-                        Toast.makeText(DetailActivity.this, "提交失败，请稍后再试", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "提交失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case SUBMIT_ERROR:
-                        Toast.makeText(DetailActivity.this, "提交异常，请稍后再试", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "提交异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case CLIENT_INFO_SUCCESS:
                         idView.setText(id);
@@ -172,19 +171,19 @@ public class DetailActivity extends AppCompatActivity {
                         descriptionView.setText(description);
                         break;
                     case CLIENT_INFO_FAIL:
-                        Toast.makeText(DetailActivity.this, "获取用户信息失败，请稍后再试", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "获取用户信息失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case CLIENT_INFO_ERROR:
-                        Toast.makeText(DetailActivity.this, "获取用户信息异常，请稍后再试", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "获取用户信息异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case DETAIL_SUCCESS:
-                        detailStockOutAdapter.notifyDataSetChanged();
+                        outDetailAdapter.notifyDataSetChanged();
                         break;
                     case DETAIL_FAIL:
-                        Toast.makeText(DetailActivity.this, "获取出库信息失败，请稍后再试", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "获取出库信息失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case DETAIL_ERROR:
-                        Toast.makeText(DetailActivity.this, "获取出库信息异常，请稍后再试", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "获取出库信息异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
 
                 }
@@ -197,6 +196,8 @@ public class DetailActivity extends AppCompatActivity {
      * 初始化一部分对象
      */
     private void initObject() {
+        curItem = -1;
+        
         U6Series.setContext(this);
         mUSeries = U6Series.getInstance();
         mUSeries.openSerialPort(model);
@@ -204,12 +205,16 @@ public class DetailActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent.hasExtra("check")) {
             check = intent.getStringExtra("check");
-        } else if (intent.hasExtra("company")) {
+        }
+        if (intent.hasExtra("company")) {
             company = intent.getStringExtra("company");
-        } else if (intent.hasExtra("username")) {
+        }
+        if (intent.hasExtra("username")) {
             username = intent.getStringExtra("username");
-        } else if (intent.hasExtra("id")){
+        }
+        if (intent.hasExtra("id")){
             idFromIntent = intent.getStringExtra("id");
+            Log.e(TAG, "initObject: is "+idFromIntent, null);
         }
     }
 
@@ -217,8 +222,8 @@ public class DetailActivity extends AppCompatActivity {
      * 初始化扫描列表
      */
     private void initScanInfoView() {
-        rfidList = new ArrayList<String>();
-        scanInfoAdapter = new DetailScanAdapter(this, rfidList);
+        scanMaps = new ArrayList<Map<String, String>>();
+        scanInfoAdapter = new OutScanAdapter(this, scanMaps);
         scanInfoView.setAdapter(scanInfoAdapter);
         scanInfoView.setLayoutManager(new LinearLayoutManager(this));
         scanInfoView.setHasFixedSize(true);
@@ -230,9 +235,9 @@ public class DetailActivity extends AppCompatActivity {
      * 初始化待出库物品列表
      */
     private void initDetailStockOutView() {
-        detailStockOutList = new ArrayList<Map<String, String>>();
-        detailStockOutAdapter = new DetailStockOutAdapter(DetailActivity.this, detailStockOutList);
-        detailStockOutView.setAdapter(detailStockOutAdapter);
+        detailMaps = new ArrayList<Map<String, Object>>();
+        outDetailAdapter = new OutDetailAdapter(OutActivity.this, detailMaps);
+        detailStockOutView.setAdapter(outDetailAdapter);
         detailStockOutView.setLayoutManager(new LinearLayoutManager(this));
         detailStockOutView.setHasFixedSize(true);
         detailStockOutView.setItemAnimator(new DefaultItemAnimator());
@@ -257,6 +262,8 @@ public class DetailActivity extends AppCompatActivity {
         addressView = findViewById(R.id.detail_address);
         titleView = findViewById(R.id.detail_title);
         descriptionView = findViewById(R.id.detail_description);
+
+        snackbarContainer = findViewById(R.id.out_scan_snackbar_container);
     }
 
     /**
@@ -267,8 +274,16 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Log.e(TAG, "onClick: start", null);
-                setBtnStatus(false, true, true, true);
-                getRfidCode();
+                curItem = outDetailAdapter.getCurItem();
+                Log.e(TAG, "onClick: curItem is "+curItem, null);
+
+                if(curItem!=-1) {
+                    setBtnStatus(false, true, true, true);
+                    getRfidCode();
+                } else {
+                    Snackbar.make(snackbarContainer, "请选择需要扫描的条目", Snackbar.LENGTH_SHORT).show();
+                }
+                
             }
         });
     }
@@ -312,13 +327,32 @@ public class DetailActivity extends AppCompatActivity {
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isNetworkAvailable(DetailActivity.this)) {
-                    startSubmitThread();
+                if (isNetworkAvailable(OutActivity.this)) {
+                    if(checkResult()) {
+                        startSubmitThread();
+                    } else {
+                        Snackbar.make(snackbarContainer, "存在未扫描完成的条目，请检查", Snackbar.LENGTH_SHORT).show();
+                    }
                 } else {
                     handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
                 }
             }
         });
+    }
+
+    private boolean checkResult() {
+        int n = 0;
+        for (int i = 0; i < detailMaps.size(); i++) {
+            int num = (Integer) detailMaps.get(i).get("num");
+            int count = (Integer)detailMaps.get(i).get("count");
+            if(num==count) {
+                n++;
+            }
+        }
+        if(n==detailMaps.size()) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -337,6 +371,8 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void onSuccess(String msg, Object data, byte[] parameters) {
                 Log.e(TAG, "onSuccess: 启动了", null);
+
+                if(!((boolean)outDetailAdapter.getmList().get(curItem).get("over"))) {
                 List<Tag> InventoryOnceResult = (List<Tag>) data;//一次扫描到的数据，因为不排除扫描到周围其他物体的可能性，故用数组接收结果，但是数组内部已做好对其他数组的过滤
 
                 //对扫描结果进行筛选
@@ -347,12 +383,24 @@ public class DetailActivity extends AppCompatActivity {
                         //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
                         InventoryTaps.add(map.epc);
 
+
+                        Map<String, String> scanMap = new HashMap<String, String>();
+                        scanMap.put("rfid", map.epc);
+
+                        Map<String, Object> detailMap = detailMaps.get(curItem);
+                        Integer count = (Integer) detailMap.get("count");
+                        count++;
+                        detailMap.put("count", count);
+                        detailMaps.set(curItem, detailMap);
+
                         //更新视图
-                        scanInfoAdapter.insert(map.epc);
+                        scanInfoAdapter.insert(scanMap);
+                        outDetailAdapter.changeCurItemCount(curItem);
 
                     } else {
 
                     }
+                }
                 }
             }
 
@@ -382,7 +430,7 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    Log.w(TAG, "run: clientInfo", null);
+                    Log.e(TAG, "run: clientInfo id is "+idFromIntent, null);
                     //发送的信息
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
@@ -391,19 +439,19 @@ public class DetailActivity extends AppCompatActivity {
                     msg.put("id", idFromIntent);
 
                     //用于接收的对象
-                    Map<String, String> map = new HashMap<String, String>();
+                    List<Map<String, String>> map = new ArrayList<Map<String, String>>();
 
                     //发出请求
                     RestTemplate restTemplate = new RestTemplate();
                     map = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_CLIENT_INFO), msg, map.getClass());
 
                     //处理请求的数据
-                    id = map.get("id");
-                    name = map.get("name");
-                    phoneNumber = map.get("phoneNumber");
-                    address = map.get("address");
-                    title = map.get("title");
-                    description = map.get("description");
+                    id = map.get(0).get("order_no");
+                    name = map.get(0).get("name");
+                    phoneNumber = map.get(0).get("phone");
+                    address = map.get(0).get("address");
+                    title = map.get(0).get("title");
+                    description = map.get(0).get("description");
 
                     if (map != null) {
                         handler.sendEmptyMessage(CLIENT_INFO_SUCCESS);
@@ -459,25 +507,34 @@ public class DetailActivity extends AppCompatActivity {
         detailThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.w(TAG, "run: detail", null);
+                Log.e(TAG, "run: detail", null);
                 try {
                     //发送的信息
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
                     msg.put("username", username);
                     msg.put("company", company);
+                    msg.put("id", idFromIntent);
 
                     //用于接收的对象
-                    List<Map<String, String>> maps = new ArrayList<Map<String, String>>();
+                    List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
 
                     //发出请求
                     RestTemplate restTemplate = new RestTemplate();
                     maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_DETAIL), msg, maps.getClass());
 
+                    Log.e(TAG, "run: map size is "+maps.size(), null);
+
                     //处理请求的数据
                     if (maps != null && maps.size()>0) {
-                        detailStockOutList.clear();
-                        detailStockOutList.addAll(maps);
+                        for (int i = 0; i < maps.size(); i++) {
+                            Map<String,Object> mapTmp = new HashMap<String,Object>();
+                            mapTmp.put("count", 0);
+                            mapTmp.put("over", false);
+                            maps.set(i, mapTmp);
+                        }
+                        detailMaps.clear();
+                        detailMaps.addAll(maps);
                         handler.sendEmptyMessage(DETAIL_SUCCESS);
                     } else {
                         handler.sendEmptyMessage(DETAIL_FAIL);
@@ -504,7 +561,7 @@ public class DetailActivity extends AppCompatActivity {
                         startDetailThread();
                         startClientThread();
                     } else {
-                        Toast.makeText(DetailActivity.this, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
                     }
                 }
             });
