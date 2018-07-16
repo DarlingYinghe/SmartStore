@@ -424,6 +424,7 @@ public class CheckActivity extends AppCompatActivity {
                     msg.put("check", check);
                     msg.put("username", username);
                     msg.put("company", company);
+                    msg.put("id", idFromIntent);
 
                     //用于接收的对象
                     List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
