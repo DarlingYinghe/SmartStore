@@ -191,6 +191,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.login_enter:
+                //测试代码
+                /*startActivity(new Intent(LoginActivity.this, MainActivity.class));*/
+                //测试代码结束
                 postAccount();
         }
     }

@@ -15,11 +15,13 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.sicong.smartstore.R;
+import com.sicong.smartstore.stock_search.view.SearchFragment;
 import com.sicong.smartstore.stock_change.view.ChangeFragment;
 import com.sicong.smartstore.stock_check.view.CheckFragment;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
 import com.sicong.smartstore.stock_in.view.InFragment;
 import com.sicong.smartstore.stock_out.view.OutFragment;
+import com.sicong.smartstore.stock_user.view.UserFragment;
 import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
 import java.util.ArrayList;
@@ -27,16 +29,14 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    //基本变量
+    //常量
     private final static String TAG = "MainActivity";
-
 
     //数据
     private String username;//操作人员的id
     private String check;//校验码
     private String company;//公司
     private List<Statistic> statisticList;//统计结果
-
 
 
     //视图
@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
     private OutFragment outFragment;
     private ChangeFragment changeFragment;
     private CheckFragment checkFragment;
+    private SearchFragment searchFragment;
+    private UserFragment userFragment;
 
     //广播
     private NetBroadcastReceiver netBroadcastReceiver;
@@ -62,6 +64,10 @@ public class MainActivity extends AppCompatActivity {
         initNetBoardcastReceiver();//初始化广播
     }
 
+
+    /**
+     * 接收数据
+     */
     private void initRecevicerFromScan() {
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("statisticList")) {
@@ -69,14 +75,13 @@ public class MainActivity extends AppCompatActivity {
         }
         if (intent != null && intent.hasExtra("check")) {
             check = intent.getStringExtra("check");
-
         }
         if (intent != null && intent.hasExtra("username")) {
             username = intent.getStringExtra("username");
         }
         if (intent != null && intent.hasExtra("company")) {
             company = intent.getStringExtra("company");
-            Log.e(TAG, "initRecevicerFromScan: "+company, null);
+            Log.e(TAG, "initRecevicerFromScan: " + company, null);
         }
     }
 
@@ -93,18 +98,22 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initPagers() {
         //设置屏幕外分页数量
-        pagers.setOffscreenPageLimit(3);
+        pagers.setOffscreenPageLimit(5);
 
         inFragment = new InFragment();
         outFragment = new OutFragment();
         changeFragment = new ChangeFragment();
         checkFragment = new CheckFragment();
+        searchFragment = new SearchFragment();
+        userFragment = new UserFragment();
 
         fragments = new ArrayList<Fragment>();
         fragments.add(inFragment);
         fragments.add(outFragment);
         fragments.add(changeFragment);
         fragments.add(checkFragment);
+        fragments.add(searchFragment);
+        fragments.add(userFragment);
 
         //适配器
         pagers.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
@@ -127,7 +136,9 @@ public class MainActivity extends AppCompatActivity {
                     R.id.stock_in,
                     R.id.stock_out,
                     R.id.stock_change,
-                    R.id.stock_check
+                    R.id.stock_check,
+                    R.id.stock_search,
+                    R.id.stock_user
             };
 
             @Override
@@ -171,6 +182,13 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.stock_check:
                         position = 3;
                         break;
+                    case R.id.stock_search:
+                        position = 4;
+                        break;
+                    case R.id.stock_user:
+                        position = 5;
+                        break;
+
                 }
                 //选择分页的页码
                 pagers.setCurrentItem(position);
@@ -227,15 +245,15 @@ public class MainActivity extends AppCompatActivity {
             netBroadcastReceiver.setNetChangeListern(new NetBroadcastReceiver.NetChangeListener() {
                 @Override
                 public void onChangeListener(boolean status) {
-                    if(status) {
+                    if (status) {
                         Log.e(TAG, "onChangeListener: 可行", null);
-                        OutFragment outFragmentTmp = (OutFragment)fragments.get(1);
+                        OutFragment outFragmentTmp = (OutFragment) fragments.get(1);
                         outFragmentTmp.startRequestDataThread();
 
-                        ChangeFragment changeFragment = (ChangeFragment)fragments.get(2);
+                        ChangeFragment changeFragment = (ChangeFragment) fragments.get(2);
                         changeFragment.startRequestDataThread();
 
-                        CheckFragment checkFragment = (CheckFragment)fragments.get(3);
+                        CheckFragment checkFragment = (CheckFragment) fragments.get(3);
                         checkFragment.startRequestDataThread();
 
                     } else {

@@ -112,6 +112,7 @@ public class CheckActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        mUSeries.modulePowerOn(model);
         initNetBoardcastReceiver();//注册广播
     }
 
@@ -119,6 +120,8 @@ public class CheckActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(netBroadcastReceiver);
+        setBtnStatus(true, false, false, false);
+        reset();
     }
 
     /**
@@ -245,11 +248,15 @@ public class CheckActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.e(TAG, "onClick: reset", null);
                 setBtnStatus(true, false, false, false);
-                mUSeries.stopInventory();
-                scanInfoAdapter.clear();
-                InventoryTaps.clear();
+                reset();
             }
         });
+    }
+
+    private void reset() {
+        mUSeries.stopInventory();
+        scanInfoAdapter.clear();
+        InventoryTaps.clear();
     }
 
     /**

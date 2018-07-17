@@ -150,6 +150,7 @@ public class InActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        mUSeries.modulePowerOn(model);
         initNetBoardcastReceiver();//注册广播
     }
 
@@ -157,6 +158,8 @@ public class InActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(netBroadcastReceiver);
+        setBtnStatus(true, false, false, false);
+        reset();
     }
 
 
@@ -368,6 +371,9 @@ public class InActivity extends AppCompatActivity {
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //测试代码
+                getRfidCode();
+                //测试代码结束
                 if(typeFirst==null || typeSecond == null || name == null) {
                     Snackbar.make(snackbarContainer, "请先选择类型", Snackbar.LENGTH_SHORT).show();
                     return;
@@ -451,7 +457,7 @@ public class InActivity extends AppCompatActivity {
             @Override
             public void onSuccess(String msg, Object data, byte[] parameters) {
                 if (name != null) {
-                    Log.e(TAG, "onSuccess: 启动了", null);
+
                     List<Tag> InventoryOnceResult = (List<Tag>) data;//一次扫描到的数据，因为不排除扫描到周围其他物体的可能性，故用数组接收结果，但是数组内部已做好对其他数组的过滤
 
 
@@ -507,7 +513,7 @@ public class InActivity extends AppCompatActivity {
         List<String> types = new ArrayList<>();//储存已经统计过的类型，已经统计过的类型以字符串的形式存放到数组中，用于比对
 
         //测试代码
-        for (int i = 0; i < 10; i++) {
+        /*for (int i = 0; i < 10; i++) {
             Cargo cargo = new Cargo();
             cargo.setName("锌电池");
             cargo.setRfid("JDIOA"+i);
@@ -518,7 +524,7 @@ public class InActivity extends AppCompatActivity {
             cargo.setName("锌锰电池");
             cargo.setRfid("XINFAM"+i);
             cargos.add(cargo);
-        }
+        }*/
         //测试代码完毕
 
         if(cargos!=null&&cargos.size()>0) {

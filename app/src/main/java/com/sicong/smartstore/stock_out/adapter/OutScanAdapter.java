@@ -28,7 +28,7 @@ public class OutScanAdapter extends RecyclerView.Adapter {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_stock_out, parent, false));
+        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_detail_scan, parent, false));
     }
 
     @Override

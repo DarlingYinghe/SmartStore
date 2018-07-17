@@ -1,4 +1,20 @@
 <resources>
+
+    <!--URL-->
+    <string name="URL_STOCK_OUT_DETAIL">http://47.106.156.193:8080/api/stockOutProduct</string>
+    <string name="URL_STOCK_OUT_CLIENT_INFO">http://47.106.156.193:8080/api/stockOutInfo</string>
+    <string name="URL_STOCK_IN_SCAN_NAME">http://47.106.156.193:8080/api/findProduct</string>
+    <string name="URL_RECEVICE_TYPE">http://47.106.156.193:8080/api/findType</string>
+    <string name="URL_LOGIN">http://47.106.156.193:8080/api/login</string>
+    <string name="URL_LOGIN_COMPANY">http://47.106.156.193:8080/api/company</string>
+    <string name="URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST">http://</string>
+    <string name="URL_REQUEST_DATA_FOR_STOCK_OUT_LIST">http://47.106.156.193:8080/api/stockOutList</string>
+    <string name="URL_STOCK_CHANGE_DETAIL">http://</string>
+    <string name="URL_REQUEST_DATA_FOR_STOCK_CHECK_LIST">http://</string>
+    <string name="URL_STOCK_CHECK_DETAIL">http://</string>
+    <string name="URL_USER_QUIT">http://47.106.156.193:8080/api/logout</string>
+
+
     <!--应用-->
     <string name="app_name">SmartStore</string>
     <string name="app_chinese_name">斯聪智能仓储系统</string>
@@ -47,22 +63,16 @@
     <string name="detail_description_title">描述：</string>
     <string name="stock_check">盘点</string>
     <string name="title">标题</string>
-
-    <!--URL-->
-    <string name="URL_STOCK_OUT_DETAIL">http://47.106.156.193:8080/api/stockOutProduct</string>
-    <string name="URL_STOCK_OUT_CLIENT_INFO">http://47.106.156.193:8080/api/stockOutInfo</string>
-    <string name="URL_STOCK_IN_SCAN_NAME">http://47.106.156.193:8080/api/findProduct</string>
-    <string name="URL_RECEVICE_TYPE">http://47.106.156.193:8080/api/findType</string>
-    <string name="URL_LOGIN">http://47.106.156.193:8080/api/login</string>
-    <string name="URL_LOGIN_COMPANY">http://47.106.156.193:8080/api/company</string>
-    <string name="URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST">http://</string>
-    <string name="URL_REQUEST_DATA_FOR_STOCK_OUT_LIST">http://47.106.156.193:8080/api/stockOutList</string>
-    <string name="URL_STOCK_CHANGE_DETAIL">http://</string>
-    <string name="URL_REQUEST_DATA_FOR_STOCK_CHECK_LIST">http://</string>
+    <string name="login_quit">注销</string>
+    <string name="manager_user_info">用户信息</string>
+    <string name="mananger_over">已完成</string>
+    <string name="manager_unover">未完成</string>
+    <string name="user">用户</string>
+    <string name="item_stock_out_detail_store">仓库</string>
     <string name="item_stock_check_detail_position">位置</string>
     <string name="item_stock_check_detail_num">数量</string>
-    <string name="URL_STOCK_CHECK_DETAIL">http://</string>
-    <string name="item_stock_out_detail_store">仓库</string>
+    <string name="stock_search">查询</string>
+    <string name="stock_user">用户</string>
 
 
 </resources>

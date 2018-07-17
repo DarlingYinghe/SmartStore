@@ -37,7 +37,10 @@
             android:launchMode="singleTask" />
         <activity android:name=".stock_out.view.OutActivity" />
         <activity android:name=".stock_change.view.ChangeActivity" />
-        <activity android:name=".stock_check.view.CheckActivity"></activity>
+        <activity android:name=".stock_check.view.CheckActivity" />
+        <activity android:name=".stock_user.view.UserInfoActivity" />
+        <activity android:name=".stock_user.view.OverActivity" />
+        <activity android:name=".stock_user.view.UnoverActivity"></activity>
     </application>
 
 </manifest>

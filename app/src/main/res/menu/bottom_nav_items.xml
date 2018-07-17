@@ -12,4 +12,10 @@
     <item android:id="@+id/stock_check"
         android:title="@string/stock_check"
         android:icon="@drawable/ic_stock_check"/>
+    <item android:id="@+id/stock_search"
+        android:title="@string/stock_search"
+        android:icon="@drawable/ic_stock_search"/>
+    <item android:id="@+id/stock_user"
+        android:title="@string/stock_user"
+        android:icon="@drawable/ic_stock_user"/>
 </menu>
