@@ -444,7 +444,7 @@ public class CheckActivity extends AppCompatActivity {
                     //处理请求的数据
                     if (maps != null && maps.size()>0) {
                         for (int i = 0; i < maps.size(); i++) {
-                            Map<String,Object> mapTmp = new HashMap<String,Object>();
+                            Map<String,Object> mapTmp = maps.get(i);
                             mapTmp.put("count", 0);
                             mapTmp.put("over", false);
                             maps.set(i, mapTmp);

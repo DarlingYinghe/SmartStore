@@ -27,7 +27,9 @@ import com.sicong.smartstore.stock_in.data.model.Statistic;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
@@ -52,7 +54,7 @@ public class InFragment extends Fragment {
     private List<Statistic> statisticListTmp;//从MainActivity获取到的统计数据
     private CargoInMessage cargoInMessage;//发送的数据包
 
-    private final static String URL_POST_CARGO_IN_MESSAGE = "";
+
 
     //视图
     private EditText describeView;//描述视图
@@ -177,6 +179,7 @@ public class InFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), InActivity.class);
                 intent.putExtra("check", check);
                 intent.putExtra("company", company);
+                intent.putExtra("username", username);
                 startActivity(intent);
             }
         });
@@ -210,20 +213,23 @@ public class InFragment extends Fragment {
 
     public void setDescribe() {
         describe = describeView.getText().toString();
-        cargoInMessage.setDescribe(describe);
+        cargoInMessage.setDescription(describe);
     }
 
     private void startSendStatisticThread() {
-        sendStatisticThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (isNetworkAvailable(getContext())) {
+        if (isNetworkAvailable(getContext())) {
+            sendStatisticThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+
                     try {
+
+                        Map<String, String> map = new HashMap<String,String>();
 
                         //发送请求
                         RestTemplate restTemplate = new RestTemplate();
-                        String response = restTemplate.postForObject(URL_POST_CARGO_IN_MESSAGE, cargoInMessage, String.class);
-                        if (response.equals("success")) {
+                        map = restTemplate.postForObject(getResources().getString(R.string.URL_POST_CARGO_IN_MESSAGE), cargoInMessage, map.getClass());
+                        if (map.get("msg").equals("success")) {
                             handler.sendEmptyMessage(SEND_SUCCESS);
                         } else {
                             handler.sendEmptyMessage(SEND_FAIL);
@@ -233,13 +239,15 @@ public class InFragment extends Fragment {
                         e.printStackTrace();
                         handler.sendEmptyMessage(SEND_ERROR);
                     }
-                }else{
-                    handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
                 }
 
-            }
-        });
-        sendStatisticThread.start();
+
+            });
+
+            sendStatisticThread.start();
+        }else{
+            handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
+        }
     }
 
 

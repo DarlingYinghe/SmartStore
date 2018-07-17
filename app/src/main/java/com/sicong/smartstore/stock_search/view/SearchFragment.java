@@ -15,6 +15,7 @@ import com.sicong.smartstore.R;
 public class SearchFragment extends Fragment {
 
 
+
     public SearchFragment() {
         // Required empty public constructor
     }

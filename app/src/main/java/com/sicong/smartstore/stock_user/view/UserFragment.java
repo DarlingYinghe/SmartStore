@@ -144,6 +144,7 @@ public class UserFragment extends Fragment {
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("text", texts[i]);
             map.put("icon", icons[i]);
+            listMaps.add(map);
         }
         userListAdapter = new UserListAdapter(listMaps, getContext(), username, company, check);
         userList.setAdapter(userListAdapter);
@@ -189,9 +190,10 @@ public class UserFragment extends Fragment {
                     msg.put("company", company);
                     msg.put("check", check);
 
+                    Map<String,String> map = new HashMap<String,String>();
                     RestTemplate restTemplate = new RestTemplate();
-                    String response = restTemplate.postForObject(getResources().getString(R.string.URL_USER_QUIT), msg, String.class);
-                    if(response.equals("success")) {
+                    map = restTemplate.postForObject(getResources().getString(R.string.URL_USER_QUIT), msg, map.getClass());
+                    if(map.get("msg").equals("success")) {
                         getActivity().finish();
                     } else {
                         handler.sendEmptyMessage(QUIT_FAIL);
@@ -201,6 +203,7 @@ public class UserFragment extends Fragment {
                 }
             }
         });
+        quitThread.start();
     }
 
 

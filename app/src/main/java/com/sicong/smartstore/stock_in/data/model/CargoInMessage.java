@@ -2,7 +2,6 @@ package com.sicong.smartstore.stock_in.data.model;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -19,11 +18,9 @@ public class CargoInMessage implements Serializable{
     private List<Statistic> statistic;
     private String company;
     private String username;
-    private String describe;
+    private String description;
 
-    public CargoInMessage() {
 
-    }
 
     public String getCompany() {
         return company;
@@ -57,21 +54,13 @@ public class CargoInMessage implements Serializable{
         this.username = operatorId;
     }
 
-    public String getDescribe() {
-        return describe;
+    public String getDescription() {
+        return description;
     }
 
-    public void setDescribe(String describe) {
-        this.describe = describe;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    @Override
-    public String toString() {
-        return "CargoInMessage{" +
-                "check='" + check + '\'' +
-                ", statistic=" + statistic +
-                ", operatorId='" + username + '\'' +
-                ", describe='" + describe + '\'' +
-                '}';
-    }
+
 }

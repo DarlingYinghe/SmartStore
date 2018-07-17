@@ -1,6 +1,7 @@
 <resources>
 
     <!--URL-->
+    <string name="URL_POST_CARGO_IN_MESSAGE">http://47.106.156.193:8080/api/addCargo</string>
     <string name="URL_STOCK_OUT_DETAIL">http://47.106.156.193:8080/api/stockOutProduct</string>
     <string name="URL_STOCK_OUT_CLIENT_INFO">http://47.106.156.193:8080/api/stockOutInfo</string>
     <string name="URL_STOCK_IN_SCAN_NAME">http://47.106.156.193:8080/api/findProduct</string>

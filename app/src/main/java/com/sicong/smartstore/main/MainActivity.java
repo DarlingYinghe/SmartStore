@@ -11,6 +11,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -98,13 +99,12 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initPagers() {
         //设置屏幕外分页数量
-        pagers.setOffscreenPageLimit(5);
+        pagers.setOffscreenPageLimit(4);
 
         inFragment = new InFragment();
         outFragment = new OutFragment();
         changeFragment = new ChangeFragment();
         checkFragment = new CheckFragment();
-        searchFragment = new SearchFragment();
         userFragment = new UserFragment();
 
         fragments = new ArrayList<Fragment>();
@@ -112,7 +112,6 @@ public class MainActivity extends AppCompatActivity {
         fragments.add(outFragment);
         fragments.add(changeFragment);
         fragments.add(checkFragment);
-        fragments.add(searchFragment);
         fragments.add(userFragment);
 
         //适配器
@@ -137,7 +136,6 @@ public class MainActivity extends AppCompatActivity {
                     R.id.stock_out,
                     R.id.stock_change,
                     R.id.stock_check,
-                    R.id.stock_search,
                     R.id.stock_user
             };
 
@@ -182,11 +180,8 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.stock_check:
                         position = 3;
                         break;
-                    case R.id.stock_search:
-                        position = 4;
-                        break;
                     case R.id.stock_user:
-                        position = 5;
+                        position = 4;
                         break;
 
                 }
@@ -265,5 +260,20 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(netBroadcastReceiver, filter);
+    }
+
+    //重写物理返回键
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            Intent home = new Intent(Intent.ACTION_MAIN);
+            home.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            home.addCategory(Intent.CATEGORY_HOME);
+            startActivity(home);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+
     }
 }

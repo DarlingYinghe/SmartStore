@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,7 @@ import java.util.Map;
 
 public class UserListAdapter extends RecyclerView.Adapter{
 
+    private static final String TAG = "UserListAdapter";
     private List<Map<String, Object>> mList;
     private Context mContext;
     private String username;
@@ -39,7 +41,7 @@ public class UserListAdapter extends RecyclerView.Adapter{
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_stock_out_detail, parent, false));
+        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_user, parent, false));
     }
 
     @Override
@@ -50,7 +52,6 @@ public class UserListAdapter extends RecyclerView.Adapter{
         view.text.setText((Integer)map.get("text"));
         view.icon.setImageResource((Integer)map.get("icon"));
 
-        
         view.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

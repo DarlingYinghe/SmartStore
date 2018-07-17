@@ -324,7 +324,9 @@ public class OutActivity extends AppCompatActivity {
     private void reset() {
         mUSeries.stopInventory();
         scanInfoAdapter.clear();
-        InventoryTaps.clear();
+        if(InventoryTaps!=null) {
+            InventoryTaps.clear();
+        }
     }
     /**
      * 初始化提交扫描按钮
@@ -529,16 +531,15 @@ public class OutActivity extends AppCompatActivity {
                     RestTemplate restTemplate = new RestTemplate();
                     maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_DETAIL), msg, maps.getClass());
 
-                    Log.e(TAG, "run: map size is "+maps.size(), null);
-
                     //处理请求的数据
                     if (maps != null && maps.size()>0) {
                         for (int i = 0; i < maps.size(); i++) {
-                            Map<String,Object> mapTmp = new HashMap<String,Object>();
+                            Map<String,Object> mapTmp = maps.get(i);
                             mapTmp.put("count", 0);
                             mapTmp.put("over", false);
                             maps.set(i, mapTmp);
                         }
+                        Log.e(TAG, "run: map is "+maps.toString(), null);
                         detailMaps.clear();
                         detailMaps.addAll(maps);
                         handler.sendEmptyMessage(DETAIL_SUCCESS);

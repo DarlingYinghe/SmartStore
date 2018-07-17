@@ -186,6 +186,7 @@ public class InActivity extends AppCompatActivity {
                         break;
                     case NAME_SUCCESS:
                         nameAdapter.notifyDataSetChanged();
+                        spinnerName.setSelection(0,true);
                         break;
                     case NAME_FAIL:
                         Snackbar.make(snackbarContainer, "请求货物名称数据失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
@@ -629,13 +630,13 @@ public class InActivity extends AppCompatActivity {
                 try {
 
                     RestTemplate restTemplate = new RestTemplate();
-                    Map<String, String> map = new HashMap<String, String>();
-                    map.put("check", check);
-                    map.put("username",username);
-                    map.put("company",company);
+                    Map<String, String> msg = new HashMap<String, String>();
+                    msg.put("check", check);
+                    msg.put("username",username);
+                    msg.put("company",company);
 
                     typeList = new ArrayList<Map<String, Object>>();
-                    typeList = restTemplate.postForObject(getResources().getString(R.string.URL_RECEVICE_TYPE), map, typeList.getClass());
+                    typeList = restTemplate.postForObject(getResources().getString(R.string.URL_RECEVICE_TYPE), msg, typeList.getClass());
 
                     if (typeList != null) {
                         for (int i = 0; i < typeList.size(); i++) {
@@ -793,6 +794,7 @@ public class InActivity extends AppCompatActivity {
                         map.put("check", check);
                         map.put("typeSecond", typeSecond);
                         map.put("company", company);
+                        map.put("username", username);
 
                         Log.e(TAG, "run: check is "+check, null);
                         Log.e(TAG, "run: typeSecond is "+typeSecond, null);
@@ -800,10 +802,11 @@ public class InActivity extends AppCompatActivity {
 
                         RestTemplate restTemplate = new RestTemplate();
                         List<String> nameListTmp = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_IN_SCAN_NAME), map, nameList.getClass());
-                        if(nameListTmp!=null) {
+                        if(nameListTmp!=null && nameListTmp.size()>0) {
                             nameList.clear();
                             nameList.addAll(nameListTmp);
                             handler.sendEmptyMessage(NAME_SUCCESS);
+
                             Log.e(TAG, "run: nameList is "+nameList, null);
                         } else {
                             handler.sendEmptyMessage(NAME_FAIL);
