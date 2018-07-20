@@ -118,9 +118,9 @@
                     android:id="@+id/detail_btn_reset"
                     android:layout_width="0dp"
                     android:layout_height="48dp"
+                    android:layout_marginBottom="8dp"
                     android:layout_marginLeft="4dp"
                     android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
                     android:background="@drawable/bg_btn"
                     android:text="@string/stock_in_reset_scan"
                     android:textColor="@color/white"
@@ -128,7 +128,8 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toRightOf="@id/detail_btn_stop"
                     app:layout_constraintRight_toLeftOf="@id/detail_btn_submit"
-                    app:layout_constraintTop_toBottomOf="@id/detail_scan" />
+                    app:layout_constraintTop_toBottomOf="@id/detail_scan"
+                    app:layout_constraintVertical_bias="0.0" />
 
                 <android.support.v7.widget.AppCompatButton
                     android:id="@+id/detail_btn_submit"

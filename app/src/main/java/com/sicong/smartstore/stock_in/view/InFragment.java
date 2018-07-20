@@ -20,12 +20,14 @@ import android.widget.Toast;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.main.MainActivity;
+import com.sicong.smartstore.stock_in.adapter.InListAdapter;
 import com.sicong.smartstore.stock_in.adapter.InStatisticAdapter;
 import com.sicong.smartstore.stock_in.data.model.CargoInMessage;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
 
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,67 +36,45 @@ import java.util.Map;
 import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
 public class InFragment extends Fragment {
-
     //常量
-    private static final String TAG = "InFragment";
+    private final static int IN_LIST_SUCESS = 1;
+    private final static int IN_LIST_FAIL = 2;
+    private final static int IN_LIST_ERROR = 3;
 
-    private static final int NETWORK_UNAVAILABLE = 0;
-
-    private static final int SEND_SUCCESS = 1;
-    private static final int SEND_FAIL = 2;
-    private static final int SEND_ERROR = 3;
-
-    //数据
-    private String check ;//校验码
-    private String company;//公司id
-    private String username;//操作员
-
-    private String describe = null;//描述内容
-    private List<Statistic> statisticList;//统计数据集合
-    private List<Statistic> statisticListTmp;//从MainActivity获取到的统计数据
-    private CargoInMessage cargoInMessage;//发送的数据包
-
-
-
-    //视图
-    private EditText describeView;//描述视图
-    private AppCompatButton submit;//提交的按钮
-    private AppCompatButton toScan;//前往扫描的Activity的按钮
-    private RecyclerView statisticView;//统计视图
-
+    //控件
+    private RecyclerView inList;
     private Handler handler;
 
-    //线程
-    private Thread sendStatisticThread;
-
     //适配器
-    private InStatisticAdapter inStatisticAdapter;
+    private InListAdapter inListAdapter;
+
+    //数据
+    private List<Map<String, String>> inMaps;
+    private String username;
+    private String check;
+    private String company;
+
+    //线程
+    private Thread requestDataThread;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_stock_in, container, false);
-        initView(view);//初始化控件
-        initHandler();//初始化handler
-        initSubmit();//初始化提交按钮
-        initToScan();//初始化前往Activity的按钮
+        initView(view);//控件初始化
+        initHandler();//初始化Handler
+        initInList();//初始化表单列表
 
-        initStatistic();//初始化统计视图
 
         return view;
     }
 
-    /**
-     * 初始化统计视图
-     */
-    private void initStatistic() {
-        statisticList = new ArrayList<>();
-        inStatisticAdapter = new InStatisticAdapter(getContext(), statisticList);
-        statisticView.setAdapter(inStatisticAdapter);
-        statisticView.setLayoutManager(new LinearLayoutManager(getContext()));
-        statisticView.setHasFixedSize(true);
-        statisticView.setItemAnimator(new DefaultItemAnimator());
-        statisticView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        username = ((MainActivity)context).getUsername();
+        check = ((MainActivity)context).getCheck();
+        company = ((MainActivity)context).getCompany();
     }
 
     /**
@@ -103,21 +83,16 @@ public class InFragment extends Fragment {
     private void initHandler() {
         handler = new Handler(new Handler.Callback() {
             @Override
-            public boolean handleMessage(Message msg) {
-                switch (msg.what) {
-                    case SEND_SUCCESS:
-                        statisticList.clear();
-                        inStatisticAdapter.notifyDataSetChanged();
-                        Toast.makeText(getContext(), "提交成功", Toast.LENGTH_SHORT).show();
+            public boolean handleMessage(Message message) {
+                switch (message.what) {
+                    case IN_LIST_ERROR:
+                        Toast.makeText(getContext(),"获取入库表单列表异常",Toast.LENGTH_SHORT).show();
                         break;
-                    case SEND_FAIL:
-                        Toast.makeText(getContext(), "提交失败", Toast.LENGTH_SHORT).show();
+                    case IN_LIST_FAIL:
+                        Toast.makeText(getContext(),"入库失败",Toast.LENGTH_SHORT).show();
                         break;
-                    case SEND_ERROR:
-                        Toast.makeText(getContext(), "提交异常，请检查网络环境", Toast.LENGTH_SHORT).show();
-                        break;
-                    case NETWORK_UNAVAILABLE:
-                        Toast.makeText(getContext(), "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();
+                    case IN_LIST_SUCESS:
+                        inListAdapter.notifyDataSetChanged();
                         break;
                 }
                 return false;
@@ -125,132 +100,63 @@ public class InFragment extends Fragment {
         });
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        check = ((MainActivity) context).getCheck();
-        company = ((MainActivity)context).getCompany();
-        username = ((MainActivity) context).getUsername();
-        statisticListTmp = ((MainActivity) context).getStatisticList();
-    }
-
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        onAttach(getContext());
-
-        if (statisticListTmp != null && statisticListTmp.size() > 0) {
-            statisticList.clear();
-            statisticList.addAll(statisticListTmp);
-            inStatisticAdapter.notifyDataSetChanged();
-            packCargoInMessage();
-        }
-
-    }
-
     /**
-     * 打包发送的数据
+     * 表单列表初始化
      */
-    private void packCargoInMessage() {
-        cargoInMessage = new CargoInMessage();
-        cargoInMessage.setCheck(check);
-        cargoInMessage.setUsername(username);
-        cargoInMessage.setCompany(company);
-        cargoInMessage.setStatistic(statisticList);
+    private void initInList() {
+        //设置样式
+        inList.setLayoutManager(new LinearLayoutManager(getContext()));
+        inList.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+
+        //适配器
+        inMaps = new ArrayList<Map<String, String>>();
+        inListAdapter = new InListAdapter(getContext(),inMaps);
+        inList.setAdapter(inListAdapter);
     }
 
     /**
-     * 初始化控件
+     * 控件初始化
+     * @param view
      */
     private void initView(View view) {
-        describeView = view.findViewById(R.id.stock_in_text);
-        submit = view.findViewById(R.id.stock_in_submit);
-        toScan = view.findViewById(R.id.stock_in_to_scan);
-        statisticView = view.findViewById(R.id.stock_in_statistic);
+        inList = (RecyclerView) view.findViewById(R.id.in_list);
     }
-
-    private void initToScan() {
-        toScan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), InActivity.class);
-                intent.putExtra("check", check);
-                intent.putExtra("company", company);
-                intent.putExtra("username", username);
-                startActivity(intent);
-            }
-        });
-    }
-
 
     /**
-     * 初始化提交按钮
+     * 启动数据请求的进程
      */
-    private void initSubmit() {
-        submit.setOnClickListener(new View.OnClickListener() {
+    public void startRequestDataThread() {
+        requestDataThread = new Thread(new Runnable() {
             @Override
-            public void onClick(View v) {
-                submit();
-            }
-        });
-    }
+            public void run() {
+                try {
+                    Map<String, String> msg = new HashMap<String, String>();
+                    msg.put("username", username);
+                    msg.put("check", check);
+                    msg.put("company", company);
 
+                    List<Map<String, String>> mapsTmp = new ArrayList<Map<String, String>>();
+                    String Url = getResources().getString(R.string.URL_STOCK_IN_LIST);
 
-    /**
-     * 提交最终结果
-     */
-    private void submit() {
-        if (statisticList != null && statisticList.size() > 0) {
-            setDescribe();
-            startSendStatisticThread();
-        } else {
-            Toast.makeText(getContext(), "无可供提交的数据，请检查数据", Toast.LENGTH_SHORT).show();
-        }
-    }
+                    RestTemplate restTemplate = new RestTemplate();
+                    mapsTmp = restTemplate.postForObject(Url, msg, mapsTmp.getClass());
 
-    public void setDescribe() {
-        describe = describeView.getText().toString();
-        cargoInMessage.setDescription(describe);
-    }
-
-    private void startSendStatisticThread() {
-        if (isNetworkAvailable(getContext())) {
-            sendStatisticThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-
-                    try {
-
-                        Map<String, String> map = new HashMap<String,String>();
-
-                        //发送请求
-                        RestTemplate restTemplate = new RestTemplate();
-                        map = restTemplate.postForObject(getResources().getString(R.string.URL_POST_CARGO_IN_MESSAGE), cargoInMessage, map.getClass());
-                        if (map.get("msg").equals("success")) {
-                            handler.sendEmptyMessage(SEND_SUCCESS);
-                        } else {
-                            handler.sendEmptyMessage(SEND_FAIL);
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        handler.sendEmptyMessage(SEND_ERROR);
+                    if (mapsTmp == null) {
+                        handler.sendEmptyMessage(IN_LIST_FAIL);
+                    } else {
+                        inMaps.clear();
+                        inMaps.addAll(mapsTmp);
+                        handler.sendEmptyMessage(IN_LIST_SUCESS);
                     }
+                }catch (Exception e){
+                    e.printStackTrace();
+                    handler.sendEmptyMessage(IN_LIST_ERROR);
                 }
 
-
-            });
-
-            sendStatisticThread.start();
-        }else{
-            handler.sendEmptyMessage(NETWORK_UNAVAILABLE);
-        }
+            }
+        });
+        requestDataThread.start();
     }
-
-
 
 
 }

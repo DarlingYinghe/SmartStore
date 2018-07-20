@@ -278,7 +278,6 @@ public class ChangeActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
     private boolean checkResult() {

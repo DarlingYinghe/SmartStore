@@ -242,6 +242,10 @@ public class MainActivity extends AppCompatActivity {
                 public void onChangeListener(boolean status) {
                     if (status) {
                         Log.e(TAG, "onChangeListener: 可行", null);
+
+                        InFragment inFragment = (InFragment)fragments.get(0);
+                        inFragment.startRequestDataThread();
+
                         OutFragment outFragmentTmp = (OutFragment) fragments.get(1);
                         outFragmentTmp.startRequestDataThread();
 
@@ -250,6 +254,8 @@ public class MainActivity extends AppCompatActivity {
 
                         CheckFragment checkFragment = (CheckFragment) fragments.get(3);
                         checkFragment.startRequestDataThread();
+
+
 
                     } else {
                         Toast.makeText(MainActivity.this, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();

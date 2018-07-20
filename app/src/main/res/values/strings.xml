@@ -74,6 +74,7 @@
     <string name="item_stock_check_detail_num">数量</string>
     <string name="stock_search">查询</string>
     <string name="stock_user">用户</string>
+    <string name="URL_STOCK_IN_LIST">http://</string>
 
 
 </resources>

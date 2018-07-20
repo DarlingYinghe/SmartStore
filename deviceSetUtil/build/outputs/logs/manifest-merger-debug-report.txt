@@ -1,67 +1,67 @@
 -- Merging decision tree log ---
 manifest
-ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
-INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
-INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
-INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
-INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
-INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
-INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
+ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
+INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
+INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
+INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
+INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
+INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
+INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:1-32:12
 	package
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:4:5-30
-		INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
-		INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:4:5-30
+		INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
+		INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
 	android:versionName
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:6:5-30
-		INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
-		INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:6:5-30
+		INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
+		INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
 	xmlns:tools
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:3:5-51
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:3:5-51
 	xmlns:android
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:11-69
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:2:11-69
 	android:versionCode
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:5:5-28
-		INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
-		INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:5:5-28
+		INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
+		INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
 uses-sdk
-ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:8:5-10:41
-INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:8:5-10:41
-INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:8:5-10:41
-INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:8:5-10:41
-INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:8:5-10:41
+ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:8:5-10:41
+INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:8:5-10:41
+INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:8:5-10:41
+INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:8:5-10:41
+INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:8:5-10:41
 	android:targetSdkVersion
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:10:9-38
-		INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
-		INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:10:9-38
+		INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
+		INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
 	android:minSdkVersion
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:9:9-34
-		INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
-		INJECTED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:9:9-34
+		INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
+		INJECTED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml
 uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
-ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:12:5-80
+ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:12:5-80
 	android:name
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:12:22-78
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:12:22-78
 uses-permission#android.permission.READ_EXTERNAL_STORAGE
-ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:13:5-79
+ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:13:5-79
 	android:name
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:13:22-77
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:13:22-77
 uses-permission#android.permission.READ_LOGS
-ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:14:5-15:47
+ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:14:5-15:47
 	tools:ignore
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:15:9-44
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:15:9-44
 	android:name
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:14:22-65
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:14:22-65
 application
-ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:17:5-30:19
+ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:17:5-30:19
 	android:label
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:20:9-41
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:20:9-41
 	android:allowBackup
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:18:9-35
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:18:9-35
 	android:theme
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:21:9-40
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:21:9-40
 activity#cn.fuen.xmldemo.activity.SetAndSaveActivity
-ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:22:9-25:20
+ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:22:9-25:20
 	android:label
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:24:13-45
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:24:13-45
 	android:name
-		ADDED from D:\Work\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:23:13-71
+		ADDED from D:\GitHub\SmartStore\deviceSetUtil\src\main\AndroidManifest.xml:23:13-71

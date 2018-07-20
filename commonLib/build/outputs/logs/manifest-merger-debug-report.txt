@@ -1,57 +1,57 @@
 -- Merging decision tree log ---
 manifest
-ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
-INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
-INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
-INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
-INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
-INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
-INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
+ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
+INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
+INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
+INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
+INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
+INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
+INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:1:1-18:12
 	package
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:3:5-35
-		INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml
-		INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:3:5-35
+		INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml
+		INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml
 	android:versionName
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:5:5-30
-		INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml
-		INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:5:5-30
+		INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml
+		INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml
 	xmlns:tools
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:2:5-51
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:2:5-51
 	xmlns:android
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:1:11-69
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:1:11-69
 	android:versionCode
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:4:5-28
-		INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml
-		INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:4:5-28
+		INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml
+		INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml
 uses-sdk
-ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
-INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
-INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
-INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
-INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
+ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
+INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
+INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
+INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
+INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
 	android:targetSdkVersion
-		INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
-		INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml
+		INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:7:5-8:37
+		INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml
 	android:minSdkVersion
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:8:9-35
-		INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml
-		INJECTED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:8:9-35
+		INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml
+		INJECTED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml
 uses-permission#android.permission.MOUNT_UNMOUNT_FILESYSTEMS
-ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:9:4-10:51
+ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:9:4-10:51
 	tools:ignore
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:10:13-48
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:10:13-48
 	android:name
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:9:21-80
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:9:21-80
 uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
-ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:11:6-81
+ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:11:6-81
 	android:name
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:11:23-79
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:11:23-79
 application
-ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:12:5-16:19
+ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:12:5-16:19
 	android:label
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:14:9-41
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:14:9-41
 	android:allowBackup
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:13:9-35
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:13:9-35
 	android:theme
-		ADDED from D:\Work\SmartStore\commonLib\src\main\AndroidManifest.xml:15:9-40
+		ADDED from D:\GitHub\SmartStore\commonLib\src\main\AndroidManifest.xml:15:9-40
