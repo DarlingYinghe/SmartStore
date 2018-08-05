@@ -1,6 +1,7 @@
 package com.sicong.smartstore.stock_in.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.Layout;
@@ -11,6 +12,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.sicong.smartstore.R;
+import com.sicong.smartstore.stock_in.view.InActivity;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +41,13 @@ public class InListAdapter extends RecyclerView.Adapter{
         viewHolder.id.setText(map.get("id"));
         viewHolder.date.setText(map.get("date"));
         viewHolder.title.setText(map.get("title"));
+        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(mContext, InActivity.class);
+                mContext.startActivity(intent);
+            }
+        });
     }
 
     @Override

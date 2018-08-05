@@ -55,6 +55,7 @@ public class OutFragment extends Fragment {
     private RecyclerView stockOutListView;
 
     private Handler handler;
+
     //适配器
     private OutListAdapter outListAdapter;
 
@@ -154,13 +155,14 @@ public class OutFragment extends Fragment {
                     RestTemplate restTemplate = new RestTemplate();
                     maps = restTemplate.postForObject(getResources().getString(R.string.URL_REQUEST_DATA_FOR_STOCK_OUT_LIST), msg, maps.getClass());
                     Log.e(TAG, "run: "+maps.get(0), null);
-                    //处理请求的数据
-                    stockOutList.clear();
-                    stockOutList.addAll(maps);
+
 
                     if (maps == null) {
                         handler.sendEmptyMessage(FAIL);
                     } else {
+                        //处理请求的数据
+                        stockOutList.clear();
+                        stockOutList.addAll(maps);
                         handler.sendEmptyMessage(SUCCESS);
                     }
 

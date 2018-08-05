@@ -126,6 +126,7 @@ public class OutActivity extends AppCompatActivity {
         initBtnSubmit();//初始化提交按钮
 
         initBtnStatus();//初始化按钮状态
+        initNetBoardcastReceiver();//初始化广播
 
     }
 

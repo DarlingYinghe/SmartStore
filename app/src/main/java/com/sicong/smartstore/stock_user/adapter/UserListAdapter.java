@@ -21,7 +21,7 @@ import com.sicong.smartstore.stock_user.view.UserInfoActivity;
 import java.util.List;
 import java.util.Map;
 
-public class UserListAdapter extends RecyclerView.Adapter{
+public class  UserListAdapter extends RecyclerView.Adapter{
 
     private static final String TAG = "UserListAdapter";
     private List<Map<String, Object>> mList;

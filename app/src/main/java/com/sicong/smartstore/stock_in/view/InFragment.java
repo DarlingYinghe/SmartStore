@@ -37,6 +37,7 @@ import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
 public class InFragment extends Fragment {
     //常量
+    private final static String TAG = "InFragment";
     private final static int IN_LIST_SUCESS = 1;
     private final static int IN_LIST_FAIL = 2;
     private final static int IN_LIST_ERROR = 3;
@@ -49,7 +50,7 @@ public class InFragment extends Fragment {
     private InListAdapter inListAdapter;
 
     //数据
-    private List<Map<String, String>> inMaps;
+    private List<Map<String, String>> stockinList;
     private String username;
     private String check;
     private String company;
@@ -89,7 +90,7 @@ public class InFragment extends Fragment {
                         Toast.makeText(getContext(),"获取入库表单列表异常",Toast.LENGTH_SHORT).show();
                         break;
                     case IN_LIST_FAIL:
-                        Toast.makeText(getContext(),"入库失败",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(),"入库表单获取失败",Toast.LENGTH_SHORT).show();
                         break;
                     case IN_LIST_SUCESS:
                         inListAdapter.notifyDataSetChanged();
@@ -109,8 +110,8 @@ public class InFragment extends Fragment {
         inList.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
 
         //适配器
-        inMaps = new ArrayList<Map<String, String>>();
-        inListAdapter = new InListAdapter(getContext(),inMaps);
+        stockinList = new ArrayList<Map<String, String>>();
+        inListAdapter = new InListAdapter(getContext(), stockinList);
         inList.setAdapter(inListAdapter);
     }
 
@@ -135,17 +136,20 @@ public class InFragment extends Fragment {
                     msg.put("check", check);
                     msg.put("company", company);
 
+                    //api接口地址
                     List<Map<String, String>> mapsTmp = new ArrayList<Map<String, String>>();
-                    String Url = getResources().getString(R.string.URL_STOCK_IN_LIST);
+                    String Url = getResources().getString(R.string.URL_REQUEST_DATA_FOR_STOCK_IN_LIST);
 
+                    //发送请求
                     RestTemplate restTemplate = new RestTemplate();
                     mapsTmp = restTemplate.postForObject(Url, msg, mapsTmp.getClass());
+                    Log.e(TAG, "run"+mapsTmp.get(0), null);
 
                     if (mapsTmp == null) {
                         handler.sendEmptyMessage(IN_LIST_FAIL);
                     } else {
-                        inMaps.clear();
-                        inMaps.addAll(mapsTmp);
+                        stockinList.clear();
+                        stockinList.addAll(mapsTmp);
                         handler.sendEmptyMessage(IN_LIST_SUCESS);
                     }
                 }catch (Exception e){

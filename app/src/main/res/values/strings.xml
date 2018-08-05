@@ -10,11 +10,11 @@
     <string name="URL_LOGIN_COMPANY">http://47.106.156.193:8080/api/company</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST">http://</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_OUT_LIST">http://47.106.156.193:8080/api/stockOutList</string>
+    <string name="URL_REQUEST_DATA_FOR_STOCK_IN_LIST">http://47.106.156.193:8080/api/stockInList</string>
     <string name="URL_STOCK_CHANGE_DETAIL">http://</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_CHECK_LIST">http://</string>
     <string name="URL_STOCK_CHECK_DETAIL">http://</string>
     <string name="URL_USER_QUIT">http://47.106.156.193:8080/api/logout</string>
-
 
     <!--应用-->
     <string name="app_name">SmartStore</string>
@@ -74,7 +74,7 @@
     <string name="item_stock_check_detail_num">数量</string>
     <string name="stock_search">查询</string>
     <string name="stock_user">用户</string>
-    <string name="URL_STOCK_IN_LIST">http://</string>
+
 
 
 </resources>

@@ -142,6 +142,8 @@ public class InActivity extends AppCompatActivity {
         initChooseType();//初始化类型选择器
         initScanInfo();//初始化扫描信息视图
 
+        initNetBoardcastReceiver();//初始化广播
+
     }
 
 
