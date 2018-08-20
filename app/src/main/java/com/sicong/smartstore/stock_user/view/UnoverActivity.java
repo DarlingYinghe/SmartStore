@@ -17,11 +17,18 @@ import android.widget.Toast;
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_out.adapter.OutListAdapter;
 import com.sicong.smartstore.stock_user.adapter.UnoverListAdapter;
+import com.sicong.smartstore.stock_user.model.UnoverMessage;
+import com.sicong.smartstore.stock_user.model.UnoverMessage_;
 import com.sicong.smartstore.util.network.NetBroadcastReceiver;
+import com.sicong.smartstore.util.objectBox.App;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import io.objectbox.Box;
+import io.objectbox.BoxStore;
+import io.objectbox.query.Query;
 
 public class UnoverActivity extends AppCompatActivity {
 
@@ -33,10 +40,13 @@ public class UnoverActivity extends AppCompatActivity {
     private static final int UNOVER_ERROR = 3;
 
     //数据
-    private List<Map<String, String>> userUnoverList;
+    private List<UnoverMessage> userUnoverList;
     private String username;
     private String check;
     private String company;
+
+    private Box<UnoverMessage> unoverMessageBox;
+    private Query<UnoverMessage> unoverMessageQuery;
 
     //控件
     private Handler handler;
@@ -68,7 +78,7 @@ public class UnoverActivity extends AppCompatActivity {
      * 初始化RecycleView
      */
     private void initList() {
-        userUnoverList = new ArrayList<Map<String,String>>();
+        userUnoverList = new ArrayList<UnoverMessage>();
 
         unoverListAdapter = new UnoverListAdapter(getBaseContext(), userUnoverList, check, company, username);
         userUnoverListView.setAdapter(unoverListAdapter);
@@ -88,16 +98,18 @@ public class UnoverActivity extends AppCompatActivity {
             public void run() {
                 try {
                     //第一步：首先从数据库中获取数据
+                    BoxStore boxStore = ((App)getApplication()).getBoxStore();
+                    unoverMessageBox = boxStore.boxFor(UnoverMessage.class);
+                    unoverMessageQuery = unoverMessageBox.query().order(UnoverMessage_.id).build();
 
+                    List<UnoverMessage> list = unoverMessageQuery.find();
 
-                    List<Map<String, String>> mapList = new ArrayList<Map<String, String>>();
-
-
-                    userUnoverList = new ArrayList<Map<String, String>>();
+                    //第二步：更换变量中原有数据
+                    userUnoverList = new ArrayList<UnoverMessage>();
                     userUnoverList.clear();
-                    userUnoverList.addAll(mapList);
+                    userUnoverList.addAll(list);
 
-                    //第二步：判断数量的多少
+                    //第三步：判断数量的多少
                     if(userUnoverList.size() < 1 ){
                         handler.sendEmptyMessage(UNOVER_FAIL);
                     }else{

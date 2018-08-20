@@ -243,17 +243,17 @@ public class MainActivity extends AppCompatActivity {
                     if (status) {
                         Log.e(TAG, "onChangeListener: 可行", null);
 
-                        InFragment inFragment = (InFragment)fragments.get(0);
-                        inFragment.startRequestDataThread();
-
-                        OutFragment outFragmentTmp = (OutFragment) fragments.get(1);
-                        outFragmentTmp.startRequestDataThread();
-
-                        ChangeFragment changeFragment = (ChangeFragment) fragments.get(2);
-                        changeFragment.startRequestDataThread();
-
-                        CheckFragment checkFragment = (CheckFragment) fragments.get(3);
-                        checkFragment.startRequestDataThread();
+//                        InFragment inFragment = (InFragment)fragments.get(0);
+//                        inFragment.startRequestDataThread();
+//
+//                        OutFragment outFragmentTmp = (OutFragment) fragments.get(1);
+//                        outFragmentTmp.startRequestDataThread();
+//
+//                        ChangeFragment changeFragment = (ChangeFragment) fragments.get(2);
+//                        changeFragment.startRequestDataThread();
+//
+//                        CheckFragment checkFragment = (CheckFragment) fragments.get(3);
+//                        checkFragment.startRequestDataThread();
 
 
 

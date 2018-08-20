@@ -288,7 +288,7 @@ public class CheckActivity extends AppCompatActivity {
                 n++;
             }
         }
-        if(n==detailMaps.size()) {
+        if(n == detailMaps.size()) {
             return true;
         }
         return false;

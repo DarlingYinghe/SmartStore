@@ -22,10 +22,16 @@ public class InListAdapter extends RecyclerView.Adapter{
 
     private Context mContext;
     private List<Map<String, String>> mList;
+    private String username;
+    private String company;
+    private String check;
 
-    public InListAdapter(Context mContext, List<Map<String, String>> mList) {
+    public InListAdapter(Context mContext, List<Map<String, String>> mList, String check, String company, String username) {
         this.mContext = mContext;
         this.mList = mList;
+        this.check = check;
+        this.company  = company;
+        this.username = username;
     }
 
     @NonNull
@@ -45,6 +51,9 @@ public class InListAdapter extends RecyclerView.Adapter{
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, InActivity.class);
+                intent.putExtra("company", company);
+                intent.putExtra("check", check);
+                intent.putExtra("username", username);
                 mContext.startActivity(intent);
             }
         });

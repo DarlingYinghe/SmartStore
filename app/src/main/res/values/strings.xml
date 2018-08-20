@@ -18,7 +18,7 @@
 
     <!--应用-->
     <string name="app_name">SmartStore</string>
-    <string name="app_chinese_name">斯聪智能仓储系统</string>
+    <string name="app_chinese_name">鼎力智能仓储系统</string>
 
     <!--登录-->
     <string name="login_enter">登录</string>
@@ -75,6 +75,11 @@
     <string name="stock_search">查询</string>
     <string name="stock_user">用户</string>
 
-
-
+    <!-- 标题栏 -->
+    <string name="title_stock_in"> &#160;入库任务列表</string>
+    <string name="title_stock_out"> &#160;出库任务列表</string>
+    <string name="title_stock_change">&#160; 移库任务列表</string>
+    <string name="title_stock_check">&#160; 盘点任务列表</string>
+    <string name="title_unover">&#160; 未完成任务列表</string>
+    <string name="title_over">&#160; 已完成任务列表</string>
 </resources>

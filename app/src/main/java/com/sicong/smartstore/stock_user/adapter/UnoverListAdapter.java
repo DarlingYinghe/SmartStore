@@ -1,6 +1,5 @@
 package com.sicong.smartstore.stock_user.adapter;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -13,21 +12,21 @@ import android.widget.TextView;
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_in.view.InActivity;
 import com.sicong.smartstore.stock_out.view.OutActivity;
+import com.sicong.smartstore.stock_user.model.UnoverMessage;
 
 import java.util.List;
-import java.util.Map;
 
 public class UnoverListAdapter extends RecyclerView.Adapter {
 
     private static final String TAG = "UnoverListAdapter";
 
-    private List<Map<String, String>> mList;
+    private List<UnoverMessage> mList;
     private Context mContext;
     private String check;
     private String company;
     private String username;
 
-    public UnoverListAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList, String check, String company, String username) {
+    public UnoverListAdapter(@NonNull Context mContext, @NonNull List<UnoverMessage> mList, String check, String company, String username) {
         this.mContext = mContext;
         this.mList = mList;
         this.check = check;
@@ -44,18 +43,18 @@ public class UnoverListAdapter extends RecyclerView.Adapter {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        OverListAdapter.ViewHolder viewHolder = (OverListAdapter.ViewHolder) holder;
-        viewHolder.id.setText(mList.get(position).get("id"));
-        viewHolder.date.setText(mList.get(position).get("date"));
-        viewHolder.title.setText(mList.get(position).get("title"));
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position) {
+        ViewHolder viewHolder = (ViewHolder) holder;
+        viewHolder.id.setText(mList.get(position).getAccountId());
+        viewHolder.date.setText(mList.get(position).getDate());
+        viewHolder.title.setText(mList.get(position).getTitle());
 
         //点击事件
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //从数据库中获取时，获取他的In或者out
-                if(true) {
+                if(mList.get(position).getCheck() == 0) {
                     Intent intent = new Intent(mContext, InActivity.class);
                     mContext.startActivity(intent);
                 }else {

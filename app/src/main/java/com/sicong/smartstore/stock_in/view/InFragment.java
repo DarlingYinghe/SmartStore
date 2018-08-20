@@ -111,7 +111,7 @@ public class InFragment extends Fragment {
 
         //适配器
         stockinList = new ArrayList<Map<String, String>>();
-        inListAdapter = new InListAdapter(getContext(), stockinList);
+        inListAdapter = new InListAdapter(getContext(), stockinList, check, company, username);
         inList.setAdapter(inListAdapter);
     }
 

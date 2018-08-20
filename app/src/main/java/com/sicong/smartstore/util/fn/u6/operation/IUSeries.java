@@ -6,122 +6,122 @@ import com.sicong.smartstore.util.fn.u6.model.Message;
 public interface IUSeries {
 	
 	/**
-	 * ´ò¿ª´®¿Ú
-	 * @param moduleName Ä£¿éÃû
-	 * @return true_ ´ò¿ª´®¿Ú³É¹¦,false_ ´ò¿ª´®¿ÚÊ§°Ü
+	 * æ‰“å¼€ä¸²å£
+	 * @param moduleName æ¨¡å—å
+	 * @return true_ æ‰“å¼€ä¸²å£æˆåŠŸ,false_ æ‰“å¼€ä¸²å£å¤±è´¥
 	 */
 	Message openSerialPort(String moduleName);
 
 	/**
-	 * ¹Ø±Õ´®¿Ú
+	 * å…³é—­ä¸²å£
 	 * 
-	 * @return true_ ¹Ø±Õ´®¿Ú³É¹¦,false_ ¹Ø±Õ´®¿ÚÊ§°Ü
+	 * @return true_ å…³é—­ä¸²å£æˆåŠŸ,false_ å…³é—­ä¸²å£å¤±è´¥
 	 */
 	Message closeSerialPort();
 
 	/**
-	 * Ä£¿éÉÏµç
-	 * @param moduleName Ä£¿éÃû
-	 * @return true_ ÉÏµç³É¹¦,false_ ÉÏµçÊ§°Ü
+	 * æ¨¡å—ä¸Šç”µ
+	 * @param moduleName æ¨¡å—å
+	 * @return true_ ä¸Šç”µæˆåŠŸ,false_ ä¸Šç”µå¤±è´¥
 	 */
 	Message modulePowerOn(String moduleName);
 
 	/**
-	 * Ä£¿éÏÂµç
-	 * @param moduleName Ä£¿éÃû
-	 * @return true_ ÏÂµç³É¹¦,false_ ÏÂµçÊ§°Ü
+	 * æ¨¡å—ä¸‹ç”µ
+	 * @param moduleName æ¨¡å—å
+	 * @return true_ ä¸‹ç”µæˆåŠŸ,false_ ä¸‹ç”µå¤±è´¥
 	 */
 	Message modulePowerOff(String moduleName);
 
 	/**
-	 * ¿ªÊ¼ÅÌÑ¯
-	 * @param responseHandler ÅÌÑ¯½á¹û»Øµ÷
-	 * @return true_ ¿ªÊ¼ÅÌÑ¯³É¹¦³É¹¦,false_ ¿ªÊ¼ÅÌÑ¯Ê§°Ü
+	 * å¼€å§‹ç›˜è¯¢
+	 * @param responseHandler ç›˜è¯¢ç»“æœå›è°ƒ
+	 * @return true_ å¼€å§‹ç›˜è¯¢æˆåŠŸæˆåŠŸ,false_ å¼€å§‹ç›˜è¯¢å¤±è´¥
 	 */
 	boolean startInventory(IResponseHandler responseHandler);
 
 	/**
-	 * Í£Ö¹ÅÌÑ¯
-	 * @return true_ Í£Ö¹ÅÌÑ¯³É¹¦,false_ Í£Ö¹ÅÌÑ¯Ê§°Ü
+	 * åœæ­¢ç›˜è¯¢
+	 * @return true_ åœæ­¢ç›˜è¯¢æˆåŠŸ,false_ åœæ­¢ç›˜è¯¢å¤±è´¥
 	 */
 	boolean stopInventory();
 
 	/**
-	 * µ¥´ÎÅÌÑ¯
-	 * @return ÅÌÑ¯½á¹û
+	 * å•æ¬¡ç›˜è¯¢
+	 * @return ç›˜è¯¢ç»“æœ
 	 */
 	Message Inventory();
 
 	/**
-	 * ¶Á±êÇ©
+	 * è¯»æ ‡ç­¾
 	 * 
 	 * @param block
-	 *            ¶ÁÈ¡ÇøÓò
+	 *            è¯»å–åŒºåŸŸ
 	 * @param w_count
-	 *            ¶ÁÈ¡³¤¶È
+	 *            è¯»å–é•¿åº¦
 	 * @param w_offset
-	 *            Æ«ÒÆ
+	 *            åç§»
 	 * @param acs_pwd
-	 *            ·ÃÎÊÃÜÂë
-	 * @return ¶ÁÈ¡±êÇ©Êı¾İ
+	 *            è®¿é—®å¯†ç 
+	 * @return è¯»å–æ ‡ç­¾æ•°æ®
 	 */
 	Message readTagMemory(byte[] EPC, byte block, byte w_count, byte w_offset, byte[] acs_pwd);
 
 	/**
-	 * Ğ´±êÇ©
+	 * å†™æ ‡ç­¾
 	 * 
 	 * @param block
-	 *            Ğ´ÈëÇøÓò
+	 *            å†™å…¥åŒºåŸŸ
 	 * @param w_count
-	 *            Ğ´Èë³¤¶È
+	 *            å†™å…¥é•¿åº¦
 	 * @param w_offset
-	 *            Æ«ÒÆ
+	 *            åç§»
 	 * @param data
-	 *            Ğ´ÈëÊı¾İ
+	 *            å†™å…¥æ•°æ®
 	 * @param acs_pwd
-	 *            ·ÃÎÊÃÜÂë
-	 * @return ÊÇ·ñĞ´Èë³É¹¦
+	 *            è®¿é—®å¯†ç 
+	 * @return æ˜¯å¦å†™å…¥æˆåŠŸ
 	 */
 	Message writeTagMemory(byte[] EPC, byte block, byte w_count, byte w_offset, byte[] data, byte[] acs_pwd);
 
 	/**
-	 * Ëø±êÇ©
+	 * é”æ ‡ç­¾
 	 * 
 	 * @param block
-	 *            Ëø¶¨ÇøÓò
+	 *            é”å®šåŒºåŸŸ
 	 * @param operation
-	 *            ²Ù×÷ÀàĞÍ
+	 *            æ“ä½œç±»å‹
 	 * @param acs_pwd
-	 *            ·ÃÎÊÃÜÂë
-	 * @return ·µ»Ø´íÎó´úÂë
+	 *            è®¿é—®å¯†ç 
+	 * @return è¿”å›é”™è¯¯ä»£ç 
 	 */
 	Message lockTagMemory(byte[] EPC, byte block, Enum operation, byte[] acs_pwd);
 
 	/**
-	 * Ïú»Ù±êÇ©
+	 * é”€æ¯æ ‡ç­¾
 	 * 
 	 * @param kill_pwd
-	 *            Ïú»ÙÃÜÂë
-	 * @return ·µ»Ø´íÎó´úÂë
+	 *            é”€æ¯å¯†ç 
+	 * @return è¿”å›é”™è¯¯ä»£ç 
 	 */
 	Message killTag(byte[] EPC, byte[] kill_pwd);
 
 	/**
-	 * ÉèÖÃ²ÎÊı
+	 * è®¾ç½®å‚æ•°
 	 * 
 	 * @param paraName
-	 *            ²ÎÊıÃû(Ïê¼ûSDK)
+	 *            å‚æ•°å(è¯¦è§SDK)
 	 * @return
 	 */
 	String getParams(String paraName);
 
 	/**
-	 * ÉèÖÃ²ÎÊı
+	 * è®¾ç½®å‚æ•°
 	 * 
 	 * @param paraName
-	 *            ²ÎÊıÃû(Ïê¼ûSDK)
+	 *            å‚æ•°å(è¯¦è§SDK)
 	 * @param paraValue
-	 *            ²ÎÊıÖµ(Ïê¼ûSDK)
+	 *            å‚æ•°å€¼(è¯¦è§SDK)
 	 * @return
 	 */
 	boolean setParams(String paraName, String paraValue);

@@ -20,7 +20,10 @@ import com.sicong.smartstore.stock_user.adapter.OverListAdapter;
 import com.sicong.smartstore.stock_user.adapter.UnoverListAdapter;
 import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
+import org.springframework.web.client.RestTemplate;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -87,10 +90,17 @@ public class OverActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
+                    //未完成
                     //第一步：首先从数据库中获取数据/看是否有后台；
 
+                    RestTemplate restTemplate = new RestTemplate();
+                    Map<String, String> msg = new HashMap<String, String>();
+                    msg.put("check", check);
+                    msg.put("username",username);
+                    msg.put("company",company);
 
-                    List<Map<String, String>> mapList = new ArrayList<Map<String, String>>();
+                    List<Map<String, String>> mapList = new ArrayList<>();
+                    mapList = restTemplate.postForObject(getResources().getString(R.string.URL_REQUEST_DATA_FOR_STOCK_IN_LIST), msg, mapList.getClass());
 
 
 
@@ -153,11 +163,11 @@ public class OverActivity extends AppCompatActivity {
                         Toast.makeText(self, "无可用的网络，请连接网络", Toast.LENGTH_SHORT).show();
                         break;
                     case OVER_FAIL:
-                        Toast.makeText(self, "不存在未完成的单号", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(self, "不存在已完成的单号", Toast.LENGTH_SHORT).show();
                         break;
                     case OVER_SUCCESS:
                         overListAdapter.notifyDataSetChanged();
-                        Toast.makeText(self, "未完成单号列表获取成功", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(self, "已完成单号列表获取成功", Toast.LENGTH_SHORT).show();
                         break;
                 }
                 return false;
@@ -202,6 +212,6 @@ public class OverActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        initNetBoardcastReceiver();
+        initNetBoardcastReceiver();//注册广播
     }
 }
