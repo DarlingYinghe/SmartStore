@@ -42,6 +42,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import static com.alibaba.fastjson.JSON.parseArray;
+import static com.alibaba.fastjson.JSON.toJSONString;
 import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
 /**
@@ -50,7 +58,9 @@ import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 public class InActivity extends AppCompatActivity {
 
     //常量
-    private static final String TAG = "ScanFragment";
+    public static final MediaType JSON
+            = MediaType.parse("application/json; charset=utf-8");
+    private static final String TAG = "InActivity";
     private String model = "U6";
 
     private static final int NETWORK_UNAVAILABLE = 0;
@@ -101,12 +111,13 @@ public class InActivity extends AppCompatActivity {
     private String name;
     private List<String> typeFirstList;
     private List<String> typeSecondList;
-    private List<String > nameList;
+    private List<String> nameList;
 
     private String check;
     private String username;
     private String company;
-    private List<Map<String,Object>> typeList;//包含两级类型的集合
+    private String id;
+    private List<Map> typeList;//包含两级类型的集合
 
     //线程
     private Thread nameThread;
@@ -141,12 +152,7 @@ public class InActivity extends AppCompatActivity {
         initTextType();//初始化选择器的标题
         initChooseType();//初始化类型选择器
         initScanInfo();//初始化扫描信息视图
-
-
     }
-
-
-
 
     @Override
     protected void onResume() {
@@ -177,17 +183,17 @@ public class InActivity extends AppCompatActivity {
                         typeSecondAdapter.notifyDataSetChanged();
                         break;
                     case TYPE_ERROR:
-                        Snackbar.make(snackbarContainer,"获取产品类型异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "获取产品类型异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case TYPE_FAIL:
-                        Snackbar.make(snackbarContainer,"获取产品类型失败，请稍后再试",Snackbar.LENGTH_SHORT).show();
+                        Snackbar.make(snackbarContainer, "获取产品类型失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
                     case NETWORK_UNAVAILABLE:
                         Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
                         break;
                     case NAME_SUCCESS:
                         nameAdapter.notifyDataSetChanged();
-                        spinnerName.setSelection(0,true);
+                        spinnerName.setSelection(0, true);
                         break;
                     case NAME_FAIL:
                         Snackbar.make(snackbarContainer, "请求货物名称数据失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
@@ -207,11 +213,14 @@ public class InActivity extends AppCompatActivity {
         if (intent.hasExtra("check")) {
             check = intent.getStringExtra("check");
         }
-        if (intent.hasExtra("company")) {
-            company = intent.getStringExtra("company");
+        if (intent.hasExtra("companyId")) {
+            company = intent.getStringExtra("companyId");
         }
         if (intent.hasExtra("username")) {
             username = intent.getStringExtra("username");
+        }
+        if (intent.hasExtra("id")) {
+            id = intent.getStringExtra("id");
         }
     }
 
@@ -224,19 +233,19 @@ public class InActivity extends AppCompatActivity {
         btnStop = (AppCompatButton) findViewById(R.id.scan_btn_stop);
         btnReset = (AppCompatButton) findViewById(R.id.scan_btn_reset);
         btnSubmit = (AppCompatButton) findViewById(R.id.scan_btn_submit);
-        
+
 
         typeViewFirst = (View) findViewById(R.id.scan_type_first);
         typeViewSecond = (View) findViewById(R.id.scan_type_second);
-        nameView = (View)findViewById(R.id.scan_name);
+        nameView = (View) findViewById(R.id.scan_name);
 
         spinnerTypeFirst = (Spinner) typeViewFirst.findViewById(R.id.item_choose_type);
         spinnerTypeSecond = (Spinner) typeViewSecond.findViewById(R.id.item_choose_type);
-        spinnerName = (Spinner)nameView.findViewById(R.id.item_choose_type);
+        spinnerName = (Spinner) nameView.findViewById(R.id.item_choose_type);
 
-        textTypeFirst = (TextView)typeViewFirst.findViewById(R.id.item_choose_tv);
-        textTypeSecond = (TextView)typeViewSecond.findViewById(R.id.item_choose_tv);
-        textName = (TextView)nameView.findViewById(R.id.item_choose_tv);
+        textTypeFirst = (TextView) typeViewFirst.findViewById(R.id.item_choose_tv);
+        textTypeSecond = (TextView) typeViewSecond.findViewById(R.id.item_choose_tv);
+        textName = (TextView) nameView.findViewById(R.id.item_choose_tv);
 
         scanInfoView = (RecyclerView) findViewById(R.id.scan_info_view);
 
@@ -275,7 +284,7 @@ public class InActivity extends AppCompatActivity {
         nameList = new ArrayList<String>();
         setTypeFirstList();
         //在确保typeFirstList可用的情况下对typeSecondList进行初始化
-        if(typeFirstList!=null&&typeFirstList.size()>0) {
+        if (typeFirstList != null && typeFirstList.size() > 0) {
             try {
                 setTypeSecondList(typeFirstList.get(0));
             } catch (Exception e) {
@@ -293,7 +302,7 @@ public class InActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 typeFirst = typeFirstList.get(position);
-                Log.e(TAG, "onItemSelected: typeFirst is "+typeFirst,null );
+                Log.e(TAG, "onItemSelected: typeFirst is " + typeFirst, null);
 
                 try {
                     setTypeSecondList(typeFirst);
@@ -318,7 +327,7 @@ public class InActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 typeSecond = typeSecondList.get(position);
-                Log.e(TAG, "onItemSelected: typeSecond is "+typeSecond,null );
+                Log.e(TAG, "onItemSelected: typeSecond is " + typeSecond, null);
 
                 try {
                     setNameList(typeSecond);
@@ -342,7 +351,7 @@ public class InActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 name = nameList.get(position);
-                Log.e(TAG, "onItemSelected: name is "+name,null );
+                Log.e(TAG, "onItemSelected: name is " + name, null);
 
             }
 
@@ -376,7 +385,7 @@ public class InActivity extends AppCompatActivity {
                 //测试代码
                 getRfidCode();
                 //测试代码结束
-                if(typeFirst==null || typeSecond == null || name == null) {
+                if (typeFirst == null || typeSecond == null || name == null) {
                     Snackbar.make(snackbarContainer, "请先选择类型", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
@@ -487,11 +496,11 @@ public class InActivity extends AppCompatActivity {
                 }
             }
 
-                @Override
-                public void onFailure (String msg){
-                    super.onFailure(msg);
-                    Log.e(TAG, "onFailure", null);
-                }
+            @Override
+            public void onFailure(String msg) {
+                super.onFailure(msg);
+                Log.e(TAG, "onFailure", null);
+            }
 
         });
     }
@@ -529,7 +538,7 @@ public class InActivity extends AppCompatActivity {
         }*/
         //测试代码完毕
 
-        if(cargos!=null&&cargos.size()>0) {
+        if (cargos != null && cargos.size() > 0) {
             for (int i = 0; i < cargos.size(); i++) {
                 Cargo cargo1 = cargos.get(i);
                 String nameTmp = cargo1.getName();//存放当前统计的名称
@@ -623,44 +632,53 @@ public class InActivity extends AppCompatActivity {
     /**
      * 接收物品类型
      */
-    public void startReceiveTypeThread(){
+    public void startReceiveTypeThread() {
         receiveTypeThread = new Thread(new Runnable() {
             @Override
             public void run() {
-
                 try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
 
-                    RestTemplate restTemplate = new RestTemplate();
-                    Map<String, String> msg = new HashMap<String, String>();
+//                    Log.e(TAG, check + " " + username + " " + company, null);
+                    Map<String, String> msg = new HashMap<>();
                     msg.put("check", check);
-                    msg.put("username",username);
-                    msg.put("company",company);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
 
-                    typeList = new ArrayList<Map<String, Object>>();
-                    typeList = restTemplate.postForObject(getResources().getString(R.string.URL_RECEVICE_TYPE), msg, typeList.getClass());
 
-                    if (typeList != null) {
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_RECEVICE_TYPE))
+                            .build();
+
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+
+                    Log.e(TAG, "this is startReceiveTypeThread:" + result, null);
+
+                    if (!result.equals("[]")) {
+                        typeList = parseArray(result, Map.class);
+
                         for (int i = 0; i < typeList.size(); i++) {
-
-                            String  typeSecondsStr = (String)typeList.get(i).get("typeSeconds");
-
+                            String typeSecondsStr = (String) typeList.get(i).get("typeSeconds");
                             String[] typeSecondsTmp = typeSecondsStr.split(",");
                             List<String> typeSecondsListTmp = new ArrayList<String>();
                             for (int j = 0; j < typeSecondsTmp.length; j++) {
                                 typeSecondsListTmp.add(j, typeSecondsTmp[j]);
                             }
-                            String typeFirstTmp = (String)typeList.get(i).get("typeFirst");
+                            String typeFirstTmp = (String) typeList.get(i).get("typeFirst");
 
                             Map<String, Object> mapTmp = new HashMap<String, Object>();
                             mapTmp.put("typeFirst", typeFirstTmp);
                             mapTmp.put("typeSeconds", typeSecondsListTmp);
 
                             typeList.set(i, mapTmp);
-
                         }
-
                         setTypeFirstList();
-                        typeFirst = (String)typeList.get(0).get("typeFirst");
+
+                        typeFirst = (String) typeList.get(1).get("typeFirst");
                         setTypeSecondList(typeFirst);
 
                         //测试代码
@@ -685,22 +703,23 @@ public class InActivity extends AppCompatActivity {
         });
         receiveTypeThread.start();
     }
+
     /**
      * 设置一级物品类型数组
      */
     public void setTypeFirstList() {
 
-        if(typeFirstList.size()!=0) {
+        if (typeFirstList.size() != 0) {
             typeFirstList.clear();
         }
 
-        if(typeList!=null&&typeList.size()>0) {
+        if (typeList != null)
             for (int i = 0; i < typeList.size(); i++) {
-                Map<String,Object> map = typeList.get(i);
-                String typeFirstTmp = (String)map.get("typeFirst");
+                Map map = typeList.get(i);
+                if (map.get("typeFirst") == null) continue;
+                String typeFirstTmp = map.get("typeFirst").toString();
                 typeFirstList.add(typeFirstTmp);
             }
-        }
 
         //测试代码
         /*String[] strs = {"p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"};
@@ -713,19 +732,25 @@ public class InActivity extends AppCompatActivity {
     /**
      * 设置二级物品类型数组
      */
-    public void setTypeSecondList(String typeFirst)  {
+    public void setTypeSecondList(String typeFirst) {
 
-        if(typeSecondList.size()!=0) {
+        if (typeSecondList.size() != 0) {
             typeSecondList.clear();
         }
 
-        if(typeList!=null&&typeList.size()>0) {
+        if (typeFirst == null) {
+            return;
+        }
+
+        if (typeList != null && typeList.size() > 0) {
             for (int i = 0; i < typeList.size(); i++) {
-                Map<String,Object> map1 = typeList.get(i);
-                String typeFirstTmp = (String)map1.get("typeFirst");
-                if(typeFirst.equals(typeFirstTmp)){
-                    List<String> stringList = (List<String>) map1.get("typeSeconds");
-                    typeSecondList.addAll(stringList);
+                Map map = typeList.get(i);
+                if (map.get("typeFirst") != null) {
+                    String typeFirstTmp =  map.get("typeFirst").toString();
+                    if (typeFirst.equals(typeFirstTmp) && map.get("typeSeconds")!= null) {
+                        List<String> stringList = (List<String>) map.get("typeSeconds");
+                        typeSecondList.addAll(stringList);
+                    }
                 }
             }
         }
@@ -758,9 +783,10 @@ public class InActivity extends AppCompatActivity {
 
     /**
      * 设置货物名称数组
+     *
      * @param typeSecond 当前二级类型
      */
-    public void setNameList(String typeSecond){
+    public void setNameList(String typeSecond) {
         startNameThread(typeSecond);
     }
 
@@ -784,46 +810,52 @@ public class InActivity extends AppCompatActivity {
      */
     public void startNameThread(final String typeSecond) {
         Log.e(TAG, "startNameThread: start", null);
-        if(isNetworkAvailable(InActivity.this)) {
-        nameThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+        if (isNetworkAvailable(InActivity.this)) {
+            nameThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
 
-                    try{
-                        Map map = new HashMap<String,String>();
+                    try {
+                        Map<String, String> map = new HashMap<>();
 
                         map.put("check", check);
                         map.put("typeSecond", typeSecond);
-                        map.put("company", company);
+                        map.put("companyId", company);
                         map.put("username", username);
 
-                        Log.e(TAG, "run: check is "+check, null);
-                        Log.e(TAG, "run: typeSecond is "+typeSecond, null);
-                        Log.e(TAG, "run: company is "+company, null);
+                        OkHttpClient okHttpClient = new OkHttpClient();
 
-                        RestTemplate restTemplate = new RestTemplate();
-                        List<String> nameListTmp = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_IN_SCAN_NAME), map, nameList.getClass());
-                        if(nameListTmp!=null && nameListTmp.size()>0) {
-                            nameList.clear();
-                            nameList.addAll(nameListTmp);
-                            handler.sendEmptyMessage(NAME_SUCCESS);
+                        RequestBody requestBody = RequestBody.create(JSON, toJSONString(map));
+                        Request request = new Request.Builder()
+                                .post(requestBody)
+                                .url(getResources().getString(R.string.URL_RECEVICE_TYPE))
+                                .build();
 
-                            Log.e(TAG, "run: nameList is "+nameList, null);
-                        } else {
-                            handler.sendEmptyMessage(NAME_FAIL);
-                        }
-                    }catch (Exception e) {
+                        Response response = okHttpClient.newCall(request).execute();
+                        String result = response.body().string();
+                        Log.e(TAG+"123", result, null);
+
+//                        List<String> nameListTmp = new ArrayList<>();
+//                        if (nameListTmp != null && nameListTmp.size() > 0) {
+//                            nameList.clear();
+//                            nameList.addAll(nameListTmp);
+//                            handler.sendEmptyMessage(NAME_SUCCESS);
+//
+//                            Log.e(TAG, "run: nameList is " + nameList, null);
+//                        } else {
+//                            handler.sendEmptyMessage(NAME_FAIL);
+//                        }
+                    } catch (Exception e) {
                         e.printStackTrace();
                         handler.sendEmptyMessage(NAME_ERROR);
                     }
 
-            }
-        });
+                }
+            });
         } else {
 
         }
         nameThread.start();
-
     }
 
 
@@ -851,7 +883,7 @@ public class InActivity extends AppCompatActivity {
             netBroadcastReceiver.setNetChangeListern(new NetBroadcastReceiver.NetChangeListener() {
                 @Override
                 public void onChangeListener(boolean status) {
-                    if(status) {
+                    if (status) {
                         startReceiveTypeThread();
                     } else {
                         Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
@@ -867,7 +899,7 @@ public class InActivity extends AppCompatActivity {
     /**
      * 设置四个按钮的可用性
      */
-    private void setBtnStatus(boolean start, boolean stop, boolean reset, boolean submit){
+    private void setBtnStatus(boolean start, boolean stop, boolean reset, boolean submit) {
         btnStart.setEnabled(start);
         btnStop.setEnabled(stop);
         btnReset.setEnabled(reset);

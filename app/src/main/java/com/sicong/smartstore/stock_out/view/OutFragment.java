@@ -145,7 +145,7 @@ public class OutFragment extends Fragment {
                     //发送的信息
                     Map<String,String> msg = new HashMap<String, String>();
                     msg.put("check", check);
-                    msg.put("company", company);
+                    msg.put("companyId", company);
                     msg.put("username", username);
 
                     //用于接收的对象

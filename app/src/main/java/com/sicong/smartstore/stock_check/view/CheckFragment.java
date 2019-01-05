@@ -27,6 +27,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import static com.alibaba.fastjson.JSON.parseArray;
+import static com.alibaba.fastjson.JSON.toJSONString;
 import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
 /**
@@ -35,7 +43,9 @@ import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 public class CheckFragment extends Fragment {
 
     //常量
-    private static final String TAG = "ChangeFragment";
+    public static final MediaType JSON
+            = MediaType.parse("application/json; charset=utf-8");
+    private static final String TAG = "CheckFragment";
 
     private static final int NETWORK_UNAVAILABLE = 0;
 
@@ -155,20 +165,23 @@ public class CheckFragment extends Fragment {
                     //发送的信息
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
-                    msg.put("company", company);
+                    msg.put("companyId", company);
                     msg.put("username", username);
 
                     //用于接收的对象
-                    List<Map<String, String>> maps = new ArrayList<Map<String, String>>();
+                    List<Map<String, String>> maps = new ArrayList<>();
 
                     //发送的请求
                     RestTemplate restTemplate = new RestTemplate();
                     maps = restTemplate.postForObject(getContext().getResources().getString(R.string.URL_REQUEST_DATA_FOR_STOCK_CHECK_LIST), msg, maps.getClass());
+                    Log.e(TAG, maps.toString(), null);
 
                     //处理请求的数据
                     if (maps == null) {
                         handler.sendEmptyMessage(FAIL);
                     } else {
+                        stockChangeList.clear();
+                        stockChangeList.addAll(maps);
                         handler.sendEmptyMessage(SUCCESS);
                     }
                 } catch (Exception e) {

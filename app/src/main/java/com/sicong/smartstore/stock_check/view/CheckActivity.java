@@ -430,7 +430,7 @@ public class CheckActivity extends AppCompatActivity {
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
                     msg.put("username", username);
-                    msg.put("company", company);
+                    msg.put("companyId", company);
                     msg.put("id", idFromIntent);
 
                     //用于接收的对象

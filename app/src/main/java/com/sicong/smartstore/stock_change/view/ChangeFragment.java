@@ -46,7 +46,7 @@ public class ChangeFragment extends Fragment {
     private String check;
     private String company;
     private String username;
-    private List<Map<String,String>> stockOutList;
+    private List<Map<String,String>> stockChangeList;
 
     //视图
     private View view;
@@ -123,9 +123,9 @@ public class ChangeFragment extends Fragment {
      * 初始化单号列表
      */
     private void initstockChangeListView() {
-        stockOutList = new ArrayList<Map<String,String>>();
+        stockChangeList = new ArrayList<Map<String,String>>();
 
-        stockChangeListAdapter = new ChangeListAdapter(getContext(), stockOutList, check, company, username);
+        stockChangeListAdapter = new ChangeListAdapter(getContext(), stockChangeList, check, company, username);
         stockChangeListView.setAdapter(stockChangeListAdapter);
         stockChangeListView.setLayoutManager(new LinearLayoutManager(getContext()));
         stockChangeListView.setHasFixedSize(true);
@@ -156,7 +156,7 @@ public class ChangeFragment extends Fragment {
                     //发送的信息
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
-                    msg.put("company", company);
+                    msg.put("companyId", company);
                     msg.put("username", username);
 
                     //用于接收的对象
@@ -170,6 +170,8 @@ public class ChangeFragment extends Fragment {
                     if (maps == null) {
                         handler.sendEmptyMessage(FAIL);
                     } else {
+                        stockChangeList.clear();
+                        stockChangeList.addAll(maps);
                         handler.sendEmptyMessage(SUCCESS);
                     }
                 } catch (Exception e) {

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".stock_user.view.UnoverActivity">
+    tools:context=".stock_user.view.UnOverCatalogActivity">
 
     <TextView
         android:id="@+id/unover_text"

@@ -1,20 +1,20 @@
 <resources>
 
     <!--URL-->
-    <string name="URL_POST_CARGO_IN_MESSAGE">http://47.106.156.193:8080/api/addCargo</string>
-    <string name="URL_STOCK_OUT_DETAIL">http://47.106.156.193:8080/api/stockOutProduct</string>
-    <string name="URL_STOCK_OUT_CLIENT_INFO">http://47.106.156.193:8080/api/stockOutInfo</string>
-    <string name="URL_STOCK_IN_SCAN_NAME">http://47.106.156.193:8080/api/findProduct</string>
-    <string name="URL_RECEVICE_TYPE">http://47.106.156.193:8080/api/findType</string>
-    <string name="URL_LOGIN">http://47.106.156.193:8080/api/login</string>
-    <string name="URL_LOGIN_COMPANY">http://47.106.156.193:8080/api/company</string>
-    <string name="URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST">http://</string>
-    <string name="URL_REQUEST_DATA_FOR_STOCK_OUT_LIST">http://47.106.156.193:8080/api/stockOutList</string>
-    <string name="URL_REQUEST_DATA_FOR_STOCK_IN_LIST">http://47.106.156.193:8080/api/stockInList</string>
+    <string name="URL_POST_CARGO_IN_MESSAGE">http://47.107.93.138:8081/api/addCargo</string>
+    <string name="URL_STOCK_OUT_DETAIL">http://47.107.93.138:8081/api/stockOutProductInfo</string>
+    <string name="URL_STOCK_OUT_CLIENT_INFO">http://47.107.93.138:8081/api/stockOutCustomInfo</string>
+    <string name="URL_STOCK_IN_SCAN_NAME">http://47.107.93.138:8081/api/productList</string>
+    <string name="URL_RECEVICE_TYPE">http://47.107.93.138:8081/api/categoryList</string>
+    <string name="URL_LOGIN">http://47.107.93.138:8081/api/login</string>
+    <string name="URL_LOGIN_COMPANY">http://47.107.93.138:8081/api/companyList</string>
+    <string name="URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST">http://47.107.93.138:8081/api/stockMoveList</string>
+    <string name="URL_REQUEST_DATA_FOR_STOCK_OUT_LIST">http://47.107.93.138:8081/api/stockOutList</string>
+    <string name="URL_REQUEST_DATA_FOR_STOCK_IN_LIST">http://47.107.93.138:8081/api/stockInList</string>
     <string name="URL_STOCK_CHANGE_DETAIL">http://</string>
-    <string name="URL_REQUEST_DATA_FOR_STOCK_CHECK_LIST">http://</string>
-    <string name="URL_STOCK_CHECK_DETAIL">http://</string>
-    <string name="URL_USER_QUIT">http://47.106.156.193:8080/api/logout</string>
+    <string name="URL_REQUEST_DATA_FOR_STOCK_CHECK_LIST">http://47.107.93.138:8081/api/stockCheckList</string>
+    <string name="URL_STOCK_CHECK_DETAIL">http://47.107.93.138:8081/api/stockOutCustomInfo</string>
+    <string name="URL_USER_QUIT">http://47.107.93.138:8081/api/logout</string>
 
     <!--应用-->
     <string name="app_name">SmartStore</string>
@@ -82,4 +82,6 @@
     <string name="title_stock_check">&#160; 盘点任务列表</string>
     <string name="title_unover">&#160; 未完成任务列表</string>
     <string name="title_over">&#160; 已完成任务列表</string>
+
+
 </resources>

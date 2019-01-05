@@ -134,7 +134,7 @@ public class InFragment extends Fragment {
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("username", username);
                     msg.put("check", check);
-                    msg.put("company", company);
+                    msg.put("companyId", company);
 
                     //api接口地址
                     List<Map<String, String>> mapsTmp = new ArrayList<Map<String, String>>();

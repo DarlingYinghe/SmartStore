@@ -34,11 +34,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import static com.alibaba.fastjson.JSON.parseArray;
+import static com.alibaba.fastjson.JSON.parseObject;
+import static com.alibaba.fastjson.JSON.toJSONString;
 import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
 public class OutActivity extends AppCompatActivity {
 
     //常量
+    public static final MediaType JSON
+            = MediaType.parse("application/json; charset=utf-8");
     private final static String TAG = "OutActivity";
     private String model = "U6";
 
@@ -57,7 +68,7 @@ public class OutActivity extends AppCompatActivity {
     private static final int SUBMIT_ERROR = 9;
 
     //数据
-    private List<Map<String, Object>> detailMaps;
+    private List<Map> detailMaps;
 
     private String check;
     private String company;
@@ -217,7 +228,6 @@ public class OutActivity extends AppCompatActivity {
         }
         if (intent.hasExtra("id")){
             idFromIntent = intent.getStringExtra("id");
-            Log.e(TAG, "initObject: is "+idFromIntent, null);
         }
     }
 
@@ -238,7 +248,7 @@ public class OutActivity extends AppCompatActivity {
      * 初始化待出库物品列表
      */
     private void initDetailStockOutView() {
-        detailMaps = new ArrayList<Map<String, Object>>();
+        detailMaps = new ArrayList<Map>();
         outDetailAdapter = new OutDetailAdapter(OutActivity.this, detailMaps);
         detailStockOutView.setAdapter(outDetailAdapter);
         detailStockOutView.setLayoutManager(new LinearLayoutManager(this));
@@ -433,7 +443,6 @@ public class OutActivity extends AppCompatActivity {
      * 启动客户信息线程
      */
     private void startClientThread() {
-
         clientThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -442,7 +451,7 @@ public class OutActivity extends AppCompatActivity {
                     //发送的信息
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
-                    msg.put("company", company);
+                    msg.put("companyId", company);
                     msg.put("username", username);
                     msg.put("id", idFromIntent);
 
@@ -484,10 +493,11 @@ public class OutActivity extends AppCompatActivity {
             public void run() {
                 Log.w(TAG, "run: submit", null);
                 try {
+
                     //发送的信息
                     Map<String,String> msg = new HashMap<String, String>();
                     msg.put("check", check);
-                    msg.put("company", company);
+                    msg.put("companyId", company);
                     msg.put("username", username);
 
                     //用于接收的对象
@@ -517,29 +527,36 @@ public class OutActivity extends AppCompatActivity {
             public void run() {
                 Log.e(TAG, "run: detail", null);
                 try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
                     //发送的信息
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
                     msg.put("username", username);
-                    msg.put("company", company);
+                    msg.put("companyId", company);
                     msg.put("id", idFromIntent);
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
 
-                    //用于接收的对象
-                    List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_STOCK_OUT_DETAIL))
+                            .build();
 
-                    //发出请求
-                    RestTemplate restTemplate = new RestTemplate();
-                    maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_DETAIL), msg, maps.getClass());
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+
+                    Log.e(TAG, result, null);
+
+                    List<Map> maps = parseArray(result, Map.class);
 
                     //处理请求的数据
-                    if (maps != null && maps.size()>0) {
+                    if (maps != null && maps.size()>0 && !result.equals("[null]")) {
                         for (int i = 0; i < maps.size(); i++) {
                             Map<String,Object> mapTmp = maps.get(i);
                             mapTmp.put("count", 0);
                             mapTmp.put("over", false);
                             maps.set(i, mapTmp);
                         }
-                        Log.e(TAG, "run: map is "+maps.toString(), null);
                         detailMaps.clear();
                         detailMaps.addAll(maps);
                         handler.sendEmptyMessage(DETAIL_SUCCESS);

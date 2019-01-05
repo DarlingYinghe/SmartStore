@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:6743691478680173336",
-      "lastPropertyId": "4:526130484521433097",
+      "lastPropertyId": "5:6845337288573126144",
       "name": "UnoverMessage",
       "properties": [
         {
@@ -23,6 +23,10 @@
         {
           "id": "4:526130484521433097",
           "name": "title"
+        },
+        {
+          "id": "5:6845337288573126144",
+          "name": "check"
         }
       ],
       "relations": []

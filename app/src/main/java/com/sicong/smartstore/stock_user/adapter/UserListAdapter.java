@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +11,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.sicong.smartstore.R;
-import com.sicong.smartstore.main.MainActivity;
-import com.sicong.smartstore.stock_out.adapter.OutDetailAdapter;
-import com.sicong.smartstore.stock_user.view.OverActivity;
-import com.sicong.smartstore.stock_user.view.UnoverActivity;
+import com.sicong.smartstore.stock_user.view.OverCatalogActivity;
+import com.sicong.smartstore.stock_user.view.UnOverCatalogActivity;
 import com.sicong.smartstore.stock_user.view.UserInfoActivity;
 
 import java.util.List;
@@ -64,14 +61,14 @@ public class  UserListAdapter extends RecyclerView.Adapter{
                         mContext.startActivity(intent0);
                         break;
                     case 1:
-                        Intent intent1 = new Intent(mContext, OverActivity.class);
+                        Intent intent1 = new Intent(mContext, OverCatalogActivity.class);
                         intent1.putExtra("username", username);
                         intent1.putExtra("company", company);
                         intent1.putExtra("check", check);
                         mContext.startActivity(intent1);
                         break;
                     case 2:
-                        Intent intent2 = new Intent(mContext, UnoverActivity.class);
+                        Intent intent2 = new Intent(mContext, UnOverCatalogActivity.class);
                         intent2.putExtra("username", username);
                         intent2.putExtra("company", company);
                         intent2.putExtra("check", check);

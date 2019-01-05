@@ -16,10 +16,10 @@ import java.util.Map;
 public class OutDetailAdapter extends RecyclerView.Adapter {
 
     private Context mContext;
-    private List<Map<String, Object>> mList;
+    private List<Map> mList;
     private int curItem = -1;
 
-    public OutDetailAdapter(@NonNull Context mContext, @NonNull List<Map<String, Object>> mList) {
+    public OutDetailAdapter(@NonNull Context mContext, @NonNull List<Map> mList) {
         this.mContext = mContext;
         this.mList = mList;
     }
@@ -39,16 +39,10 @@ public class OutDetailAdapter extends RecyclerView.Adapter {
             map.put("over", true);
         }
 
-        String name = (String)map.get("name");
-        String pos;
-        if(map.get("areaNo")==null) {
-            pos = map.get("shelfNo") + " " + map.get("shelfLayer");
-        } else {
-            pos = (String)map.get("areaNo");
-        }
+        String name = (String)map.get("product_name");
         String num = map.get("count")+"/"+map.get("num");
-        String store = (String)map.get("warehouseName");
-
+        String store = (String)map.get("warehouse_name");
+        String pos = (String)map.get("warehouse_address");
         view.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -116,7 +110,7 @@ public class OutDetailAdapter extends RecyclerView.Adapter {
         notifyItemChanged(position);
     }
 
-    public List<Map<String, Object>> getmList() {
+    public List<Map> getmList() {
         return mList;
     }
 }

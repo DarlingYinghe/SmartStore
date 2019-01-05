@@ -20,7 +20,6 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".login.view.LoginActivity"
-            android:launchMode="singleTask"
             android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -43,8 +42,8 @@
         <activity android:name=".stock_change.view.ChangeActivity" />
         <activity android:name=".stock_check.view.CheckActivity" />
         <activity android:name=".stock_user.view.UserInfoActivity" />
-        <activity android:name=".stock_user.view.OverActivity" />
-        <activity android:name=".stock_user.view.UnoverActivity"></activity>
+        <activity android:name=".stock_user.view.OverCatalogActivity" />
+        <activity android:name=".stock_user.view.UnOverCatalogActivity"></activity>
     </application>
 
 </manifest>
