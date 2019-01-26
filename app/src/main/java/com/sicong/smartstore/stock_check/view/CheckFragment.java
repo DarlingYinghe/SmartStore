@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.main.MainActivity;
 import com.sicong.smartstore.stock_change.adapter.ChangeListAdapter;
+import com.sicong.smartstore.stock_check.adapter.CheckListAdapter;
 
 import org.springframework.web.client.RestTemplate;
 
@@ -66,7 +67,7 @@ public class CheckFragment extends Fragment {
     private Handler handler;
 
     //适配器
-    ChangeListAdapter stockCheckListAdapter;
+    CheckListAdapter stockCheckListAdapter;
 
     //线程
     private Thread requestDataThread;
@@ -134,7 +135,7 @@ public class CheckFragment extends Fragment {
     private void initstockChangeListView() {
         stockChangeList = new ArrayList<Map<String,String>>();
 
-        stockCheckListAdapter = new ChangeListAdapter(getContext(), stockChangeList, check, company, username);
+        stockCheckListAdapter = new CheckListAdapter(getContext(), stockChangeList, check, company, username);
         stockCheckListView.setAdapter(stockCheckListAdapter);
         stockCheckListView.setLayoutManager(new LinearLayoutManager(getContext()));
         stockCheckListView.setHasFixedSize(true);

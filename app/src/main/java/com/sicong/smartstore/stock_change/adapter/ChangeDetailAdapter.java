@@ -40,14 +40,12 @@ public class ChangeDetailAdapter extends RecyclerView.Adapter {
             map.put("over", true);
         }
 
-        String name = (String)map.get("name");
-        String outPosition = (String)map.get("outPosition");
-        String inPosition = (String)map.get("inPosition");
+        String name = (String)map.get("product_name");
+        String inPosition = (String)map.get("warehouse_name");
         String num = map.get("count")+"/"+map.get("num");
 
         view.name.setText(name);
         view.num.setText(num);
-        view.outPosition.setText(outPosition);
         view.inPosition.setText(inPosition);
 
 
@@ -63,12 +61,11 @@ public class ChangeDetailAdapter extends RecyclerView.Adapter {
                 holder.itemView.setBackgroundResource(R.color.colorPrimary);
                 view.name.setTextColor(mContext.getResources().getColor(R.color.white));
                 view.num.setTextColor(mContext.getResources().getColor(R.color.white));
-                view.outPosition.setTextColor(mContext.getResources().getColor(R.color.white));
                 view.inPosition.setTextColor(mContext.getResources().getColor(R.color.white));
             } else {
                 holder.itemView.setBackgroundResource(R.color.white);
                 view.name.setTextColor(mContext.getResources().getColor(R.color.black));
-                view.outPosition.setTextColor(mContext.getResources().getColor(R.color.black));
+                view.num.setTextColor(mContext.getResources().getColor(R.color.black));
                 view.inPosition.setTextColor(mContext.getResources().getColor(R.color.black));
             }
         }
@@ -86,7 +83,6 @@ public class ChangeDetailAdapter extends RecyclerView.Adapter {
     class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView name;//货物名称
-        TextView outPosition;//原始位置
         TextView inPosition;//目标位置
         TextView num;//总数
 
@@ -94,7 +90,6 @@ public class ChangeDetailAdapter extends RecyclerView.Adapter {
             super(itemView);
             name = (TextView) itemView.findViewById(R.id.item_stock_change_detail_name);
             num = (TextView)itemView.findViewById(R.id.item_stock_change_detail_num);
-            outPosition = (TextView)itemView.findViewById(R.id.item_stock_change_detail_out_position);
             inPosition = (TextView)itemView.findViewById(R.id.item_stock_change_detail_in_position);
         }
     }

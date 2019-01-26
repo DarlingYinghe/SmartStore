@@ -53,8 +53,8 @@ public class CheckScanAdapter extends RecyclerView.Adapter {
 
         public ViewHolder(View itemView) {
             super(itemView);
-            id = (TextView) itemView.findViewById(R.id.item_scan_id);
-            rfid = (TextView) itemView.findViewById(R.id.item_scan_rfid);
+            id = (TextView) itemView.findViewById(R.id.item_detail_scan_id);
+            rfid = (TextView) itemView.findViewById(R.id.item_detail_scan_rfid);
         }
     }
 

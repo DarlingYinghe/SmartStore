@@ -11,10 +11,23 @@
     <string name="URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST">http://47.107.93.138:8081/api/stockMoveList</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_OUT_LIST">http://47.107.93.138:8081/api/stockOutList</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_IN_LIST">http://47.107.93.138:8081/api/stockInList</string>
-    <string name="URL_STOCK_CHANGE_DETAIL">http://</string>
+    <string name="URL_STOCK_CHANGE_DETAIL">http://47.107.93.138:8081/api/stockMoveProductInfo</string>
+    <string name="URL_STOCK_CHANGE_WAREHOUSE_DETAIL">http://47.107.93.138:8081/api/stockMoveWarehouseInfo</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_CHECK_LIST">http://47.107.93.138:8081/api/stockCheckList</string>
-    <string name="URL_STOCK_CHECK_DETAIL">http://47.107.93.138:8081/api/stockOutCustomInfo</string>
+    <string name="URL_STOCK_CHECK_DETAIL">http://47.107.93.138:8081/api/stockCheckProductInfo</string>
+    <string name="URL_STOCK_CHECK_WAREHOUSE_DETAIL">http://47.107.93.138:8081/api/stockCheckWarehouseInfo</string>
     <string name="URL_USER_QUIT">http://47.107.93.138:8081/api/logout</string>
+    <string name="URL_STOCK_IN_START">http://47.107.93.138:8081/api/stockInServe</string>
+    <string name="URL_STOCK_OUT_START">http://47.107.93.138:8081/api/stockOutServe</string>
+    <string name="URL_STOCK_CHANGE_START">http://47.107.93.138:8081/api/stockMoveServe</string>
+    <string name="URL_STOCK_CHECK_START">http://47.107.93.138:8081/api/stockCheckServe</string>
+    <string name="URL_STOCK_IN_SUBMIT">http://47.107.93.138:8081/api/stockInFinsh</string>
+    <string name="URL_STOCK_OUT_SUBMIT">http://47.107.93.138:8081/api/stockOutFinsh</string>
+    <string name="URL_STOCK_CHANGE_SUBMIT">http://47.107.93.138:8081/api/stockMoveFinsh</string>
+    <string name="URL_STOCK_CHECK_SUBMIT">http://47.107.93.138:8081/api/stockCheckFinsh</string>
+    <string name="URL_WARE_HOUSE_LIST">http://47.107.93.138:8081/api/warehouseList</string>
+    <string name="URL_AREA_SHELF_LIST">http://47.107.93.138:8081/api/areaAndShelfList</string>
+    <string name="URL_LARER">http://47.107.93.138:8081/api/larerList</string>
 
     <!--应用-->
     <string name="app_name">SmartStore</string>
@@ -74,6 +87,7 @@
     <string name="item_stock_check_detail_num">数量</string>
     <string name="stock_search">查询</string>
     <string name="stock_user">用户</string>
+    <string name="item_stock_warehouse">仓库</string>
 
     <!-- 标题栏 -->
     <string name="title_stock_in"> &#160;入库任务列表</string>
@@ -83,5 +97,9 @@
     <string name="title_unover">&#160; 未完成任务列表</string>
     <string name="title_over">&#160; 已完成任务列表</string>
 
+    <!-- location -->
+    <string name="shelf">货架</string>
+    <string name="area">货区</string>
+    <string name="layer">内层</string>
 
 </resources>

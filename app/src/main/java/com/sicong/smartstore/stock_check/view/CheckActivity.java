@@ -16,6 +16,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_check.adapter.CheckDetailAdapter;
@@ -33,10 +34,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import static com.alibaba.fastjson.JSON.parseArray;
+import static com.alibaba.fastjson.JSON.toJSONString;
 import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
 public class CheckActivity extends AppCompatActivity {
     //常量
+    public static final MediaType JSON
+            = MediaType.parse("application/json; charset=utf-8");
     private static final String TAG = "CheckActivity";
     private String model = "U6";
 
@@ -50,6 +61,8 @@ public class CheckActivity extends AppCompatActivity {
     private static final int SUBMIT_FAIL = 5;
     private static final int SUBMIT_ERROR = 6;
 
+    private static final int WAREHOUSE_SUCCESS = 7;
+
     //视图
     private RecyclerView detailStockCheckView;
     private RecyclerView scanInfoView;
@@ -57,6 +70,7 @@ public class CheckActivity extends AppCompatActivity {
     private AppCompatButton btnStop;
     private AppCompatButton btnReset;
     private AppCompatButton btnSubmit;
+    private TextView wareHouse;
 
     private CoordinatorLayout snackbarContainer;//Snackbar的容器
 
@@ -65,10 +79,13 @@ public class CheckActivity extends AppCompatActivity {
     //数据
     private List<Map<String, Object>> detailMaps;
     private List<Map<String, String>> scanMaps;
+    private List<Map<String, String>> scanDatas;
 
     private String check;
     private String company;
     private String username;
+
+    private String position;
 
     private int curItem;
 
@@ -84,6 +101,7 @@ public class CheckActivity extends AppCompatActivity {
     //线程
     private Thread detailThread;
     private Thread submitThread;
+    private Thread wareHouseThread;
 
 
     //广播
@@ -135,6 +153,7 @@ public class CheckActivity extends AppCompatActivity {
         btnStop = findViewById(R.id.check_btn_stop);
         btnReset = findViewById(R.id.check_btn_reset);
         btnSubmit = findViewById(R.id.check_btn_submit);
+        wareHouse = findViewById(R.id.check_position);
 
         snackbarContainer = findViewById(R.id.check_scan_snackbar_container);
 
@@ -169,7 +188,9 @@ public class CheckActivity extends AppCompatActivity {
                     case check_ERROR:
                         Snackbar.make(snackbarContainer, "获取出库信息异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
-
+                    case WAREHOUSE_SUCCESS:
+                        wareHouse.setText(position);
+                        break;
                 }
                 return false;
             }
@@ -185,6 +206,7 @@ public class CheckActivity extends AppCompatActivity {
         U6Series.setContext(this);
         mUSeries = U6Series.getInstance();
         mUSeries.openSerialPort(model);
+        scanDatas = new ArrayList<>();
 
         Intent intent = getIntent();
         if (intent.hasExtra("check")) {
@@ -196,7 +218,7 @@ public class CheckActivity extends AppCompatActivity {
         if (intent.hasExtra("username")) {
             username = intent.getStringExtra("username");
         }
-        if (intent.hasExtra("id")){
+        if (intent.hasExtra("id")) {
             idFromIntent = intent.getStringExtra("id");
         }
     }
@@ -210,11 +232,12 @@ public class CheckActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.e(TAG, "onClick: start", null);
                 curItem = checkDetailAdapter.getCurItem();
-                Log.e(TAG, "onClick: curItem is "+curItem, null);
+                Log.e(TAG, "onClick: curItem is " + curItem, null);
 
-                if(curItem!=-1) {
+                if (curItem != -1) {
                     setBtnStatus(false, true, true, true);
                     getRfidCode();
+                    startScanThread();
                 } else {
                     Snackbar.make(snackbarContainer, "请选择需要扫描的条目", Snackbar.LENGTH_SHORT).show();
                 }
@@ -238,7 +261,6 @@ public class CheckActivity extends AppCompatActivity {
     }
 
 
-
     /**
      * 初始化重置扫描按钮
      */
@@ -256,7 +278,8 @@ public class CheckActivity extends AppCompatActivity {
     private void reset() {
         mUSeries.stopInventory();
         scanInfoAdapter.clear();
-        InventoryTaps.clear();
+        if (InventoryTaps != null)
+            InventoryTaps.clear();
     }
 
     /**
@@ -267,7 +290,7 @@ public class CheckActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isNetworkAvailable(CheckActivity.this)) {
-                    if(checkResult()) {
+                    if (checkResult()) {
                         startSubmitThread();
                     } else {
                         Snackbar.make(snackbarContainer, "存在未扫描完成的条目，请检查", Snackbar.LENGTH_SHORT).show();
@@ -282,17 +305,18 @@ public class CheckActivity extends AppCompatActivity {
     private boolean checkResult() {
         int n = 0;
         for (int i = 0; i < detailMaps.size(); i++) {
-            int num = Integer.valueOf((String)detailMaps.get(i).get("num"));
-            int count = (Integer)detailMaps.get(i).get("count");
-            if(num==count) {
+            int num = Integer.valueOf(detailMaps.get(i).get("num").toString());
+            int count = (Integer) detailMaps.get(i).get("count");
+            if (num == count) {
                 n++;
             }
         }
-        if(n == detailMaps.size()) {
+        if (n == detailMaps.size()) {
             return true;
         }
         return false;
     }
+
     /**
      * 开始扫描
      */
@@ -310,7 +334,7 @@ public class CheckActivity extends AppCompatActivity {
             public void onSuccess(String msg, Object data, byte[] parameters) {
                 Log.e(TAG, "onSuccess: 启动了", null);
 
-                if(!((boolean)checkDetailAdapter.getmList().get(curItem).get("over"))) {
+                if (!((boolean) checkDetailAdapter.getmList().get(curItem).get("over"))) {
                     List<Tag> InventoryOnceResult = (List<Tag>) data;//一次扫描到的数据，因为不排除扫描到周围其他物体的可能性，故用数组接收结果，但是数组内部已做好对其他数组的过滤
 
                     //对扫描结果进行筛选
@@ -329,6 +353,22 @@ public class CheckActivity extends AppCompatActivity {
                             count++;
                             detailMap.put("count", count);
                             detailMaps.set(curItem, detailMap);
+
+                            if (scanDatas.get(curItem).containsKey("rfids")) {
+                                List<Map> scanRfids = parseArray(scanDatas.get(curItem).get("rfids"), Map.class);
+                                Map temp = new HashMap();
+                                temp.put("rfid",map.epc);
+                                scanRfids.add(temp);
+                                scanDatas.get(curItem).put("rfids", toJSONString(scanRfids));
+                                Log.e(TAG, scanDatas.toString(), null);
+                            }else{
+                                List<Map<String, String>> list = new ArrayList<>();
+                                Map<String,String> temp = new HashMap<>();
+                                temp.put("rfid", map.epc);
+                                list.add(temp);
+                                scanDatas.get(curItem).put("rfids", toJSONString(list));
+                                Log.e(TAG, scanDatas.toString(), null);
+                            }
 
                             //更新视图
                             scanInfoAdapter.insert(scanMap);
@@ -394,17 +434,20 @@ public class CheckActivity extends AppCompatActivity {
                 Log.w(TAG, "run: submit", null);
                 try {
                     //发送的信息
-                    Map<String,String> msg = new HashMap<String, String>();
+                    Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
-                    msg.put("company", company);
+                    msg.put("companyId", company);
                     msg.put("username", username);
+                    msg.put("items",toJSONString(scanDatas));
+                    msg.put("id",idFromIntent);
+                    Log.e(TAG, msg.toString(), null);
 
-                    //用于接收的对象
-                    List<Map<String, String>> maps = new ArrayList<Map<String, String>>();
+                    List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
 
                     //发出请求
                     RestTemplate restTemplate = new RestTemplate();
-                    //restTemplate.postForObject(URL_SUBMIT,check,);
+                    maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_CHECK_SUBMIT), msg, maps.getClass());
+                    Log.e(TAG, maps.toString(), null);
 
                     //处理请求的数据
 
@@ -421,10 +464,11 @@ public class CheckActivity extends AppCompatActivity {
      * 启动详细信息线程
      */
     private void startDetailThread() {
+        scanDatas.clear();
+        Log.e(TAG, "run startDetailThread", null);
         detailThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.w(TAG, "run: detail", null);
                 try {
                     //发送的信息
                     Map<String, String> msg = new HashMap<String, String>();
@@ -439,6 +483,7 @@ public class CheckActivity extends AppCompatActivity {
                     //发出请求
                     RestTemplate restTemplate = new RestTemplate();
                     maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_CHECK_DETAIL), msg, maps.getClass());
+                    Log.e(TAG, maps.toString(), null);
 
 
                     //处理请求的数据
@@ -448,6 +493,10 @@ public class CheckActivity extends AppCompatActivity {
                             mapTmp.put("count", 0);
                             mapTmp.put("over", false);
                             maps.set(i, mapTmp);
+
+                            Map<String, String> map = new HashMap<>();
+                            map.put("item_id", mapTmp.get("item_id").toString());
+                            scanDatas.add(map);
                         }
                         detailMaps.clear();
                         detailMaps.addAll(maps);
@@ -465,6 +514,73 @@ public class CheckActivity extends AppCompatActivity {
     }
 
     /**
+     * 启动详细信息线程
+     */
+    private void startWareHouseDetailThread() {
+        Log.e(TAG, "run startWareHouseDetailThread", null);
+        wareHouseThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    //发送的信息
+                    Map<String, String> msg = new HashMap<String, String>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+                    msg.put("id", idFromIntent);
+
+                    //用于接收的对象
+                    List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
+
+                    //发出请求
+                    RestTemplate restTemplate = new RestTemplate();
+                    maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_CHECK_WAREHOUSE_DETAIL), msg, maps.getClass());
+                    Log.e(TAG, maps.toString(), null);
+
+                    position = maps.get(0).get("name").toString();
+
+                    handler.sendEmptyMessage(WAREHOUSE_SUCCESS);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    handler.sendEmptyMessage(check_ERROR);
+                }
+            }
+        });
+        wareHouseThread.start();
+    }
+
+    private void startScanThread() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
+                    Map<String, String> msg = new HashMap<>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+                    msg.put("id", idFromIntent);
+
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_STOCK_CHECK_START))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+
+                    Log.e(TAG, "this is start:" + result, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    /**
      * 初始化网络广播
      */
     private void initNetBoardcastReceiver() {
@@ -473,8 +589,9 @@ public class CheckActivity extends AppCompatActivity {
             netBroadcastReceiver.setNetChangeListern(new NetBroadcastReceiver.NetChangeListener() {
                 @Override
                 public void onChangeListener(boolean status) {
-                    if(status) {
+                    if (status) {
                         startDetailThread();
+                        startWareHouseDetailThread();
                     } else {
                         Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
                     }
@@ -489,7 +606,7 @@ public class CheckActivity extends AppCompatActivity {
     /**
      * 设置四个按钮的可用性
      */
-    private void setBtnStatus(boolean start, boolean stop, boolean reset, boolean submit){
+    private void setBtnStatus(boolean start, boolean stop, boolean reset, boolean submit) {
         btnStart.setEnabled(start);
         btnStop.setEnabled(stop);
         btnReset.setEnabled(reset);

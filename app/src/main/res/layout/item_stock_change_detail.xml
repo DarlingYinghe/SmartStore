@@ -10,8 +10,8 @@
         android:layout_height="wrap_content"
         android:text="@string/cargo_name"
         android:textColor="@color/black"
-        android:textSize="15sp"
-        app:layout_constraintHorizontal_weight="3"
+        android:textSize="13sp"
+        app:layout_constraintHorizontal_weight="2"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@id/item_stock_change_detail_num" />
 
@@ -21,21 +21,11 @@
         android:layout_height="wrap_content"
         android:text="@string/item_stock_out_detail_num"
         android:textColor="@color/black"
-        android:textSize="15sp"
-        app:layout_constraintHorizontal_weight="3"
+        android:textSize="13sp"
+        app:layout_constraintHorizontal_weight="1"
         app:layout_constraintLeft_toRightOf="@id/item_stock_change_detail_name"
-        app:layout_constraintRight_toLeftOf="@id/item_stock_change_detail_out_position" />
-
-    <TextView
-        android:id="@+id/item_stock_change_detail_out_position"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/item_stock_change_detail_position_out"
-        android:textColor="@color/black"
-        android:textSize="15sp"
-        app:layout_constraintHorizontal_weight="2"
-        app:layout_constraintLeft_toRightOf="@id/item_stock_change_detail_num"
         app:layout_constraintRight_toLeftOf="@id/item_stock_change_detail_in_position" />
+
 
     <TextView
         android:id="@+id/item_stock_change_detail_in_position"
@@ -43,9 +33,10 @@
         android:layout_height="wrap_content"
         android:text="@string/item_stock_change_detail_position_in"
         android:textColor="@color/black"
-        android:textSize="15sp"
+        android:textSize="13sp"
         app:layout_constraintHorizontal_weight="2"
-        app:layout_constraintLeft_toRightOf="@id/item_stock_change_detail_out_position"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintLeft_toRightOf="@id/item_stock_change_detail_num"
+        app:layout_constraintRight_toRightOf="parent"
+        android:gravity="center"/>
 
 </android.support.constraint.ConstraintLayout>

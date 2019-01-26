@@ -27,7 +27,7 @@ public class CheckDetailAdapter extends RecyclerView.Adapter {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_stock_out_detail, parent, false));
+        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.item_stock_check_detail, parent, false));
     }
 
     @Override
@@ -39,8 +39,8 @@ public class CheckDetailAdapter extends RecyclerView.Adapter {
         if(map.get("count")==map.get("num")) {
             map.put("over", true);
         }
-        String name = (String)map.get("name");
-        String pos = (String)map.get("position");
+        String name = (String)map.get("product_name");
+        String pos = (String)map.get("warehouse_name");
         String num = map.get("count")+"/"+map.get("num");
 
 
@@ -87,9 +87,9 @@ public class CheckDetailAdapter extends RecyclerView.Adapter {
 
         public ViewHolder(View itemView) {
             super(itemView);
-            name = (TextView) itemView.findViewById(R.id.item_stock_out_detail_name);
-            position = (TextView)itemView.findViewById(R.id.item_stock_out_detail_position);
-            num = (TextView)itemView.findViewById(R.id.item_stock_out_detail_num);
+            name = (TextView) itemView.findViewById(R.id.item_stock_check_detail_name);
+            position = (TextView)itemView.findViewById(R.id.item_stock_check_detail_position);
+            num = (TextView)itemView.findViewById(R.id.item_stock_check_detail_num);
         }
     }
 

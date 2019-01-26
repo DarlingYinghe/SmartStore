@@ -48,6 +48,7 @@ public class ChangeFragment extends Fragment {
     private String username;
     private List<Map<String,String>> stockChangeList;
 
+
     //视图
     private View view;
     private RecyclerView stockChangeListView;
@@ -165,7 +166,7 @@ public class ChangeFragment extends Fragment {
                     //发送的请求
                     RestTemplate restTemplate = new RestTemplate();
                     maps = restTemplate.postForObject(getContext().getResources().getString(R.string.URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST), msg, maps.getClass());
-
+                    Log.e(TAG, maps.toString(), null);
                     //处理请求的数据
                     if (maps == null) {
                         handler.sendEmptyMessage(FAIL);

@@ -16,6 +16,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_change.adapter.ChangeDetailAdapter;
@@ -34,11 +38,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import static com.alibaba.fastjson.JSON.parseArray;
+import static com.alibaba.fastjson.JSON.parseObject;
+import static com.alibaba.fastjson.JSON.toJSONString;
 import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
 public class ChangeActivity extends AppCompatActivity {
 
     //常量
+    public static final MediaType JSON
+            = MediaType.parse("application/json; charset=utf-8");
     private static final String TAG = "ChangeActivity";
     private String model = "U6";
 
@@ -52,6 +67,13 @@ public class ChangeActivity extends AppCompatActivity {
     private static final int SUBMIT_FAIL = 5;
     private static final int SUBMIT_ERROR = 6;
 
+    private static final int WAREHOUSE_SUCCESS = 7;
+    private static final int WAREHOUSE_FAIL = 8;
+    private static final int WAREHOUSE_ERROR = 9;
+
+    private static final int LOCATION_SUCCESS = 10;
+    private static final int LAYER_SUCCESS = 11;
+
     //视图
     private RecyclerView detailStockChangeView;
     private RecyclerView scanInfoView;
@@ -59,15 +81,31 @@ public class ChangeActivity extends AppCompatActivity {
     private AppCompatButton btnStop;
     private AppCompatButton btnReset;
     private AppCompatButton btnSubmit;
+    private TextView changeFrom;
+    private TextView changeTo;
+    private TextView areaText;
+    private TextView shelfText;
+
+    private View areaView;
+    private View shelfView;
+    private View layerView;
+    private TextView areaName;
+    private TextView shelfName;
+    private TextView layerName;
+    private Spinner spinnerArea;
+    private Spinner spinnerShelf;
+    private Spinner spinnerLayer;
+
 
     private CoordinatorLayout snackbarContainer;//Snackbar的容器
 
 
     private Handler handler;
-    
+
     //数据
     private List<Map<String, Object>> detailMaps;
     private List<Map<String, String>> scanMaps;
+    private List<Map<String, String>> scanDatas;
 
     private String check;
     private String company;
@@ -79,14 +117,33 @@ public class ChangeActivity extends AppCompatActivity {
 
     private IUSeries mUSeries;//扫描工具
     private List<String> InventoryTaps;//已扫描RFID集合：已扫描过的rfid码，避免重复
-    
+
+    private String toWareHouse;
+    private String toWareHouseNum;
+    private String fromWareHouse;
+
+    private String area;
+    private String shelf;
+    private String layer;
+    private List<String> shelfList;
+    private List<String> shelfNumList;
+    private List<String> areaList;
+    private List<String> areaNumList;
+    private List<String> layerList;
+    private List<String> layerNumList;
+
     //适配器
     private ChangeDetailAdapter changeDetailAdapter;
     private ChangeScanAdapter scanInfoAdapter;
-    
+
+    private ArrayAdapter<String> areaAdapter;//货区名称适配器
+    private ArrayAdapter<String> shelfAdapter;//货架名称适配器
+    private ArrayAdapter<String> layerAdapter;//货架名称适配器
+
     //线程
     private Thread detailThread;
     private Thread submitThread;
+    private Thread wareHouseThread;
 
     //广播
     private NetBroadcastReceiver netBroadcastReceiver;
@@ -110,7 +167,74 @@ public class ChangeActivity extends AppCompatActivity {
 
         initBtnStatus();//初始化按钮状态
 
+        initSpinner();
+        initText();
 
+    }
+
+    private void initText() {
+        areaName.setText(R.string.area);
+        layerName.setText(R.string.layer);
+        shelfName.setText(R.string.shelf);
+    }
+
+    private void initSpinner() {
+        shelfList = new ArrayList<>();
+        areaList = new ArrayList<>();
+        layerList = new ArrayList<>();
+
+        //初始化货区名称选择器
+        areaAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, areaList);
+        areaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerArea.setAdapter(areaAdapter);
+        spinnerArea.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                area = areaList.get(position);
+                Log.e(TAG, "onItemSelected: area is " + area, null);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //初始化货架名称选择器
+        shelfAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, shelfList);
+        shelfAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerShelf.setAdapter(shelfAdapter);
+        spinnerShelf.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                shelf = shelfList.get(position);
+                Log.e(TAG, "onItemSelected: shelf is " + shelf, null);
+                getLarerListThread();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //初始化货架内层名称选择器
+        layerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, layerList);
+        layerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerLayer.setAdapter(layerAdapter);
+        spinnerLayer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                layer = layerList.get(position);
+                Log.e(TAG, "onItemSelected: layer is " + layerNumList.get(position), null);
+                getLarerListThread();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
     @Override
@@ -157,7 +281,21 @@ public class ChangeActivity extends AppCompatActivity {
                     case DETAIL_ERROR:
                         Snackbar.make(snackbarContainer, "获取出库信息异常", Snackbar.LENGTH_SHORT).show();
                         break;
-
+                    case WAREHOUSE_SUCCESS:
+                        changeFrom.setText(fromWareHouse);
+                        changeTo.setText(toWareHouse);
+                        getAreaAndShelfListThread();
+                        break;
+                    case LOCATION_SUCCESS:
+                        areaAdapter.notifyDataSetChanged();
+                        spinnerArea.setSelection(0, true);
+                        shelfAdapter.notifyDataSetChanged();
+                        spinnerShelf.setSelection(0, true);
+                        break;
+                    case LAYER_SUCCESS:
+                        layerAdapter.notifyDataSetChanged();
+                        spinnerLayer.setSelection(0, true);
+                        break;
                 }
                 return false;
             }
@@ -175,8 +313,23 @@ public class ChangeActivity extends AppCompatActivity {
         btnStop = findViewById(R.id.change_btn_stop);
         btnReset = findViewById(R.id.change_btn_reset);
         btnSubmit = findViewById(R.id.change_btn_submit);
-        
+
+        changeFrom = findViewById(R.id.change_from);
+        changeTo = findViewById(R.id.change_to);
+
         snackbarContainer = findViewById(R.id.change_scan_snackbar_container);
+
+
+        areaView = findViewById(R.id.change_spinner_area);
+        shelfView = findViewById(R.id.change_spinner_shelf);
+        layerView = findViewById(R.id.change_spinner_layer);
+
+        shelfName = shelfView.findViewById(R.id.item_choose_tv);
+        areaName = areaView.findViewById(R.id.item_choose_tv);
+        layerName = layerView.findViewById(R.id.item_choose_tv);
+        spinnerArea = areaView.findViewById(R.id.item_choose_type);
+        spinnerShelf = shelfView.findViewById(R.id.item_choose_type);
+        spinnerLayer = layerView.findViewById(R.id.item_choose_type);
     }
 
     /**
@@ -188,6 +341,7 @@ public class ChangeActivity extends AppCompatActivity {
         U6Series.setContext(this);
         mUSeries = U6Series.getInstance();
         mUSeries.openSerialPort(model);
+        scanDatas = new ArrayList<>();
 
         Intent intent = getIntent();
         if (intent.hasExtra("check")) {
@@ -199,7 +353,7 @@ public class ChangeActivity extends AppCompatActivity {
         if (intent.hasExtra("username")) {
             username = intent.getStringExtra("username");
         }
-        if (intent.hasExtra("id")){
+        if (intent.hasExtra("id")) {
             idFromIntent = intent.getStringExtra("id");
         }
     }
@@ -213,11 +367,12 @@ public class ChangeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.e(TAG, "onClick: start", null);
                 curItem = changeDetailAdapter.getCurItem();
-                Log.e(TAG, "onClick: curItem is "+curItem, null);
+                Log.e(TAG, "onClick: curItem is " + curItem, null);
 
-                if(curItem!=-1) {
+                if (curItem != -1) {
                     setBtnStatus(false, true, true, true);
                     getRfidCode();
+                    startScanThread();
                 } else {
                     Snackbar.make(snackbarContainer, "请选择需要扫描的条目", Snackbar.LENGTH_SHORT).show();
                 }
@@ -257,7 +412,8 @@ public class ChangeActivity extends AppCompatActivity {
     private void reset() {
         mUSeries.stopInventory();
         scanInfoAdapter.clear();
-        InventoryTaps.clear();
+        if (InventoryTaps != null)
+            InventoryTaps.clear();
     }
 
     /**
@@ -268,7 +424,7 @@ public class ChangeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isNetworkAvailable(ChangeActivity.this)) {
-                    if(checkResult()) {
+                    if (checkResult()) {
                         startSubmitThread();
                     } else {
                         Snackbar.make(snackbarContainer, "存在未扫描完成的条目，请检查", Snackbar.LENGTH_SHORT).show();
@@ -283,18 +439,17 @@ public class ChangeActivity extends AppCompatActivity {
     private boolean checkResult() {
         int n = 0;
         for (int i = 0; i < detailMaps.size(); i++) {
-            int num = Integer.valueOf((String)detailMaps.get(i).get("num"));
-            int count = (Integer)detailMaps.get(i).get("count");
-            if(num==count) {
+            int num = Integer.valueOf(detailMaps.get(i).get("num").toString());
+            int count = (Integer) detailMaps.get(i).get("count");
+            if (num == count) {
                 n++;
             }
         }
-        if(n==detailMaps.size()) {
+        if (n == detailMaps.size()) {
             return true;
         }
         return false;
     }
-
 
 
     /**
@@ -348,7 +503,7 @@ public class ChangeActivity extends AppCompatActivity {
             @Override
             public void onSuccess(String msg, Object data, byte[] parameters) {
                 Log.e(TAG, "onSuccess: 启动了", null);
-                if(!((boolean)changeDetailAdapter.getmList().get(curItem).get("over"))) {
+                if (!((boolean) changeDetailAdapter.getmList().get(curItem).get("over"))) {
 
                     List<Tag> InventoryOnceResult = (List<Tag>) data;//一次扫描到的数据，因为不排除扫描到周围其他物体的可能性，故用数组接收结果，但是数组内部已做好对其他数组的过滤
 
@@ -364,6 +519,26 @@ public class ChangeActivity extends AppCompatActivity {
                             scanMap.put("rfid", map.epc);
 
                             Map<String, Object> detailMap = detailMaps.get(curItem);
+                            Log.e("Change is:", detailMap.toString(), null);
+
+                            if (scanDatas.get(curItem).containsKey("rfids")) {
+                                List<Map> scanRfids = parseArray(scanDatas.get(curItem).get("rfids"), Map.class);
+                                Map temp = new HashMap();
+                                temp.put("rfid", map.epc);
+                                scanRfids.add(temp);
+                                scanDatas.get(curItem).put("rfids", toJSONString(scanRfids));
+                                Log.e(TAG, scanDatas.toString(), null);
+                            } else {
+                                List<Map<String, String>> list = new ArrayList<>();
+                                Map<String, String> temp = new HashMap<>();
+                                temp.put("rfid", map.epc);
+                                list.add(temp);
+                                scanDatas.get(curItem).put("rfids", toJSONString(list));
+                                Log.e(TAG, scanDatas.toString(), null);
+                            }
+
+                            Log.e(TAG, scanDatas.toString(), null);
+
                             Integer count = (Integer) detailMap.get("count");
                             count++;
                             detailMap.put("count", count);
@@ -398,17 +573,20 @@ public class ChangeActivity extends AppCompatActivity {
                 Log.w(TAG, "run: submit", null);
                 try {
                     //发送的信息
-                    Map<String,String> msg = new HashMap<String, String>();
+                    Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
-                    msg.put("company", company);
+                    msg.put("companyId", company);
                     msg.put("username", username);
+                    msg.put("id", idFromIntent);
+                    msg.put("items", toJSONString(scanDatas));
+                    Log.e(TAG, msg.toString(), null);
 
-                    //用于接收的对象
-                    List<Map<String, String>> maps = new ArrayList<Map<String, String>>();
+                    List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
 
                     //发出请求
                     RestTemplate restTemplate = new RestTemplate();
-                    //restTemplate.postForObject(URL_SUBMIT,check,);
+                    maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_CHECK_SUBMIT), msg, maps.getClass());
+                    Log.e(TAG, maps.toString(), null);
 
                     //处理请求的数据
 
@@ -422,9 +600,43 @@ public class ChangeActivity extends AppCompatActivity {
     }
 
     /**
+     * 开始扫描线程
+     */
+    private void startScanThread() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
+                    Map<String, String> msg = new HashMap<>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+
+
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_STOCK_CHANGE_START))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+
+                    Log.e(TAG, "this is start:" + result, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    /**
      * 启动详细信息线程
      */
     private void startDetailThread() {
+        scanDatas.clear();
         detailThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -434,8 +646,8 @@ public class ChangeActivity extends AppCompatActivity {
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
                     msg.put("username", username);
-                    msg.put("company", company);
-                    msg.put("id",idFromIntent);
+                    msg.put("companyId", company);
+                    msg.put("id", idFromIntent);
 
                     //用于接收的对象
                     List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
@@ -443,15 +655,19 @@ public class ChangeActivity extends AppCompatActivity {
                     //发出请求
                     RestTemplate restTemplate = new RestTemplate();
                     maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_CHANGE_DETAIL), msg, maps.getClass());
-
+                    Log.e(TAG, maps.toString(), null);
 
                     //处理请求的数据
-                    if (maps != null && maps.size()>0) {
+                    if (maps != null && maps.size() > 0) {
                         for (int i = 0; i < maps.size(); i++) {
-                            Map<String,Object> mapTmp = maps.get(i);
+                            Map<String, Object> mapTmp = maps.get(i);
                             mapTmp.put("count", 0);
                             mapTmp.put("over", false);
                             maps.set(i, mapTmp);
+
+                            Map<String, String> map = new HashMap<>();
+                            map.put("item_id", mapTmp.get("item_id").toString());
+                            scanDatas.add(map);
                         }
                         detailMaps.clear();
                         detailMaps.addAll(maps);
@@ -469,6 +685,151 @@ public class ChangeActivity extends AppCompatActivity {
     }
 
     /**
+     * 启动仓库详情线程
+     */
+    private void startWareHouseDetailThread() {
+        wareHouseThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.w(TAG, "run: detail", null);
+                try {
+                    //发送的信息
+                    Map<String, String> msg = new HashMap<String, String>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+                    msg.put("id", idFromIntent);
+
+                    //用于接收的对象
+                    List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
+
+                    //发出请求
+                    RestTemplate restTemplate = new RestTemplate();
+                    maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_CHANGE_WAREHOUSE_DETAIL), msg, maps.getClass());
+                    Log.e(TAG, maps.toString(), null);
+
+                    fromWareHouse = maps.get(0).get("from_warehouse_name").toString();
+                    toWareHouseNum = maps.get(0).get("to_warehouse_id").toString();
+                    toWareHouse = maps.get(0).get("to_warehouse_name").toString();
+
+                    handler.sendEmptyMessage(WAREHOUSE_SUCCESS);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        wareHouseThread.start();
+    }
+
+    /**
+     * 获取仓库内货区列表、货区列表
+     */
+    private void getAreaAndShelfListThread() {
+        shelfNumList = new ArrayList<>();
+        areaNumList = new ArrayList<>();
+        areaList.clear();
+        shelfList.clear();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
+                    Map<String, String> msg = new HashMap<>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+                    msg.put("warehouseId", toWareHouseNum);
+
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_AREA_SHELF_LIST))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+
+                    Log.e(TAG, "this is start:" + result, null);
+                    List<Map> areas = parseArray(parseObject(result).get("areas").toString(), Map.class);
+                    List<Map> shelfs = parseArray(parseObject(result).get("shelfs").toString(), Map.class);
+                    if (shelfs.size() < 1 && areas.size() < 1) {
+
+                    } else {
+                        for (int i = 0; i < areas.size(); i++) {
+                            Map map = areas.get(i);
+                            if (map.get("is_locked").toString().equals("false")) {
+                                areaList.add(map.get("no").toString());
+                                areaNumList.add(map.get("id").toString());
+                            }
+                        }
+                        for (int i = 0; i < shelfs.size(); i++) {
+                            Map map = shelfs.get(i);
+                            if (map.get("is_locked").toString().equals("false")) {
+                                shelfList.add(map.get("no").toString());
+                                shelfNumList.add(map.get("id").toString());
+                            }
+                        }
+
+                        handler.sendEmptyMessage(LOCATION_SUCCESS);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * 货架内层列表
+     */
+    private void getLarerListThread() {
+        layerNumList = new ArrayList<>();
+        layerList.clear();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
+                    Map<String, String> msg = new HashMap<>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+                    msg.put("warehouseId", toWareHouseNum);
+                    msg.put("shelfId", shelfNumList.get(spinnerShelf.getSelectedItemPosition()));
+
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_LARER))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+                    List<Map> list = parseArray(result, Map.class);
+
+
+                    if (list.size() < 1) {
+
+                    } else {
+                        for (int i = 0; i < list.size(); i++) {
+                            Map map = list.get(i);
+                            layerList.add(map.get("num").toString());
+                            layerNumList.add(map.get("id").toString());
+                        }
+                        handler.sendEmptyMessage(LAYER_SUCCESS);
+                    }
+
+                    Log.e(TAG, "this is getLarerListThread:" + result, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    /**
      * 初始化网络广播
      */
     private void initNetBoardcastReceiver() {
@@ -477,8 +838,9 @@ public class ChangeActivity extends AppCompatActivity {
             netBroadcastReceiver.setNetChangeListern(new NetBroadcastReceiver.NetChangeListener() {
                 @Override
                 public void onChangeListener(boolean status) {
-                    if(status) {
+                    if (status) {
                         startDetailThread();
+                        startWareHouseDetailThread();
                     } else {
                         Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
                     }
@@ -493,7 +855,7 @@ public class ChangeActivity extends AppCompatActivity {
     /**
      * 设置四个按钮的可用性
      */
-    private void setBtnStatus(boolean start, boolean stop, boolean reset, boolean submit){
+    private void setBtnStatus(boolean start, boolean stop, boolean reset, boolean submit) {
         btnStart.setEnabled(start);
         btnStop.setEnabled(stop);
         btnReset.setEnabled(reset);

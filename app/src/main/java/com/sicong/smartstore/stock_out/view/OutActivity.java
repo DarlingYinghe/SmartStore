@@ -85,6 +85,7 @@ public class OutActivity extends AppCompatActivity {
     private IUSeries mUSeries;//扫描工具
     private List<String> InventoryTaps;//已扫描RFID集合：已扫描过的rfid码，避免重复
     private List<Map<String, String>> scanMaps;//货物对象集合：扫描的所有物品的集合
+    private List<Map<String, String>> scanDatas;
     
     private int curItem;
 
@@ -293,6 +294,7 @@ public class OutActivity extends AppCompatActivity {
                 if(curItem!=-1) {
                     setBtnStatus(false, true, true, true);
                     getRfidCode();
+                    startScanThread();
                 } else {
                     Snackbar.make(snackbarContainer, "请选择需要扫描的条目", Snackbar.LENGTH_SHORT).show();
                 }
@@ -410,6 +412,21 @@ public class OutActivity extends AppCompatActivity {
                         count++;
                         detailMap.put("count", count);
                         detailMaps.set(curItem, detailMap);
+                        if (scanDatas.get(curItem).containsKey("rfids")) {
+                            List<Map> scanRfids = parseArray(scanDatas.get(curItem).get("rfids"), Map.class);
+                            Map temp = new HashMap();
+                            temp.put("rfid",map.epc);
+                            scanRfids.add(temp);
+                            scanDatas.get(curItem).put("rfids", toJSONString(scanRfids));
+                            Log.e(TAG, scanDatas.toString(), null);
+                        }else{
+                            List<Map<String, String>> list = new ArrayList<>();
+                            Map<String,String> temp = new HashMap<>();
+                            temp.put("rfid", map.epc);
+                            list.add(temp);
+                            scanDatas.get(curItem).put("rfids", toJSONString(list));
+                            Log.e(TAG, scanDatas.toString(), null);
+                        }
 
                         //更新视图
                         scanInfoAdapter.insert(scanMap);
@@ -484,6 +501,36 @@ public class OutActivity extends AppCompatActivity {
         clientThread.start();
     }
 
+    private void startScanThread() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
+                    Map<String, String> msg = new HashMap<>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+                    msg.put("id", idFromIntent);
+
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_STOCK_OUT_START))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+
+                    Log.e(TAG, "this is start:" + result, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
     /**
      * 启动提交线程
      */
@@ -499,13 +546,15 @@ public class OutActivity extends AppCompatActivity {
                     msg.put("check", check);
                     msg.put("companyId", company);
                     msg.put("username", username);
+                    msg.put("items",toJSONString(scanDatas));
+                    Log.e(TAG, msg.toString(), null);
 
-                    //用于接收的对象
-                    List<Map<String, String>> maps = new ArrayList<Map<String, String>>();
+                    List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
 
                     //发出请求
                     RestTemplate restTemplate = new RestTemplate();
-                    //restTemplate.postForObject(URL_SUBMIT,check,);
+                    maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_OUT_SUBMIT), msg, maps.getClass());
+                    Log.e(TAG, maps.toString(), null);
 
                     //处理请求的数据
 

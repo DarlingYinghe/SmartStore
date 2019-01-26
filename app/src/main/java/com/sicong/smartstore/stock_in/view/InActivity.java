@@ -34,6 +34,7 @@ import com.sicong.smartstore.util.fn.u6.operation.IUSeries;
 import com.sicong.smartstore.util.fn.u6.operation.U6Series;
 import com.sicong.smartstore.util.network.NetBroadcastReceiver;
 
+import org.litepal.util.LogUtil;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.Serializable;
@@ -49,6 +50,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import static com.alibaba.fastjson.JSON.parseArray;
+import static com.alibaba.fastjson.JSON.parseObject;
 import static com.alibaba.fastjson.JSON.toJSONString;
 import static com.sicong.smartstore.util.network.Network.isNetworkAvailable;
 
@@ -73,6 +75,17 @@ public class InActivity extends AppCompatActivity {
     private static final int NAME_FAIL = 5;
     private static final int NAME_ERROR = 6;
 
+    private static final int SCAN_SUCCESS = 7;
+    private static final int SCAN_FAIL = 8;
+    private static final int SCAN_ERROR = 9;
+
+    private static final int WAREHOUSE_SUCCESS = 10;
+    private static final int WAREHOUSE_FAIL = 11;
+    private static final int WAREHOUSE_ERROR = 12;
+
+    private static final int LOCATION_SUCCESS = 13;
+    private static final int LAYER_SUCCESS = 16;
+
     //视图
     private AppCompatButton btnStart;//开始扫描按钮
     private AppCompatButton btnStop;//停止扫描按钮
@@ -82,12 +95,28 @@ public class InActivity extends AppCompatActivity {
     private View typeViewFirst;//一级类型选择器的布局视图
     private View typeViewSecond;//二级类型选择器的布局视图
     private View nameView;//货物名称的布局视图
+    private View wareHouseView;//仓库名称的布局视图
+    private View areaView;//位置名称的布局视图
+    private View shelfView;//位置名称的布局视图
+    private View layerView;//位置名称的布局视图
     private TextView textTypeFirst;//一级选择器的标题
     private TextView textTypeSecond;//二级选择器的标题
     private TextView textName;//名称的标题
+    private TextView areaName;//位置名称的布局标题
+    private TextView shelfName;//位置名称的布局标题
+    private TextView wareHouseName;//仓库名称的标题
+    private TextView layerName;//仓库名称的标题
     private Spinner spinnerTypeFirst;//一级类型选择器
     private Spinner spinnerTypeSecond;//二级类型选择器
     private Spinner spinnerName;//货物名称选择器
+    private Spinner spinnerWareHouse;//仓库名称的选择器
+    private Spinner spinnerArea;//位置名称的选择器
+    private Spinner spinnerShelf;//位置名称的选择器
+    private Spinner spinnerLayer;//位置名称的选择器
+
+    private TextView locationShlef;
+    private TextView locationArea;
+
 
     private CoordinatorLayout snackbarContainer;//Snackbar的容器
 
@@ -100,24 +129,44 @@ public class InActivity extends AppCompatActivity {
     private ArrayAdapter<String> typeFirstAdapter;//一级类型适配器
     private ArrayAdapter<String> typeSecondAdapter;//二级类型适配器
     private ArrayAdapter<String> nameAdapter;//货物名称适配器
+    private ArrayAdapter<String> wareHouseAdapter;//货物名称适配器
+    private ArrayAdapter<String> areaAdapter;//货区名称适配器
+    private ArrayAdapter<String> shelfAdapter;//货架名称适配器
+    private ArrayAdapter<String> layerAdapter;//货架名称适配器
+
 
     //数据
     public IUSeries mUSeries;//扫描工具
     private List<String> InventoryTaps = new ArrayList<String>();//已扫描RFID集合：已扫描过的rfid码，避免重复
     private List<Cargo> cargos = new ArrayList<Cargo>();//货物对象集合：扫描的所有物品的集合
+    private List<Map<String, String>> scanDatas;
 
     private String typeFirst;
     private String typeSecond;
     private String name;
+    private String wareHouse;
+    private String area;
+    private String shelf;
+    private String layer;
     private List<String> typeFirstList;
     private List<String> typeSecondList;
     private List<String> nameList;
+    private List<String> wareHouseList;
+    private List<String> wareHouseNumList;
+
 
     private String check;
     private String username;
     private String company;
     private String id;
     private List<Map> typeList;//包含两级类型的集合
+
+    private List<String> shelfList;
+    private List<String> shelfNumList;
+    private List<String> areaList;
+    private List<String> areaNumList;
+    private List<String> layerList;
+    private List<String> layerNumList;
 
     //线程
     private Thread nameThread;
@@ -138,6 +187,7 @@ public class InActivity extends AppCompatActivity {
         setContentView(R.layout.activity_in);
 
         initView();//初始化控件
+        initOnClick();
         initReceive();//初始化接收数据
         initHandler();//初始化Handler
         initUSeries();//初始化所需对象
@@ -152,6 +202,26 @@ public class InActivity extends AppCompatActivity {
         initTextType();//初始化选择器的标题
         initChooseType();//初始化类型选择器
         initScanInfo();//初始化扫描信息视图
+    }
+
+    private void initOnClick() {
+        locationShlef.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                areaView.setVisibility(View.GONE);
+                layerView.setVisibility(View.VISIBLE);
+                shelfView.setVisibility(View.VISIBLE);
+            }
+        });
+
+        locationArea.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                areaView.setVisibility(View.VISIBLE);
+                layerView.setVisibility(View.GONE);
+                shelfView.setVisibility(View.GONE);
+            }
+        });
     }
 
     @Override
@@ -201,7 +271,27 @@ public class InActivity extends AppCompatActivity {
                     case NAME_ERROR:
                         Snackbar.make(snackbarContainer, "请求货物名称数据异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
                         break;
+                    case WAREHOUSE_SUCCESS:
+                        wareHouseAdapter.notifyDataSetChanged();
+                        spinnerWareHouse.setSelection(0, true);
 
+                        break;
+                    case WAREHOUSE_FAIL:
+                        Snackbar.make(snackbarContainer, "请求仓库名称数据失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
+                        break;
+                    case WAREHOUSE_ERROR:
+                        Snackbar.make(snackbarContainer, "请求仓库名称数据异常，请稍后再试", Snackbar.LENGTH_SHORT).show();
+                        break;
+                    case LOCATION_SUCCESS:
+                        areaAdapter.notifyDataSetChanged();
+                        spinnerArea.setSelection(0, true);
+                        shelfAdapter.notifyDataSetChanged();
+                        spinnerShelf.setSelection(0, true);
+                        break;
+                    case LAYER_SUCCESS:
+                        layerAdapter.notifyDataSetChanged();
+                        spinnerLayer.setSelection(0, true);
+                        break;
                 }
                 return false;
             }
@@ -209,6 +299,9 @@ public class InActivity extends AppCompatActivity {
     }
 
     private void initReceive() {
+
+        scanDatas = new ArrayList<>();
+
         Intent intent = getIntent();
         if (intent.hasExtra("check")) {
             check = intent.getStringExtra("check");
@@ -238,16 +331,32 @@ public class InActivity extends AppCompatActivity {
         typeViewFirst = (View) findViewById(R.id.scan_type_first);
         typeViewSecond = (View) findViewById(R.id.scan_type_second);
         nameView = (View) findViewById(R.id.scan_name);
+        wareHouseView = findViewById(R.id.scan_warehouse);
+        areaView = findViewById(R.id.scan_spinner_area);
+        shelfView = findViewById(R.id.scan_spinner_shelf);
+        layerView = findViewById(R.id.scan_spinner_layer);
 
         spinnerTypeFirst = (Spinner) typeViewFirst.findViewById(R.id.item_choose_type);
         spinnerTypeSecond = (Spinner) typeViewSecond.findViewById(R.id.item_choose_type);
         spinnerName = (Spinner) nameView.findViewById(R.id.item_choose_type);
+        spinnerWareHouse = wareHouseView.findViewById(R.id.item_choose_type);
+        spinnerArea = areaView.findViewById(R.id.item_choose_type);
+        spinnerShelf = shelfView.findViewById(R.id.item_choose_type);
+        spinnerLayer = layerView.findViewById(R.id.item_choose_type);
 
         textTypeFirst = (TextView) typeViewFirst.findViewById(R.id.item_choose_tv);
         textTypeSecond = (TextView) typeViewSecond.findViewById(R.id.item_choose_tv);
         textName = (TextView) nameView.findViewById(R.id.item_choose_tv);
+        wareHouseName = (TextView) wareHouseView.findViewById(R.id.item_choose_tv);
+        areaName = (TextView) areaView.findViewById(R.id.item_choose_tv);
+        shelfName = (TextView) shelfView.findViewById(R.id.item_choose_tv);
+        layerName = (TextView) layerView.findViewById(R.id.item_choose_tv);
+
 
         scanInfoView = (RecyclerView) findViewById(R.id.scan_info_view);
+
+        locationShlef = findViewById(R.id.scan_shelf);
+        locationArea = findViewById(R.id.scan_area);
 
         snackbarContainer = (CoordinatorLayout) findViewById(R.id.in_scan_snackbar_container);
     }
@@ -272,6 +381,10 @@ public class InActivity extends AppCompatActivity {
         textTypeFirst.setText(R.string.type_first);
         textTypeSecond.setText(R.string.type_second);
         textName.setText(R.string.name);
+        wareHouseName.setText(R.string.item_stock_warehouse);
+        shelfName.setText(R.string.shelf);
+        areaName.setText(R.string.area);
+        layerName.setText(R.string.layer);
     }
 
     /**
@@ -282,6 +395,12 @@ public class InActivity extends AppCompatActivity {
         typeFirstList = new ArrayList<String>();
         typeSecondList = new ArrayList<String>();
         nameList = new ArrayList<String>();
+        wareHouseList = new ArrayList<>();
+        wareHouseNumList = new ArrayList<>();
+        areaList = new ArrayList<>();
+        shelfList = new ArrayList<>();
+        layerList = new ArrayList<>();
+
         setTypeFirstList();
         //在确保typeFirstList可用的情况下对typeSecondList进行初始化
         if (typeFirstList != null && typeFirstList.size() > 0) {
@@ -360,6 +479,76 @@ public class InActivity extends AppCompatActivity {
 
             }
         });
+
+        //初始化仓库名称选择器
+        wareHouseAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, wareHouseList);
+        wareHouseAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerWareHouse.setAdapter(wareHouseAdapter);
+        spinnerWareHouse.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                wareHouse = wareHouseList.get(position);
+                Log.e(TAG, "onItemSelected: wareHouse is " + wareHouse, null);
+                getAreaAndShelfListThread();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //初始化货区名称选择器
+        areaAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, areaList);
+        areaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerArea.setAdapter(areaAdapter);
+        spinnerArea.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                area = areaList.get(position);
+                Log.e(TAG, "onItemSelected: area is " + area, null);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //初始化货架名称选择器
+        shelfAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, shelfList);
+        shelfAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerShelf.setAdapter(shelfAdapter);
+        spinnerShelf.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                shelf = shelfList.get(position);
+                Log.e(TAG, "onItemSelected: shelf is " + shelf, null);
+                getLarerListThread();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //初始化货架内层名称选择器
+        layerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, layerList);
+        layerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerLayer.setAdapter(layerAdapter);
+        spinnerLayer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                layer = layerList.get(position);
+                Log.e(TAG, "onItemSelected: layer is " + layerNumList.get(position), null);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
 
@@ -389,6 +578,7 @@ public class InActivity extends AppCompatActivity {
                     Snackbar.make(snackbarContainer, "请先选择类型", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
+                startScanThread();
                 Log.e(TAG, "onClick: start", null);
                 setBtnStatus(false, true, true, true);
                 getRfidCode();
@@ -480,6 +670,7 @@ public class InActivity extends AppCompatActivity {
                             //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
                             InventoryTaps.add(map.epc);
 
+
                             //创建新的货物对象
                             Cargo cargo = new Cargo();
 
@@ -511,7 +702,6 @@ public class InActivity extends AppCompatActivity {
     public void stopRfidCode() {
         Log.e(TAG, "stopRfidCode", null);
         mUSeries.stopInventory();
-
     }
 
     /**
@@ -705,6 +895,199 @@ public class InActivity extends AppCompatActivity {
     }
 
     /**
+     * 获取仓库列表线程
+     */
+    public void getWareHouseListThread() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
+                    Map<String, String> msg = new HashMap<>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_WARE_HOUSE_LIST))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+
+                    Log.e(TAG, result, null);
+                    if (result.equals("[]")) {
+                        handler.sendEmptyMessage(WAREHOUSE_FAIL);
+                    } else {
+                        wareHouseList.clear();
+                        List<Map> mapList = parseArray(result, Map.class);
+                        for (int i = 0; i < mapList.size(); i++) {
+                            Map map = mapList.get(i);
+                            if (map.get("is_locked").toString().equals("false") && map.get("is_deleted").toString().equals("false")) {
+                                wareHouseList.add(map.get("name").toString());
+                                wareHouseNumList.add(map.get("id").toString());
+                            }
+                        }
+                        handler.sendEmptyMessage(WAREHOUSE_SUCCESS);
+                    }
+
+
+                    Log.e(TAG, "this is start:" + result, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    handler.sendEmptyMessage(WAREHOUSE_ERROR);
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * 获取仓库内货区列表、货区列表
+     */
+    private void getAreaAndShelfListThread() {
+        shelfNumList = new ArrayList<>();
+        areaNumList = new ArrayList<>();
+        areaList.clear();
+        shelfList.clear();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
+                    Map<String, String> msg = new HashMap<>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+                    msg.put("warehouseId", wareHouseNumList.get(spinnerWareHouse.getSelectedItemPosition()));
+
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_AREA_SHELF_LIST))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+
+                    Log.e(TAG, "this is start:" + result, null);
+                    List<Map> areas = parseArray(parseObject(result).get("areas").toString(), Map.class);
+                    List<Map> shelfs = parseArray(parseObject(result).get("shelfs").toString(), Map.class);
+                    if (shelfs.size() < 1 && areas.size() < 1) {
+
+                    } else {
+                        for (int i = 0; i < areas.size(); i++) {
+                            Map map = areas.get(i);
+                            if (map.get("is_locked").toString().equals("false")) {
+                                areaList.add(map.get("no").toString());
+                                areaNumList.add(map.get("id").toString());
+                            }
+                        }
+                        for (int i = 0; i < shelfs.size(); i++) {
+                            Map map = shelfs.get(i);
+                            if (map.get("is_locked").toString().equals("false")) {
+                                shelfList.add(map.get("no").toString());
+                                shelfNumList.add(map.get("id").toString());
+                            }
+                        }
+
+                        handler.sendEmptyMessage(LOCATION_SUCCESS);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * 货架内层列表
+     */
+    private void getLarerListThread() {
+        layerNumList = new ArrayList<>();
+        layerList.clear();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
+                    Map<String, String> msg = new HashMap<>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+                    msg.put("warehouseId", wareHouseNumList.get(spinnerWareHouse.getSelectedItemPosition()));
+                    msg.put("shelfId", shelfNumList.get(spinnerShelf.getSelectedItemPosition()));
+
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_LARER))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+                    List<Map> list = parseArray(result, Map.class);
+
+
+                    if (list.size() < 1) {
+
+                    } else {
+                        for (int i = 0; i < list.size(); i++) {
+                            Map map = list.get(i);
+                            layerList.add(map.get("num").toString());
+                            layerNumList.add(map.get("id").toString());
+                        }
+                        handler.sendEmptyMessage(LAYER_SUCCESS);
+                    }
+
+                    Log.e(TAG, "this is getLarerListThread:" + result, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * 开始扫描线程
+     */
+    private void startScanThread() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
+                    Map<String, String> msg = new HashMap<>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+                    msg.put("id", id);
+
+
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_STOCK_IN_START))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+
+                    Log.e(TAG, "this is start:" + result, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+
+    /**
      * 设置一级物品类型数组
      */
     public void setTypeFirstList() {
@@ -746,8 +1129,8 @@ public class InActivity extends AppCompatActivity {
             for (int i = 0; i < typeList.size(); i++) {
                 Map map = typeList.get(i);
                 if (map.get("typeFirst") != null) {
-                    String typeFirstTmp =  map.get("typeFirst").toString();
-                    if (typeFirst.equals(typeFirstTmp) && map.get("typeSeconds")!= null) {
+                    String typeFirstTmp = map.get("typeFirst").toString();
+                    if (typeFirst.equals(typeFirstTmp) && map.get("typeSeconds") != null) {
                         List<String> stringList = (List<String>) map.get("typeSeconds");
                         typeSecondList.addAll(stringList);
                     }
@@ -828,23 +1211,23 @@ public class InActivity extends AppCompatActivity {
                         RequestBody requestBody = RequestBody.create(JSON, toJSONString(map));
                         Request request = new Request.Builder()
                                 .post(requestBody)
-                                .url(getResources().getString(R.string.URL_RECEVICE_TYPE))
+                                .url(getResources().getString(R.string.URL_STOCK_IN_SCAN_NAME))
                                 .build();
 
                         Response response = okHttpClient.newCall(request).execute();
                         String result = response.body().string();
-                        Log.e(TAG+"123", result, null);
+                        Log.e(TAG, result, null);
 
-//                        List<String> nameListTmp = new ArrayList<>();
-//                        if (nameListTmp != null && nameListTmp.size() > 0) {
-//                            nameList.clear();
-//                            nameList.addAll(nameListTmp);
-//                            handler.sendEmptyMessage(NAME_SUCCESS);
-//
-//                            Log.e(TAG, "run: nameList is " + nameList, null);
-//                        } else {
-//                            handler.sendEmptyMessage(NAME_FAIL);
-//                        }
+                        List<String> nameListTmp = parseArray(result, String.class);
+                        if (nameListTmp != null && nameListTmp.size() > 0) {
+                            nameList.clear();
+                            nameList.addAll(nameListTmp);
+                            handler.sendEmptyMessage(NAME_SUCCESS);
+
+                            Log.e(TAG, "run: nameList is " + nameList, null);
+                        } else {
+                            handler.sendEmptyMessage(NAME_FAIL);
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                         handler.sendEmptyMessage(NAME_ERROR);
@@ -885,6 +1268,7 @@ public class InActivity extends AppCompatActivity {
                 public void onChangeListener(boolean status) {
                     if (status) {
                         startReceiveTypeThread();
+                        getWareHouseListThread();
                     } else {
                         Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
                     }
