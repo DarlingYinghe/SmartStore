@@ -47,7 +47,7 @@ public class OutFragment extends Fragment {
     private String company;
     private String username;
 
-    private List<Map<String,String>> stockOutList;
+    private List<Map> stockOutList;
 
 
     //视图
@@ -126,7 +126,7 @@ public class OutFragment extends Fragment {
      * 初始化单号列表
      */
     private void initStockOutListView() {
-        stockOutList = new ArrayList<Map<String,String>>();
+        stockOutList = new ArrayList<>();
 
         outListAdapter = new OutListAdapter(getContext(), stockOutList, check, company, username);
         stockOutListView.setAdapter(outListAdapter);

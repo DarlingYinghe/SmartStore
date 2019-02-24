@@ -143,7 +143,7 @@ public class InFragment extends Fragment {
                     //发送请求
                     RestTemplate restTemplate = new RestTemplate();
                     mapsTmp = restTemplate.postForObject(Url, msg, mapsTmp.getClass());
-                    Log.e(TAG, "run"+mapsTmp.get(0), null);
+                    Log.e(TAG, "run"+mapsTmp.toString(), null);
 
                     if (mapsTmp == null) {
                         handler.sendEmptyMessage(IN_LIST_FAIL);

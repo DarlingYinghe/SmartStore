@@ -11,6 +11,7 @@
     <string name="URL_REQUEST_DATA_FOR_STOCK_CHANGE_LIST">http://47.107.93.138:8081/api/stockMoveList</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_OUT_LIST">http://47.107.93.138:8081/api/stockOutList</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_IN_LIST">http://47.107.93.138:8081/api/stockInList</string>
+    <string name="URL_STOCK_IN_DETAIL">http://47.107.93.138:8081/api/stockInProductInfo</string>
     <string name="URL_STOCK_CHANGE_DETAIL">http://47.107.93.138:8081/api/stockMoveProductInfo</string>
     <string name="URL_STOCK_CHANGE_WAREHOUSE_DETAIL">http://47.107.93.138:8081/api/stockMoveWarehouseInfo</string>
     <string name="URL_REQUEST_DATA_FOR_STOCK_CHECK_LIST">http://47.107.93.138:8081/api/stockCheckList</string>
@@ -21,10 +22,10 @@
     <string name="URL_STOCK_OUT_START">http://47.107.93.138:8081/api/stockOutServe</string>
     <string name="URL_STOCK_CHANGE_START">http://47.107.93.138:8081/api/stockMoveServe</string>
     <string name="URL_STOCK_CHECK_START">http://47.107.93.138:8081/api/stockCheckServe</string>
-    <string name="URL_STOCK_IN_SUBMIT">http://47.107.93.138:8081/api/stockInFinsh</string>
-    <string name="URL_STOCK_OUT_SUBMIT">http://47.107.93.138:8081/api/stockOutFinsh</string>
-    <string name="URL_STOCK_CHANGE_SUBMIT">http://47.107.93.138:8081/api/stockMoveFinsh</string>
-    <string name="URL_STOCK_CHECK_SUBMIT">http://47.107.93.138:8081/api/stockCheckFinsh</string>
+    <string name="URL_STOCK_IN_SUBMIT">http://47.107.93.138:8081/api/stockInFinish</string>
+    <string name="URL_STOCK_OUT_SUBMIT">http://47.107.93.138:8081/api/stockOutFinish</string>
+    <string name="URL_STOCK_CHANGE_SUBMIT">http://47.107.93.138:8081/api/stockMoveFinish</string>
+    <string name="URL_STOCK_CHECK_SUBMIT">http://47.107.93.138:8081/api/stockCheckFinish</string>
     <string name="URL_WARE_HOUSE_LIST">http://47.107.93.138:8081/api/warehouseList</string>
     <string name="URL_AREA_SHELF_LIST">http://47.107.93.138:8081/api/areaAndShelfList</string>
     <string name="URL_LARER">http://47.107.93.138:8081/api/larerList</string>

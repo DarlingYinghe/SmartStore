@@ -58,7 +58,7 @@ public class CheckFragment extends Fragment {
     private String check;
     private String company;
     private String username;
-    private List<Map<String,String>> stockChangeList;
+    private List<Map> stockChangeList;
 
     //视图
     private View view;
@@ -133,7 +133,7 @@ public class CheckFragment extends Fragment {
      * 初始化单号列表
      */
     private void initstockChangeListView() {
-        stockChangeList = new ArrayList<Map<String,String>>();
+        stockChangeList = new ArrayList<>();
 
         stockCheckListAdapter = new CheckListAdapter(getContext(), stockChangeList, check, company, username);
         stockCheckListView.setAdapter(stockCheckListAdapter);

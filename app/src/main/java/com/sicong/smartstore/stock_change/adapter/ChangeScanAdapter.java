@@ -32,7 +32,7 @@ public class ChangeScanAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position) {
         ViewHolder view = (ViewHolder) holder;
-//        view.id.setText(String.valueOf(position+1));
+        view.id.setText(String.valueOf(position+1));
         view.rfid.setText(mList.get(position).get("rfid"));
     }
 

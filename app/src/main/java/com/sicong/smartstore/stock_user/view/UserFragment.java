@@ -10,6 +10,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -187,13 +188,15 @@ public class UserFragment extends Fragment {
                 try {
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("username", username);
-                    msg.put("company", company);
+                    msg.put("companyId", company);
                     msg.put("check", check);
 
                     Map<String,String> map = new HashMap<String,String>();
                     RestTemplate restTemplate = new RestTemplate();
                     map = restTemplate.postForObject(getResources().getString(R.string.URL_USER_QUIT), msg, map.getClass());
-                    if(map.get("msg").equals("success")) {
+                    Log.e(TAG, map.toString(), null);
+
+                    if(map.get("msg").equals("成功退出")) {
                         getActivity().finish();
                     } else {
                         handler.sendEmptyMessage(QUIT_FAIL);

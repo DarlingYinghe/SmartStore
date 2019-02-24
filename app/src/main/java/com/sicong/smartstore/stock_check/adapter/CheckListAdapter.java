@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_check.view.CheckActivity;
+import com.sicong.smartstore.util.CheckStatue;
 
 import java.util.List;
 import java.util.Map;
@@ -20,12 +21,12 @@ public class CheckListAdapter extends RecyclerView.Adapter {
     private static final String TAG = "OutListAdapter";
 
     private Context mContext;
-    private List<Map<String, String>> mList;
+    private List<Map> mList;
     private String check;
     private String company;
     private String username;
 
-    public CheckListAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList, String check, String company, String username) {
+    public CheckListAdapter(@NonNull Context mContext, @NonNull List<Map> mList, String check, String company, String username) {
         this.mContext = mContext;
         this.mList = mList;
         this.check = check;
@@ -42,24 +43,24 @@ public class CheckListAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position) {
         ViewHolder view = (ViewHolder) holder;
-        final String id = (String)mList.get(position).get("id");
-        String date = (String)mList.get(position).get("date");
-        String title = (String)mList.get(position).get("title");
+        final String id = (String) mList.get(position).get("id");
+        String date = (String) mList.get(position).get("date");
+        String title = (String) mList.get(position).get("title");
         view.id.setText(id);
         view.date.setText(date);
         view.title.setText(title);
-
-            view.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(mContext, CheckActivity.class);
-                    intent.putExtra("check", check);
-                    intent.putExtra("id", id);
-                    intent.putExtra("company", company);
-                    intent.putExtra("username", username);
-                    mContext.startActivity(intent);
-                }
-            });
+        view.status.setText(CheckStatue.checkStatus(mList.get(position).get("status").toString()));
+        view.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, CheckActivity.class);
+                intent.putExtra("check", check);
+                intent.putExtra("id", id);
+                intent.putExtra("company", company);
+                intent.putExtra("username", username);
+                mContext.startActivity(intent);
+            }
+        });
 
 
     }
@@ -76,12 +77,14 @@ public class CheckListAdapter extends RecyclerView.Adapter {
         TextView id;//单号
         TextView date;//日期
         TextView title;//标题
+        TextView status;
 
         public ViewHolder(View itemView) {
             super(itemView);
             id = (TextView) itemView.findViewById(R.id.item_stock_check_id);
             date = (TextView) itemView.findViewById(R.id.item_stock_check_date);
-            title = (TextView)itemView.findViewById(R.id.item_stock_check_title);
+            title = (TextView) itemView.findViewById(R.id.item_stock_check_title);
+            status = itemView.findViewById(R.id.item_stock_check_status);
         }
     }
 

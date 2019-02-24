@@ -132,6 +132,8 @@ public class ChangeActivity extends AppCompatActivity {
     private List<String> layerList;
     private List<String> layerNumList;
 
+    private String stockType = "shelves";
+
     //适配器
     private ChangeDetailAdapter changeDetailAdapter;
     private ChangeScanAdapter scanInfoAdapter;
@@ -190,7 +192,7 @@ public class ChangeActivity extends AppCompatActivity {
         spinnerArea.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                area = areaList.get(position);
+                area = areaNumList.get(position);
                 Log.e(TAG, "onItemSelected: area is " + area, null);
             }
 
@@ -207,7 +209,7 @@ public class ChangeActivity extends AppCompatActivity {
         spinnerShelf.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                shelf = shelfList.get(position);
+                shelf = shelfNumList.get(position);
                 Log.e(TAG, "onItemSelected: shelf is " + shelf, null);
                 getLarerListThread();
             }
@@ -225,7 +227,7 @@ public class ChangeActivity extends AppCompatActivity {
         spinnerLayer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                layer = layerList.get(position);
+                layer = layerNumList.get(position);
                 Log.e(TAG, "onItemSelected: layer is " + layerNumList.get(position), null);
                 getLarerListThread();
             }
@@ -330,6 +332,9 @@ public class ChangeActivity extends AppCompatActivity {
         spinnerArea = areaView.findViewById(R.id.item_choose_type);
         spinnerShelf = shelfView.findViewById(R.id.item_choose_type);
         spinnerLayer = layerView.findViewById(R.id.item_choose_type);
+
+        shelfText = findViewById(R.id.change_shelf);
+        areaText = findViewById(R.id.change_area);
     }
 
     /**
@@ -379,6 +384,25 @@ public class ChangeActivity extends AppCompatActivity {
 
             }
         });
+        shelfText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stockType = "shelves";
+                layerView.setVisibility(View.VISIBLE);
+                shelfView.setVisibility(View.VISIBLE);
+                areaView.setVisibility(View.GONE);
+            }
+        });
+        areaText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stockType = "area";
+                layerView.setVisibility(View.GONE);
+                shelfView.setVisibility(View.GONE);
+                areaView.setVisibility(View.VISIBLE);
+            }
+        });
+
     }
 
     /**
@@ -523,8 +547,11 @@ public class ChangeActivity extends AppCompatActivity {
 
                             if (scanDatas.get(curItem).containsKey("rfids")) {
                                 List<Map> scanRfids = parseArray(scanDatas.get(curItem).get("rfids"), Map.class);
-                                Map temp = new HashMap();
+                                Map<String, String> temp = new HashMap<>();
                                 temp.put("rfid", map.epc);
+                                temp.put("warehouse_id", toWareHouseNum);
+                                temp.put("stock_type", stockType);
+                                temp.put("target_id", checkTargetId());
                                 scanRfids.add(temp);
                                 scanDatas.get(curItem).put("rfids", toJSONString(scanRfids));
                                 Log.e(TAG, scanDatas.toString(), null);
@@ -532,6 +559,9 @@ public class ChangeActivity extends AppCompatActivity {
                                 List<Map<String, String>> list = new ArrayList<>();
                                 Map<String, String> temp = new HashMap<>();
                                 temp.put("rfid", map.epc);
+                                temp.put("warehouse_id", toWareHouseNum);
+                                temp.put("stock_type", stockType);
+                                temp.put("target_id", checkTargetId());
                                 list.add(temp);
                                 scanDatas.get(curItem).put("rfids", toJSONString(list));
                                 Log.e(TAG, scanDatas.toString(), null);
@@ -563,6 +593,15 @@ public class ChangeActivity extends AppCompatActivity {
         });
     }
 
+    private String checkTargetId(){
+        if(stockType.equals("area")){
+            return area;
+        }else {
+            return layer;
+        }
+    }
+
+
     /**
      * 启动提交线程
      */
@@ -572,6 +611,7 @@ public class ChangeActivity extends AppCompatActivity {
             public void run() {
                 Log.w(TAG, "run: submit", null);
                 try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
                     //发送的信息
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
@@ -581,12 +621,16 @@ public class ChangeActivity extends AppCompatActivity {
                     msg.put("items", toJSONString(scanDatas));
                     Log.e(TAG, msg.toString(), null);
 
-                    List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
 
-                    //发出请求
-                    RestTemplate restTemplate = new RestTemplate();
-                    maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_CHECK_SUBMIT), msg, maps.getClass());
-                    Log.e(TAG, maps.toString(), null);
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_STOCK_CHANGE_SUBMIT))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+
+                    Log.e(TAG, result, null);
 
                     //处理请求的数据
 

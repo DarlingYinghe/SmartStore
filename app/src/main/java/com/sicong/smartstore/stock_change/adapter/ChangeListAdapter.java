@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.stock_change.view.ChangeActivity;
+import com.sicong.smartstore.util.CheckStatue;
 
 import java.util.List;
 import java.util.Map;
@@ -20,12 +21,12 @@ public class ChangeListAdapter extends RecyclerView.Adapter {
     private static final String TAG = "OutListAdapter";
 
     private Context mContext;
-    private List<Map<String, String>> mList;
+    private List<Map> mList;
     private String check;
     private String company;
     private String username;
 
-    public ChangeListAdapter(@NonNull Context mContext, @NonNull List<Map<String, String>> mList, String check, String company, String username) {
+    public ChangeListAdapter(@NonNull Context mContext, @NonNull List<Map> mList, String check, String company, String username) {
         this.mContext = mContext;
         this.mList = mList;
         this.check = check;
@@ -48,6 +49,7 @@ public class ChangeListAdapter extends RecyclerView.Adapter {
         view.id.setText(id);
         view.date.setText(date);
         view.title.setText(title);
+         view.status.setText(CheckStatue.checkStatus(mList.get(position).get("status").toString()));
 
             view.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -76,12 +78,14 @@ public class ChangeListAdapter extends RecyclerView.Adapter {
         TextView id;//单号
         TextView date;//日期
         TextView title;//标题
+        TextView status;
 
         public ViewHolder(View itemView) {
             super(itemView);
             id = (TextView) itemView.findViewById(R.id.item_stock_change_id);
             date = (TextView) itemView.findViewById(R.id.item_stock_change_date);
             title = (TextView)itemView.findViewById(R.id.item_stock_change_title);
+            status = itemView.findViewById(R.id.item_stock_change_status);
         }
     }
 

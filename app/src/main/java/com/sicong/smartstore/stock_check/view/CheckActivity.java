@@ -433,6 +433,7 @@ public class CheckActivity extends AppCompatActivity {
             public void run() {
                 Log.w(TAG, "run: submit", null);
                 try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
                     //发送的信息
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
@@ -442,12 +443,15 @@ public class CheckActivity extends AppCompatActivity {
                     msg.put("id",idFromIntent);
                     Log.e(TAG, msg.toString(), null);
 
-                    List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
 
-                    //发出请求
-                    RestTemplate restTemplate = new RestTemplate();
-                    maps = restTemplate.postForObject(getResources().getString(R.string.URL_STOCK_CHECK_SUBMIT), msg, maps.getClass());
-                    Log.e(TAG, maps.toString(), null);
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_STOCK_CHECK_SUBMIT))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+                    Log.e(TAG, result, null);
 
                     //处理请求的数据
 

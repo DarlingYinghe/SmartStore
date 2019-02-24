@@ -25,9 +25,12 @@ import android.widget.TextView;
 
 import com.sicong.smartstore.R;
 import com.sicong.smartstore.main.MainActivity;
+import com.sicong.smartstore.stock_in.adapter.InDetailAdapter;
 import com.sicong.smartstore.stock_in.adapter.InScanAdapter;
 import com.sicong.smartstore.stock_in.data.model.Cargo;
 import com.sicong.smartstore.stock_in.data.model.Statistic;
+import com.sicong.smartstore.stock_out.adapter.OutDetailAdapter;
+import com.sicong.smartstore.stock_out.view.OutActivity;
 import com.sicong.smartstore.util.fn.u6.model.ResponseHandler;
 import com.sicong.smartstore.util.fn.u6.model.Tag;
 import com.sicong.smartstore.util.fn.u6.operation.IUSeries;
@@ -84,13 +87,18 @@ public class InActivity extends AppCompatActivity {
     private static final int WAREHOUSE_ERROR = 12;
 
     private static final int LOCATION_SUCCESS = 13;
-    private static final int LAYER_SUCCESS = 16;
+    private static final int LAYER_SUCCESS = 14;
+
+    private static final int DETAIL_SUCCESS = 15;
+    private static final int DETAIL_FAILED = 16;
 
     //视图
     private AppCompatButton btnStart;//开始扫描按钮
     private AppCompatButton btnStop;//停止扫描按钮
     private AppCompatButton btnReset;//重置按钮
     private AppCompatButton btnSubmit;//提交按钮
+
+    private RecyclerView detailStockInView;
 
     private View typeViewFirst;//一级类型选择器的布局视图
     private View typeViewSecond;//二级类型选择器的布局视图
@@ -133,6 +141,7 @@ public class InActivity extends AppCompatActivity {
     private ArrayAdapter<String> areaAdapter;//货区名称适配器
     private ArrayAdapter<String> shelfAdapter;//货架名称适配器
     private ArrayAdapter<String> layerAdapter;//货架名称适配器
+    private InDetailAdapter inDetailAdapter;
 
 
     //数据
@@ -154,6 +163,8 @@ public class InActivity extends AppCompatActivity {
     private List<String> wareHouseList;
     private List<String> wareHouseNumList;
 
+    private List<Map> detailMaps;
+
 
     private String check;
     private String username;
@@ -167,6 +178,12 @@ public class InActivity extends AppCompatActivity {
     private List<String> areaNumList;
     private List<String> layerList;
     private List<String> layerNumList;
+
+    private List<Map<String, String>> ScanDatas;
+
+    private String stockType = "shelves";
+
+    private int curItem;
 
     //线程
     private Thread nameThread;
@@ -202,12 +219,14 @@ public class InActivity extends AppCompatActivity {
         initTextType();//初始化选择器的标题
         initChooseType();//初始化类型选择器
         initScanInfo();//初始化扫描信息视图
+        initDetailStockOutView();
     }
 
     private void initOnClick() {
         locationShlef.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                stockType = "shelves";
                 areaView.setVisibility(View.GONE);
                 layerView.setVisibility(View.VISIBLE);
                 shelfView.setVisibility(View.VISIBLE);
@@ -217,11 +236,25 @@ public class InActivity extends AppCompatActivity {
         locationArea.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                stockType = "area";
                 areaView.setVisibility(View.VISIBLE);
                 layerView.setVisibility(View.GONE);
                 shelfView.setVisibility(View.GONE);
             }
         });
+    }
+
+    /**
+     * 初始化待出库物品列表
+     */
+    private void initDetailStockOutView() {
+        detailMaps = new ArrayList<Map>();
+        inDetailAdapter = new InDetailAdapter(this, detailMaps);
+        detailStockInView.setAdapter(inDetailAdapter);
+        detailStockInView.setLayoutManager(new LinearLayoutManager(this));
+        detailStockInView.setHasFixedSize(true);
+        detailStockInView.setItemAnimator(new DefaultItemAnimator());
+        detailStockInView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
     }
 
     @Override
@@ -292,6 +325,12 @@ public class InActivity extends AppCompatActivity {
                         layerAdapter.notifyDataSetChanged();
                         spinnerLayer.setSelection(0, true);
                         break;
+                    case DETAIL_SUCCESS:
+                        inDetailAdapter.notifyDataSetChanged();
+                        break;
+                    case DETAIL_FAILED:
+                        Snackbar.make(snackbarContainer, "请求入库商品数据失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
+                        break;
                 }
                 return false;
             }
@@ -327,6 +366,7 @@ public class InActivity extends AppCompatActivity {
         btnReset = (AppCompatButton) findViewById(R.id.scan_btn_reset);
         btnSubmit = (AppCompatButton) findViewById(R.id.scan_btn_submit);
 
+        detailStockInView = findViewById(R.id.detail_stock_in);
 
         typeViewFirst = (View) findViewById(R.id.scan_type_first);
         typeViewSecond = (View) findViewById(R.id.scan_type_second);
@@ -571,17 +611,21 @@ public class InActivity extends AppCompatActivity {
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //测试代码
-                getRfidCode();
-                //测试代码结束
+                curItem = inDetailAdapter.getCurItem();
+
                 if (typeFirst == null || typeSecond == null || name == null) {
                     Snackbar.make(snackbarContainer, "请先选择类型", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
-                startScanThread();
-                Log.e(TAG, "onClick: start", null);
-                setBtnStatus(false, true, true, true);
-                getRfidCode();
+                if (curItem != -1) {
+                    startScanThread();
+                    Log.e(TAG, "onClick: start", null);
+                    setBtnStatus(false, true, true, true);
+                    getRfidCode();
+                } else {
+                    Snackbar.make(snackbarContainer, "请选择需要扫描的条目", Snackbar.LENGTH_SHORT).show();
+                }
+
             }
         });
 
@@ -628,6 +672,7 @@ public class InActivity extends AppCompatActivity {
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                submitThread();
                 Log.e(TAG, "onClick: submit", null);
                 submit();
             }
@@ -669,6 +714,26 @@ public class InActivity extends AppCompatActivity {
                         if (!InventoryTaps.contains(map.epc)) {//避免RFID码重复扫入与空类型扫入
                             //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
                             InventoryTaps.add(map.epc);
+
+                            //方案一
+                            if (scanDatas.get(curItem).containsKey("rfids")) {
+                                List<Map> scanRfids = parseArray(scanDatas.get(curItem).get("rfids"), Map.class);
+                                Map temp = new HashMap();
+                                temp.put("rfid",map.epc);
+                                scanRfids.add(temp);
+                                scanDatas.get(curItem).put("rfids", toJSONString(scanRfids));
+                                Log.e(TAG, scanDatas.toString(), null);
+                            }else{
+                                List<Map<String, String>> list = new ArrayList<>();
+                                Map<String,String> temp = new HashMap<>();
+                                temp.put("rfid", map.epc);
+                                list.add(temp);
+                                scanDatas.get(curItem).put("rfids", toJSONString(list));
+                                Log.e(TAG, scanDatas.toString(), null);
+                            }
+
+                            //方案二
+                            //商品id 需要自动给出，其他的跟上述相同
 
 
                             //创建新的货物对象
@@ -1086,6 +1151,83 @@ public class InActivity extends AppCompatActivity {
         }).start();
     }
 
+    /**
+     * 开始获取入库单
+     */
+    private void getDetailThread() {
+        scanDatas.clear();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
+                    Map<String, String> msg = new HashMap<>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+                    msg.put("id", id);
+
+
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_STOCK_IN_DETAIL))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+                    if (!result.equals("[null]")) {
+                        detailMaps = parseArray(result, Map.class);
+                        handler.sendEmptyMessage(DETAIL_SUCCESS);
+                    }else{
+                        handler.sendEmptyMessage(DETAIL_FAILED);
+                    }
+
+                    Log.e(TAG, "InActivity:" + result, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * 提交线程
+     */
+    private void submitThread() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient okHttpClient = new OkHttpClient();
+
+                    Map<String, String> msg = new HashMap<>();
+                    msg.put("check", check);
+                    msg.put("username", username);
+                    msg.put("companyId", company);
+                    msg.put("id", id);
+                    msg.put("items", toJSONString(scanDatas));
+
+
+                    RequestBody requestBody = RequestBody.create(JSON, toJSONString(msg));
+
+                    Request request = new Request.Builder()
+                            .post(requestBody)
+                            .url(getResources().getString(R.string.URL_STOCK_IN_SUBMIT))
+                            .build();
+                    Response response = okHttpClient.newCall(request).execute();
+                    String result = response.body().string();
+
+
+                    Log.e(TAG, "InActivity:" + result, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
 
     /**
      * 设置一级物品类型数组
@@ -1269,6 +1411,7 @@ public class InActivity extends AppCompatActivity {
                     if (status) {
                         startReceiveTypeThread();
                         getWareHouseListThread();
+                        getDetailThread();
                     } else {
                         Snackbar.make(snackbarContainer, "无可用的网络，请连接网络", Snackbar.LENGTH_SHORT).show();
                     }

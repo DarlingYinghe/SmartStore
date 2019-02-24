@@ -46,7 +46,7 @@ public class ChangeFragment extends Fragment {
     private String check;
     private String company;
     private String username;
-    private List<Map<String,String>> stockChangeList;
+    private List<Map> stockChangeList;
 
 
     //视图
@@ -124,7 +124,7 @@ public class ChangeFragment extends Fragment {
      * 初始化单号列表
      */
     private void initstockChangeListView() {
-        stockChangeList = new ArrayList<Map<String,String>>();
+        stockChangeList = new ArrayList<>();
 
         stockChangeListAdapter = new ChangeListAdapter(getContext(), stockChangeList, check, company, username);
         stockChangeListView.setAdapter(stockChangeListAdapter);

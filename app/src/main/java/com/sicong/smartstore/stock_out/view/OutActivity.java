@@ -86,7 +86,7 @@ public class OutActivity extends AppCompatActivity {
     private List<String> InventoryTaps;//已扫描RFID集合：已扫描过的rfid码，避免重复
     private List<Map<String, String>> scanMaps;//货物对象集合：扫描的所有物品的集合
     private List<Map<String, String>> scanDatas;
-    
+
     private int curItem;
 
     //视图
@@ -212,7 +212,8 @@ public class OutActivity extends AppCompatActivity {
      */
     private void initObject() {
         curItem = -1;
-        
+
+        scanDatas = new ArrayList<>();
         U6Series.setContext(this);
         mUSeries = U6Series.getInstance();
         mUSeries.openSerialPort(model);
@@ -227,7 +228,7 @@ public class OutActivity extends AppCompatActivity {
         if (intent.hasExtra("username")) {
             username = intent.getStringExtra("username");
         }
-        if (intent.hasExtra("id")){
+        if (intent.hasExtra("id")) {
             idFromIntent = intent.getStringExtra("id");
         }
     }
@@ -289,16 +290,16 @@ public class OutActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.e(TAG, "onClick: start", null);
                 curItem = outDetailAdapter.getCurItem();
-                Log.e(TAG, "onClick: curItem is "+curItem, null);
+                Log.e(TAG, "onClick: curItem is " + curItem, null);
 
-                if(curItem!=-1) {
+                if (curItem != -1) {
                     setBtnStatus(false, true, true, true);
                     getRfidCode();
                     startScanThread();
                 } else {
                     Snackbar.make(snackbarContainer, "请选择需要扫描的条目", Snackbar.LENGTH_SHORT).show();
                 }
-                
+
             }
         });
     }
@@ -318,7 +319,6 @@ public class OutActivity extends AppCompatActivity {
     }
 
 
-
     /**
      * 初始化重置扫描按钮
      */
@@ -336,10 +336,11 @@ public class OutActivity extends AppCompatActivity {
     private void reset() {
         mUSeries.stopInventory();
         scanInfoAdapter.clear();
-        if(InventoryTaps!=null) {
+        if (InventoryTaps != null) {
             InventoryTaps.clear();
         }
     }
+
     /**
      * 初始化提交扫描按钮
      */
@@ -348,7 +349,7 @@ public class OutActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isNetworkAvailable(OutActivity.this)) {
-                    if(checkResult()) {
+                    if (checkResult()) {
                         startSubmitThread();
                     } else {
                         Snackbar.make(snackbarContainer, "存在未扫描完成的条目，请检查", Snackbar.LENGTH_SHORT).show();
@@ -364,12 +365,12 @@ public class OutActivity extends AppCompatActivity {
         int n = 0;
         for (int i = 0; i < detailMaps.size(); i++) {
             int num = (Integer) detailMaps.get(i).get("num");
-            int count = (Integer)detailMaps.get(i).get("count");
-            if(num==count) {
+            int count = (Integer) detailMaps.get(i).get("count");
+            if (num == count) {
                 n++;
             }
         }
-        if(n==detailMaps.size()) {
+        if (n == detailMaps.size()) {
             return true;
         }
         return false;
@@ -392,50 +393,50 @@ public class OutActivity extends AppCompatActivity {
             public void onSuccess(String msg, Object data, byte[] parameters) {
                 Log.e(TAG, "onSuccess: 启动了", null);
 
-                if(!((boolean)outDetailAdapter.getmList().get(curItem).get("over"))) {
-                List<Tag> InventoryOnceResult = (List<Tag>) data;//一次扫描到的数据，因为不排除扫描到周围其他物体的可能性，故用数组接收结果，但是数组内部已做好对其他数组的过滤
+                if (!((boolean) outDetailAdapter.getmList().get(curItem).get("over"))) {
+                    List<Tag> InventoryOnceResult = (List<Tag>) data;//一次扫描到的数据，因为不排除扫描到周围其他物体的可能性，故用数组接收结果，但是数组内部已做好对其他数组的过滤
 
-                //对扫描结果进行筛选
-                for (int i = 0; i < InventoryOnceResult.size(); i++) {
-                    Tag map = InventoryOnceResult.get(i);
+                    //对扫描结果进行筛选
+                    for (int i = 0; i < InventoryOnceResult.size(); i++) {
+                        Tag map = InventoryOnceResult.get(i);
 
-                    if (!InventoryTaps.contains(map.epc)) {//避免RFID码重复扫入
-                        //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
-                        InventoryTaps.add(map.epc);
+                        if (!InventoryTaps.contains(map.epc)) {//避免RFID码重复扫入
+                            //若RFID不重复，则将扫描到的RFID码放入“已扫描RFID集合”
+                            InventoryTaps.add(map.epc);
 
 
-                        Map<String, String> scanMap = new HashMap<String, String>();
-                        scanMap.put("rfid", map.epc);
+                            Map<String, String> scanMap = new HashMap<String, String>();
+                            scanMap.put("rfid", map.epc);
 
-                        Map<String, Object> detailMap = detailMaps.get(curItem);
-                        Integer count = (Integer) detailMap.get("count");
-                        count++;
-                        detailMap.put("count", count);
-                        detailMaps.set(curItem, detailMap);
-                        if (scanDatas.get(curItem).containsKey("rfids")) {
-                            List<Map> scanRfids = parseArray(scanDatas.get(curItem).get("rfids"), Map.class);
-                            Map temp = new HashMap();
-                            temp.put("rfid",map.epc);
-                            scanRfids.add(temp);
-                            scanDatas.get(curItem).put("rfids", toJSONString(scanRfids));
-                            Log.e(TAG, scanDatas.toString(), null);
-                        }else{
-                            List<Map<String, String>> list = new ArrayList<>();
-                            Map<String,String> temp = new HashMap<>();
-                            temp.put("rfid", map.epc);
-                            list.add(temp);
-                            scanDatas.get(curItem).put("rfids", toJSONString(list));
-                            Log.e(TAG, scanDatas.toString(), null);
+                            Map<String, Object> detailMap = detailMaps.get(curItem);
+                            Integer count = (Integer) detailMap.get("count");
+                            count++;
+                            detailMap.put("count", count);
+                            detailMaps.set(curItem, detailMap);
+                            if (scanDatas.get(curItem).containsKey("rfids")) {
+                                List<Map> scanRfids = parseArray(scanDatas.get(curItem).get("rfids"), Map.class);
+                                Map temp = new HashMap();
+                                temp.put("rfid", map.epc);
+                                scanRfids.add(temp);
+                                scanDatas.get(curItem).put("rfids", toJSONString(scanRfids));
+                                Log.e(TAG, scanDatas.toString(), null);
+                            } else {
+                                List<Map<String, String>> list = new ArrayList<>();
+                                Map<String, String> temp = new HashMap<>();
+                                temp.put("rfid", map.epc);
+                                list.add(temp);
+                                scanDatas.get(curItem).put("rfids", toJSONString(list));
+                                Log.e(TAG, scanDatas.toString(), null);
+                            }
+
+                            //更新视图
+                            scanInfoAdapter.insert(scanMap);
+                            outDetailAdapter.changeCurItemCount(curItem);
+
+                        } else {
+
                         }
-
-                        //更新视图
-                        scanInfoAdapter.insert(scanMap);
-                        outDetailAdapter.changeCurItemCount(curItem);
-
-                    } else {
-
                     }
-                }
                 }
             }
 
@@ -464,7 +465,7 @@ public class OutActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    Log.e(TAG, "run: clientInfo id is "+idFromIntent, null);
+                    Log.e(TAG, "run: clientInfo id is " + idFromIntent, null);
                     //发送的信息
                     Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
@@ -492,7 +493,7 @@ public class OutActivity extends AppCompatActivity {
                     } else {
                         handler.sendEmptyMessage(CLIENT_INFO_FAIL);
                     }
-                }catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                     handler.sendEmptyMessage(CLIENT_INFO_ERROR);
                 }
@@ -542,11 +543,11 @@ public class OutActivity extends AppCompatActivity {
                 try {
 
                     //发送的信息
-                    Map<String,String> msg = new HashMap<String, String>();
+                    Map<String, String> msg = new HashMap<String, String>();
                     msg.put("check", check);
                     msg.put("companyId", company);
                     msg.put("username", username);
-                    msg.put("items",toJSONString(scanDatas));
+                    msg.put("items", toJSONString(scanDatas));
                     Log.e(TAG, msg.toString(), null);
 
                     List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
@@ -571,6 +572,7 @@ public class OutActivity extends AppCompatActivity {
      * 启动详细信息线程
      */
     private void startDetailThread() {
+        scanDatas.clear();
         detailThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -599,12 +601,16 @@ public class OutActivity extends AppCompatActivity {
                     List<Map> maps = parseArray(result, Map.class);
 
                     //处理请求的数据
-                    if (maps != null && maps.size()>0 && !result.equals("[null]")) {
+                    if (maps != null && maps.size() > 0 && !result.equals("[null]")) {
                         for (int i = 0; i < maps.size(); i++) {
-                            Map<String,Object> mapTmp = maps.get(i);
+                            Map<String, Object> mapTmp = maps.get(i);
                             mapTmp.put("count", 0);
                             mapTmp.put("over", false);
                             maps.set(i, mapTmp);
+
+                            Map<String, String> map = new HashMap<>();
+                            map.put("item_id", mapTmp.get("item_id").toString());
+                            scanDatas.add(map);
                         }
                         detailMaps.clear();
                         detailMaps.addAll(maps);
@@ -630,7 +636,7 @@ public class OutActivity extends AppCompatActivity {
             netBroadcastReceiver.setNetChangeListern(new NetBroadcastReceiver.NetChangeListener() {
                 @Override
                 public void onChangeListener(boolean status) {
-                    if(status) {
+                    if (status) {
                         startDetailThread();
                         startClientThread();
                     } else {
@@ -647,7 +653,7 @@ public class OutActivity extends AppCompatActivity {
     /**
      * 设置四个按钮的可用性
      */
-    private void setBtnStatus(boolean start, boolean stop, boolean reset, boolean submit){
+    private void setBtnStatus(boolean start, boolean stop, boolean reset, boolean submit) {
         btnStart.setEnabled(start);
         btnStop.setEnabled(stop);
         btnReset.setEnabled(reset);
